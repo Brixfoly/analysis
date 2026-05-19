@@ -1308,8 +1308,45 @@ Lemma measurable_g_measurableTypeE (T : choiceType) (G : set (set T)) :
   sigma_algebra setT G -> G.-sigma.-measurable = G.
 Proof. exact: sigma_algebra_id. Qed.
 
-Section measurability.
 
+(* Introducing the Borel sigma-algebra for topological spaces*)
+Section Topological_sigmaring.
+Variable T : topologicalType.
+
+Let G := @open T.
+
+Definition measurableTop : set (set T) :=
+  G.-sigma.-measurable.
+
+Definition measurable_of_topological : measurableType G .-sigma := g_sigma_algebraType G.
+
+Let measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
+Let measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
+Proof. exact: sigma_algebraC. Qed.
+Let measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i)) -> 
+measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
+
+Definition measurableTypeTop := g_sigma_algebraType G.
+
+HB.instance Definition Top_isMeasurable :
+  isMeasurable default_measure_display T :=
+  @isMeasurable.Build _ measurableTypeTop measurableTop
+    measurable0T measurableCT measurable_bigcupT.
+
+(* Not useful, only to check that it works*)
+Lemma open_in_sig (A : set T) : A \in @open T -> A \in <<s G>>.
+Proof. rewrite inE /smallest=> oA. rewrite inE => H /= [_ GH]. 
+by apply: GH. Qed.
+
+End Topological_sigmaring.
+
+Section Cast_Test.
+Variables (R : realType) (N : normedModType R).
+Check measurable_of_topological N : measurableType _.
+End Cast_Test.
+
+Section measurability.
+(* Bug here : it doesn't know what preimage_set_system is*)
 Lemma sigma_algebra_preimage (aT rT : Type) (G : set (set rT))
     (D : set aT) (f : aT -> rT) :
   sigma_algebra setT G -> sigma_algebra D (preimage_set_system D f G).
