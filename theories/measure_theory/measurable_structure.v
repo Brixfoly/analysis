@@ -4,10 +4,6 @@ From mathcomp Require Import all_ssreflect_compat algebra finmap.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
 From mathcomp Require Import boolp classical_sets functions cardinality reals.
-<<<<<<< HEAD
-=======
-From mathcomp Require Import ereal sequences.
->>>>>>> b7fff898a (less imports on meas_struct.v)
 
 (**md**************************************************************************)
 (* # Measure Theory                                                           *)
@@ -1331,50 +1327,9 @@ Lemma measurable_g_measurableTypeE (T : choiceType) (G : set_system T) :
   sigma_algebra setT G -> G.-sigma.-measurable = G.
 Proof. exact: sigma_algebra_id. Qed.
 
-
-<<<<<<< HEAD
-Lemma sigma_algebra_preimage (aT rT : Type) (G : set_system rT)
-=======
-(* Introducing the Borel sigma-algebra for topological spaces*)
-Section Topological_sigmaring.
-Variable T : topologicalType.
-
-Let G := @open T.
-
-Definition measurableTop : set (set T) :=
-  G.-sigma.-measurable.
-
-Definition measurable_of_topological : measurableType G .-sigma := g_sigma_algebraType G.
-
-Let measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
-Let measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
-Proof. exact: sigma_algebraC. Qed.
-Let measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i)) -> 
-measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
-
-Definition measurableTypeTop := g_sigma_algebraType G.
-
-HB.instance Definition Top_isMeasurable :
-  isMeasurable default_measure_display T :=
-  @isMeasurable.Build _ measurableTypeTop measurableTop
-    measurable0T measurableCT measurable_bigcupT.
-
-(* Not useful, only to check that it works*)
-Lemma open_in_sig (A : set T) : A \in @open T -> A \in <<s G>>.
-Proof. rewrite inE /smallest=> oA. rewrite inE => H /= [_ GH]. 
-by apply: GH. Qed.
-
-End Topological_sigmaring.
-
-Section Cast_Test.
-Variables (R : realType) (N : normedModType R).
-Check measurable_of_topological N : measurableType _.
-End Cast_Test.
-
 Section measurability.
-(* Bug here : it doesn't know what preimage_set_system is*)
-Lemma sigma_algebra_preimage (aT rT : Type) (G : set (set rT))
->>>>>>> da0da3f8c (added Borel sigma-algebra in measurable_structure.v +tried it in simple_functions_banach.v)
+
+Lemma sigma_algebra_preimage (aT rT : Type) (G : set_system rT)
     (D : set aT) (f : aT -> rT) :
   sigma_algebra setT G -> sigma_algebra D (preimage_set_system D f G).
 Proof.

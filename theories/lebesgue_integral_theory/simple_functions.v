@@ -69,6 +69,8 @@ Import numFieldNormedType.Exports.
 Local Open Scope classical_set_scope.
 Local Open Scope ring_scope.
 
+Import HBTopMeas.
+
 Module HBSimple.
 
 HB.structure Definition SimpleFun d (aT : sigmaRingType d) (rT : realType) :=
