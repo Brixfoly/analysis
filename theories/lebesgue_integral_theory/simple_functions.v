@@ -6,7 +6,6 @@ From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
 From mathcomp Require Import cardinality reals fsbigop ereal topology tvs.
 From mathcomp Require Import normedtype sequences real_interval esum measure.
 From mathcomp Require Import lebesgue_measure numfun realfun measurable_realfun.
-
 (**md**************************************************************************)
 (* # Simple functions                                                         *)
 (*                                                                            *)
@@ -69,6 +68,8 @@ Import numFieldNormedType.Exports.
 
 Local Open Scope classical_set_scope.
 Local Open Scope ring_scope.
+
+Import HBTopMeas.
 
 Module HBSimple.
 
