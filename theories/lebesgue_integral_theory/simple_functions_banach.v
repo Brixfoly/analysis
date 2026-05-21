@@ -1022,7 +1022,6 @@ Context d (T : measurableType d) (R : realType) (X : normedModType R).
 Variables (m : {finite_measure set T -> \bar R}).
 Variables (D : set T) (mD : measurable D) (f g : {sfun T >-> X}).
 
-Import HBSimple.
 
 Lemma sbintegralD : sbintegral m (f \+ g)%R = sbintegral m f + sbintegral m g.
 Proof.
