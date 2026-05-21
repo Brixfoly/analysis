@@ -305,7 +305,6 @@ Qed.
 Section simple_bounded.
 Context d (T : sigmaRingType d) (R : realType) (N : normedModType R).
 
-Import HBSimple.
 
 Lemma simple_bounded (f : {sfun T >-> N}) : bounded_fun f.
 Proof.
