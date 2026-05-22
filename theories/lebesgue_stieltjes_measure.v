@@ -550,9 +550,20 @@ Arguments completed_lebesgue_stieltjes_measure {R}.
 
 Section salgebra_R_ssets.
 Variable R : realType.
+Import HBTopMeas.
 
 Definition measurableR : set (set R) :=
   (R.-ocitv.-measurable).-sigma.-measurable.
+
+Check open_disjoint_itv_bigcup.
+
+(*TODO: prove the equivalence between being R.-ocitv.-measurable
+and being a borelian *)
+Lemma ocitv_borel_meas (a b : R) : measurableTop `]a,b]%classic.
+Proof. rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+1/k%:R[%classic).
+  rewrite eqEsubset set_itvoc. split=> [x /= axb|x cupx/=].
+    rewrite /bigcap=> i _. rewrite set_itvoo/=. split.
+  apply: bigcapT_measurable.
 
 HB.instance Definition _ := Pointed.on R.
 HB.instance Definition R_isMeasurable :
