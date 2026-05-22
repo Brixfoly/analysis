@@ -48,7 +48,7 @@ Import HBSimple.
 
 HB.structure Definition NonNegSimpleFun
     d (aT : sigmaRingType d) (rT : realType) :=
-  {f of @SimpleFun d _ _ f & @NonNegFun aT rT f}.
+  {f of @SimpleFun d _ rT f & @NonNegFun aT rT f}.
 
 End HBNNSimple.
 
@@ -192,7 +192,6 @@ Qed.
 
 HB.instance Definition _ := GRing.isSubmodClosed.Build _ _ sfun
   sfun_submod_closed.
-
 HB.instance Definition _ := [SubChoice_isSubLmodule  of {sfun aT >-> nT} by <:].
 
 Implicit Types (f g : {sfun aT >-> nT}).
@@ -201,7 +200,7 @@ Lemma sfun0 : (0 : {sfun aT >-> nT}) =1 cst 0. Proof. by []. Qed.
 Lemma sfunN f : - f =1 \- f. Proof. by []. Qed.
 Lemma sfunD f g : f + g =1 f \+ g. Proof. by []. Qed.
 Lemma sfunB f g : f - g =1 f \- g. Proof. by []. Qed.
-Lemma sfunM k g : k*: g =1 k \*: g. Proof. by []. Qed.
+Lemma sfunS k g : k*: g =1 k \*: g. Proof. by []. Qed.
 Lemma sfun_sum I r (P : {pred I}) (f : I -> {sfun aT >-> nT}) (x : aT) :
   (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
 Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
@@ -215,6 +214,7 @@ HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
 HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g).*)
 
+Import HBSimple.
 Definition mindic_mod {d} {aT : measurableType d} 
 {D : set aT} (mD : d.-measurable D) (z: nT) (x:aT) := (\1_D x) *: z.
 
@@ -225,6 +225,20 @@ Definition indic_mod_sfun (D : set aT) (mD : measurable D) (z:nT) : {sfun aT >->
   mindic_mod mD z.*)
 
 End module.
+
+Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
+  t < 0 -> f @^-1` [set t] = set0.
+Proof.
+move=> t0.
+by apply/preimage10 => -[x _]; apply: contraPnot t0 => <-; rewrite le_gtF.
+Qed.
+
+Lemma preimage_cstM T (R : realFieldType) (x y : R) (f : T -> R) :
+  x != 0 -> (cst x \* f) @^-1` [set y] = f @^-1` [set y / x].
+Proof.
+move=> x0; apply/seteqP.
+by split=> [z/= <-|z/= ->]; rewrite [x * _]mulrC (mulfK, divfK).
+Qed.
 
 Lemma preimage_add T (R : numDomainType) (f g : T -> R) z :
   (f \+ g) @^-1` [set z] = \bigcup_(a in f @` setT)
@@ -266,6 +280,7 @@ Proof. by move=> /=. Qed.
 HB.instance Definition _ x := @isNonNegFun.Build T R (cst x%:num)
   (cst_nnfun_subproof x).
 
+(*TODO*)
 Definition cst_nnsfun (r : {nonneg R}) : {nnsfun T >-> R} := cst r%:num.
 
 Definition nnsfun0 : {nnsfun T >-> R} := cst_nnsfun 0%:nng.
