@@ -30,17 +30,50 @@ Reserved Notation "{ 'sfun' aT >-> T }"
   (at level 0, format "{ 'sfun'  aT  >->  T }").
 Reserved Notation "[ 'sfun' 'of' f ]"
   (at level 0, format "[ 'sfun'  'of'  f ]").
-  
-Module HBSimple.
-Import HBTopMeas.
 
-HB.structure Definition SimpleFun d (aT : sigmaRingType d) 
-(T : topologicalType) :=
-  {f of @isMeasurableFun d _ aT T f & @FiniteImage aT T f}.
+(* Introducing the Borel sigma-algebra for topological spaces*)
+Section Topological_measurable.
+Variable T : topologicalType.
+
+Let G := @open T.
+
+Definition measurableTop : set (set T) :=
+  G.-sigma.-measurable.
+
+Lemma measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
+Lemma measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
+Proof. exact: sigma_algebraC. Qed.
+Lemma measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i)) -> 
+measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
+
+Definition measurableTypeTop := g_sigma_algebraType G.
+
+End Topological_measurable.
+
+#[short(type = "measurableTopologicalType")] 
+HB.structure Definition MeasurableTopological d := 
+{U of Topological U & Measurable d U}.
+HB.saturate topologicalType.
+HB.saturate realType.
+
+HB.instance Definition topological_isMeasurable (T : topologicalType) :
+  isMeasurable default_measure_display T :=
+  @isMeasurable.Build open.-sigma T (@measurableTop T)
+    (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).
+
+HB.instance Definition _ (T : topologicalType) := Measurable.on (measurableTypeTop T).
+HB.instance Definition _ (T : topologicalType) := Topological.on (measurableTypeTop T).
+HB.instance Definition _ (T : topologicalType) := MeasurableTopological.on (measurableTypeTop T).
+
+Module HBSimple.
+
+HB.structure Definition SimpleFun d d' (aT : sigmaRingType d) 
+(T : measurableTopologicalType d') :=
+  {f of @isMeasurableFun _ _ aT T f & @FiniteImage aT T f}.
 
 End HBSimple.
 
-Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ aT T) : form_scope.
+Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
 Module HBNNSimple.
@@ -48,7 +81,7 @@ Import HBSimple.
 
 HB.structure Definition NonNegSimpleFun
     d (aT : sigmaRingType d) (rT : realType) :=
-  {f of @SimpleFun d _ rT f & @NonNegFun aT rT f}.
+  {f of @SimpleFun d _ aT (measurableTypeTop rT) f & @NonNegFun aT rT f}.
 
 End HBNNSimple.
 
@@ -56,24 +89,23 @@ Notation "{ 'nnsfun' aT >-> T }" := (@HBNNSimple.NonNegSimpleFun.type _ aT%type 
 Notation "[ 'nnsfun' 'of' f ]" := [the {nnsfun _ >-> _} of f] : form_scope.
 
 Section sfun_pred.
-Context {d} {aT : sigmaRingType d} {T: topologicalType}.
-Import HBTopMeas.
-Definition sfun : {pred _ -> _} := [predI @mfun _ _ aT T & fimfun].
+Context {d d'} {aT : sigmaRingType d} {T: measurableTopologicalType d'}.
+Definition sfun : {pred _ -> _} := [predI (@mfun d d' aT T) & fimfun].
 Definition sfun_key : pred_key sfun. Proof. exact. Qed.
 Canonical sfun_keyed := KeyedPred sfun_key.
 Lemma sub_sfun_mfun : {subset sfun <= mfun}. Proof. by move=> x /andP[]. Qed.
 Lemma sub_sfun_fimfun : {subset sfun <= fimfun}. Proof. by move=> x /andP[]. Qed.
+
 End sfun_pred.
 
 Section sfun.
-Context {d} {aT : measurableType d} {T : topologicalType}.
-Import HBTopMeas.
+Context {d d'} {aT : measurableType d} {T : measurableTopologicalType d'}.
 Notation Sf := {sfun aT >-> T}.
-Notation sfun := (@sfun _ aT T).
+Notation sfun := (@sfun _ _ aT T).
 Section Sub.
 Context (f : aT -> T) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
-  @isMeasurableFun.Build d _ aT T f (set_mem (sub_sfun_mfun fP)).
+  @isMeasurableFun.Build d d' aT T f (set_mem (sub_sfun_mfun fP)).
 #[local] HB.instance Definition _ := sfun_Sub1_subproof.
 Definition sfun_Sub2_subproof :=
   @FiniteImage.Build aT T f (set_mem (sub_sfun_fimfun fP)).
@@ -129,7 +161,6 @@ Definition fctWE := (fctD, fctN, fctM, fctZ).
 
 Section composition.
 Context d (aT : measurableType d) (rT : realType) (T1 T2 T3 : normedModType rT).
-Import HBTopMeas.
 Import HBSimple.
 
 Lemma singleton_inter {R : realType} {D : metricType R} (x:D) : [set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
@@ -144,7 +175,10 @@ Proof.
 Qed.
 
 (* TODO : prove it for metric spaces, when it is doable*)
-Lemma measurable1 {T : topologicalType} (x:T) : measurable [set x]. Admitted.
+Lemma measurable1 {R : realType} {D : metricType R} (x:measurableTypeTop D) : measurable [set x].
+Proof.
+  rewrite singleton_inter. apply: bigcap_measurable=> [//|k _]. 
+  rewrite/measurable/=/smallest/bigcap/= => A [sda osa]. apply: osa. have:= (ball_open x).
 
 (* No choice but to do it all at the same time: 
 B(X x Y) != B(X) \otimes B(Y) in the general case.*)
@@ -181,7 +215,6 @@ End composition.
 
 Section module.
 Context d (aT : measurableType d) (rT : realType) (nT : normedModType rT).
-Import HBTopMeas.
 Import HBSimple.
 
 Lemma sfun_submod_closed : submod_closed (@sfun d aT nT).
