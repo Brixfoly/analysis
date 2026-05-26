@@ -30,31 +30,7 @@ Reserved Notation "{ 'sfun' aT >-> T }"
   (at level 0, format "{ 'sfun'  aT  >->  T }").
 Reserved Notation "[ 'sfun' 'of' f ]"
   (at level 0, format "[ 'sfun'  'of'  f ]").
-(*
-(* Introducing the Borel sigma-algebra for topological spaces*)
-Section Topological_measurable.
-Variable T : topologicalType.
-
-Let G := @open T.
-
-Definition measurableTop : set (set T) :=
-  G.-sigma.-measurable.
-
-Lemma measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
-Lemma measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
-Proof. exact: sigma_algebraC. Qed.
-Lemma measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i)) -> 
-measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
-
-Definition measurableTypeTop := g_sigma_algebraType G.
-
-End Topological_measurable.
-
-HB.instance Definition topological_isMeasurable (T : topologicalType) :
-  isMeasurable default_measure_display T :=
-  @isMeasurable.Build _ T (@measurableTop T)
-    (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).
-*)
+  
 Module HBSimple.
 
 HB.structure Definition SimpleFun d (aT : sigmaRingType d) 
@@ -63,7 +39,7 @@ HB.structure Definition SimpleFun d (aT : sigmaRingType d)
 
 End HBSimple.
 
-Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ aT T) : form_scope.
+Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
 Module HBNNSimple.
@@ -91,7 +67,7 @@ End sfun_pred.
 Section sfun.
 Context {d} {aT : measurableType d} {T : topologicalType}.
 Notation Sf := {sfun aT >-> T}.
-Notation sfun := (@sfun _ aT T).
+Notation sfun := (@sfun _ _ aT T).
 Section Sub.
 Context (f : aT -> (g_sigma_algebraType open)) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
