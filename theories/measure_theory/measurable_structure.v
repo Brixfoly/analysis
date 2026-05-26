@@ -1309,40 +1309,6 @@ Lemma measurable_g_measurableTypeE (T : choiceType) (G : set (set T)) :
 Proof. exact: sigma_algebra_id. Qed.
 
 
-(* Introducing the Borel sigma-algebra for topological spaces*)
-Section Topological_sigmaring.
-Variable T : topologicalType.
-
-Let G := @open T.
-
-Definition measurableTop : set (set T) :=
-  G.-sigma.-measurable.
-
-Definition measurable_of_topological : measurableType G.-sigma := g_sigma_algebraType G.
-
-Lemma measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
-Lemma measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
-Proof. exact: sigma_algebraC. Qed.
-Lemma measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i)) -> 
-measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
-
-Definition measurableTypeTop := g_sigma_algebraType G.
-
-End Topological_sigmaring.
-
-Module HBTopMeas.
-
-(* To stop making the non forgetful inheritance warning, topologicalType would have to be
-  below measurableTypes in the hierarchy *)
-HB.instance Definition _ (T : topologicalType) := Choice.on (@measurableTypeTop T).
-
-HB.instance Definition Top_isMeasurable (T : topologicalType) :
-  isMeasurable default_measure_display T := @isMeasurable.Build _
-  (measurableTypeTop T) (@measurableTop T) 
-  (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).
-
-End HBTopMeas.
-
 Section measurability.
 (* Bug here : it doesn't know what preimage_set_system is*)
 Lemma sigma_algebra_preimage (aT rT : Type) (G : set (set rT))
