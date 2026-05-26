@@ -53,17 +53,22 @@ End Topological_measurable.
 #[short(type = "measurableTopologicalType")] 
 HB.structure Definition MeasurableTopological d := 
 {U of Topological U & Measurable d U}.
-HB.saturate topologicalType.
-HB.saturate realType.
+
+(*
 
 HB.instance Definition topological_isMeasurable (T : topologicalType) :
   isMeasurable default_measure_display T :=
   @isMeasurable.Build open.-sigma T (@measurableTop T)
-    (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).
+    (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).*)
 
 HB.instance Definition _ (T : topologicalType) := Measurable.on (measurableTypeTop T).
 HB.instance Definition _ (T : topologicalType) := Topological.on (measurableTypeTop T).
+HB.saturate topologicalType.
+HB.saturate measurableTypeTop.
 HB.instance Definition _ (T : topologicalType) := MeasurableTopological.on (measurableTypeTop T).
+
+Axiom T: topologicalType.
+Check (measurableTypeTop T) : measurableType open.-sigma.
 
 Module HBSimple.
 
