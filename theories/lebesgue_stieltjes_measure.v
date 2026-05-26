@@ -550,7 +550,6 @@ Arguments completed_lebesgue_stieltjes_measure {R}.
 
 Section salgebra_R_ssets.
 Variable R : realType.
-Import HBTopMeas.
 
 Definition measurableR : set (set R) :=
   (R.-ocitv.-measurable).-sigma.-measurable.
@@ -560,9 +559,14 @@ Check open_disjoint_itv_bigcup.
 (*TODO: prove the equivalence between being R.-ocitv.-measurable
 and being a borelian *)
 Lemma ocitv_borel_meas (a b : R) : measurableTop `]a,b]%classic.
-Proof. rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+1/k%:R[%classic).
-  rewrite eqEsubset set_itvoc. split=> [x /= axb|x cupx/=].
-    rewrite /bigcap=> i _. rewrite set_itvoo/=. split.
+Proof. rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+(k.+1%:R)^-1[%classic).
+  rewrite eqEsubset set_itvoc. split=> [x /= /andP[ax xb] i _|x cupx/=].
+  rewrite set_itvoo/=. apply/andP; split=>[//|]. apply: (le_lt_trans xb). 
+  rewrite -{1}(add0r b) (addrC b). apply: ltr_leD=>[|//]. rewrite invr_gt0. apply: ltr0Sn.
+  apply/andP; split. have:=cupx 1%N _. rewrite set_itvoo /= =>Q. have: a<x/\ x<b+2^-1 by apply/andP; exact:Q.
+  by move=> [ax _]. apply/ler_gtP=> z bz.  
+
+  Search (_<_) (_<=_).
   apply: bigcapT_measurable.
 
 HB.instance Definition _ := Pointed.on R.
