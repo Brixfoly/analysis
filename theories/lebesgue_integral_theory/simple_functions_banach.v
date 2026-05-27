@@ -39,7 +39,7 @@ HB.structure Definition SimpleFun d (aT : sigmaRingType d)
 
 End HBSimple.
 
-Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
+Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ aT T) : form_scope.
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
 Module HBNNSimple.
@@ -67,7 +67,7 @@ End sfun_pred.
 Section sfun.
 Context {d} {aT : measurableType d} {T : topologicalType}.
 Notation Sf := {sfun aT >-> T}.
-Notation sfun := (@sfun _ _ aT T).
+Notation sfun := (@sfun _ aT T).
 Section Sub.
 Context (f : aT -> (g_sigma_algebraType open)) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
