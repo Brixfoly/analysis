@@ -623,12 +623,12 @@ Proof.
   by apply: bigcapT_measurable=>k; rewrite /measurable/=/smallest=> T [saT oT]; apply: oT.
 Qed.
 
-(*TODO: Recompile everything to see if eq_measTop_measR works*)
+(*TODO: Make the proof work (maybe modify the top_measurable section ?)*)
 Lemma eq_measTop_measR : @measurableTop R = measurableR.
 Proof.
   rewrite eqEsubset/measurableTop /measurableR; split. 
-  apply: g_sigma_algebra_subset open_octiv_measurable.
-  have:= @g_sigma_algebra_subset (open.-sigma) (R:measurableType open.-sigma).
+  apply: sigma_algebra_subset open_octiv_measurable.
+  have:= @sigma_algebra_subset (open.-sigma) (R:measurableType open.-sigma).
 
 Qed.
 (*TODO : do HB stuff to prove that the default measure displays are the same*)

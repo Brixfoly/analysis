@@ -1292,10 +1292,10 @@ Variables (T : choiceType) (G : set (set T)).
 Lemma sigma_algebraC (A : set T) : <<s G >> A -> <<s G >> (~` A).
 Proof. by move=> sGA; rewrite -setTD; exact: sigma_algebraCD. Qed.
 
-Lemma g_sigma_algebra_subset {d} {T : measurableType d} {G : set (set T)}
-(mG : G `<=`d.-measurable) : <<s G>> `<=`d.-measurable.
+Lemma sigma_algebra_subset {d} {M : measurableType d} {H : set (set M)}
+(mH : H `<=`d.-measurable) : <<s H>> `<=` measurable.
 Proof.
-  by rewrite /smallest/bigcap=> H/= /(_ d.-measurable) oH; apply: oH;
+  by rewrite /smallest/bigcap=> K/= /(_ d.-measurable) oK; apply: oK;
   split=>[|//]; apply:sigma_algebra_measurable.
 Qed.
 
