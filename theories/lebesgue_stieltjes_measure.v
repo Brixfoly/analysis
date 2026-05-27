@@ -554,27 +554,6 @@ Variable R : realType.
 Definition measurableR : set (set R) :=
   (R.-ocitv.-measurable).-sigma.-measurable.
 
-Check open_disjoint_itv_bigcup.
-
-(*TODO: prove the equivalence between being R.-ocitv.-measurable
-and being a borelian *)
-Lemma ocitv_measurableTop (a b : R) : measurableTop `]a,b]%classic.
-Proof. rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+(k.+1%:R)^-1[%classic).
-  rewrite eqEsubset set_itvoc. split=> [x /= /andP[ax xb] i _|x cupx/=].
-  rewrite set_itvoo/=. apply/andP; split=>[//|]. apply: (le_lt_trans xb). 
-  rewrite -{1}(add0r b) (addrC b). apply: ltr_leD=>[|//]. rewrite invr_gt0. apply: ltr0Sn.
-  apply/andP; split. have:=cupx 1%N _. rewrite set_itvoo /= =>Q. have: a<x/\ x<b+2^-1 by apply/andP; exact:Q.
-  by move=> [ax _]. apply/ler_gtP=> z bz. rewrite /bigcap/= in cupx. 
-  have Q := cupx (truncn (1/(z-b))). have: a<x<b+(truncn (1 / (z - b))).+1%:R^-1.
-  by exact: Q. move=> /andP[_ xbt]. have : b + (truncn (1 / (z - b))).+1%:R^-1 <= z.
-  rewrite -lerBrDl. rewrite invf_ple. rewrite posrE. have inp : 0<1/(z-b).
-  by rewrite div1r invr_gt0 ltrBrDl addr0. exact: lt_trans inp (truncnS_gt (1/(z-b))).
-  by rewrite posrE ltrBrDl addr0. have:= (truncnS_gt (1/(z-b))). rewrite div1r.
-  by apply/ler_ltP.
-
-  Search (_<_) (_<=_).
-  apply: bigcapT_measurable.
-
 HB.instance Definition _ := Pointed.on R.
 HB.instance Definition R_isMeasurable :
   isMeasurable default_measure_display R :=
@@ -615,6 +594,44 @@ case: i => [[[] a|[]] [[] b|[]]] => //; do ?by rewrite set_itv_ge.
 - by rewrite set_itvNyy.
 Qed.
 #[local] Hint Resolve measurable_itv : core.
+
+
+Lemma open_octiv_measurable (U : set R) (oU : open U) : measurableR U.
+Proof.
+  by rewrite (open_disjoint_itv_bigcup oU); apply: bigcup_measurable=>k _;
+  have:= @open_disjoint_itv_is_interval _ U oU k; rewrite is_intervalP=> ->;
+  apply: measurable_itv.
+Qed.
+
+(*Maybe make a lemma that could replace ler_ltP which only uses {1/k, k>0}*)
+Lemma ocitv_measurableTop (a b : R) : measurableTop `]a,b]%classic.
+Proof. 
+  rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+(k.+1%:R)^-1[%classic).
+  rewrite eqEsubset set_itvoc. split=> [x /= /andP[ax xb] i _|x cupx/=].
+  rewrite set_itvoo/=. apply/andP; split=>[//|]. apply: (le_lt_trans xb). 
+  rewrite -{1}(add0r b) (addrC b). apply: ltr_leD=>[|//]. rewrite invr_gt0. 
+  apply: ltr0Sn. apply/andP; split. have:=cupx 1%N _. rewrite set_itvoo /= =>Q. 
+  have: a<x/\ x<b+2^-1 by apply/andP; exact:Q.
+  by move=> [ax _]. apply/ler_gtP=> z bz. rewrite /bigcap/= in cupx. 
+  have Q := cupx (truncn (1/(z-b))). have: a<x<b+(truncn (1 / (z - b))).+1%:R^-1.
+  by exact: Q. move=> /andP[_ xbt]. have : b + (truncn (1 / (z - b))).+1%:R^-1 <= z.
+  rewrite -lerBrDl. rewrite invf_ple. rewrite posrE. have inp : 0<1/(z-b).
+  by rewrite div1r invr_gt0 ltrBrDl addr0. exact: lt_trans inp (truncnS_gt (1/(z-b))).
+  by rewrite posrE ltrBrDl addr0. have:= (truncnS_gt (1/(z-b))). rewrite div1r.
+  by apply/ler_ltP. move=> btz. have:= lt_le_trans xbt btz. by apply/ler_ltP.
+
+  by apply: bigcapT_measurable=>k; rewrite /measurable/=/smallest=> T [saT oT]; apply: oT.
+Qed.
+
+(*TODO: Recompile everything to see if eq_measTop_measR works*)
+Lemma eq_measTop_measR : @measurableTop R = measurableR.
+Proof.
+  rewrite eqEsubset/measurableTop /measurableR; split. 
+  apply: g_sigma_algebra_subset open_octiv_measurable.
+  have:= @g_sigma_algebra_subset (open.-sigma) (R:measurableType open.-sigma).
+
+Qed.
+(*TODO : do HB stuff to prove that the default measure displays are the same*)
 
 End salgebra_R_ssets.
 #[global]
