@@ -160,6 +160,7 @@ Lemma cst_sfunE x : @cst_sfun x =1 cst x. Proof. by []. Qed.
 
 End sfun.
 
+
 (* a better way to refactor function stuffs *)
 Lemma fctD (T : Type) (K : pzRingType) (L : lmodType K) (f g : T -> L) : f + g = f \+ g.
 Proof. by []. Qed.
@@ -261,8 +262,21 @@ HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
 HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g).
 
-Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: N) (x:aT) := (\1_D x) *: z.
-About mindic_mod.
+Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT) (x:aT) := (\1_D x) *: z.
+
+Lemma mindinic_modE {D : set aT} (mD : d.-measurable D) (z: nT) :
+mindic_mod mD z = fun x => if x \in D then z else 0.
+Proof.
+  apply/funext=>x; rewrite /mindic_mod indicE; case: ifP=>/=. by rewrite scale1r.
+  by rewrite scale0r.
+Qed.
+
+Lemma measurable_indic_mod (D : set aT) (mD : measurable D) (z:(measurableTypeTop nT)) :
+  measurable_fun [set:aT] (mindic_mod mD z).
+
+HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT nT (mindic_mod mD z)
+  (@measurable_indic _ aT rT setT D mD).
+
 HB.instance Definition _ (D : set aT) (mD : measurable D) (z:nT):
   @FImFun aT nT (mindic_mod mD z) := FImFun.on (mindic_mod mD z).
 
