@@ -558,13 +558,16 @@ Check open_disjoint_itv_bigcup.
 
 (*TODO: prove the equivalence between being R.-ocitv.-measurable
 and being a borelian *)
-Lemma ocitv_borel_meas (a b : R) : measurableTop `]a,b]%classic.
+Lemma ocitv_measurableTop (a b : R) : measurableTop `]a,b]%classic.
 Proof. rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+(k.+1%:R)^-1[%classic).
   rewrite eqEsubset set_itvoc. split=> [x /= /andP[ax xb] i _|x cupx/=].
   rewrite set_itvoo/=. apply/andP; split=>[//|]. apply: (le_lt_trans xb). 
   rewrite -{1}(add0r b) (addrC b). apply: ltr_leD=>[|//]. rewrite invr_gt0. apply: ltr0Sn.
   apply/andP; split. have:=cupx 1%N _. rewrite set_itvoo /= =>Q. have: a<x/\ x<b+2^-1 by apply/andP; exact:Q.
-  by move=> [ax _]. apply/ler_gtP=> z bz.  
+  by move=> [ax _]. apply/ler_gtP=> z bz. rewrite /bigcap/= in cupx. 
+  have Q := cupx (truncn (1/(z-b))). have: a<x<b+(truncn (1 / (z - b))).+1%:R^-1.
+  by exact: Q. move=> /andP[_ xbt]. have : b + (truncn (1 / (z - b))).+1%:R^-1 <= z.
+  Search (_+_ <= _) (_-_).
 
   Search (_<_) (_<=_).
   apply: bigcapT_measurable.
