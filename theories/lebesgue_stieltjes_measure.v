@@ -567,7 +567,10 @@ Proof. rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+(k.+1%:R)^-1[%classic).
   by move=> [ax _]. apply/ler_gtP=> z bz. rewrite /bigcap/= in cupx. 
   have Q := cupx (truncn (1/(z-b))). have: a<x<b+(truncn (1 / (z - b))).+1%:R^-1.
   by exact: Q. move=> /andP[_ xbt]. have : b + (truncn (1 / (z - b))).+1%:R^-1 <= z.
-  Search (_+_ <= _) (_-_).
+  rewrite -lerBrDl. rewrite invf_ple. rewrite posrE. have inp : 0<1/(z-b).
+  by rewrite div1r invr_gt0 ltrBrDl addr0. exact: lt_trans inp (truncnS_gt (1/(z-b))).
+  by rewrite posrE ltrBrDl addr0. have:= (truncnS_gt (1/(z-b))). rewrite div1r.
+  by apply/ler_ltP.
 
   Search (_<_) (_<=_).
   apply: bigcapT_measurable.
