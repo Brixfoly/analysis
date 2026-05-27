@@ -4,6 +4,10 @@ From mathcomp Require Import all_ssreflect_compat algebra finmap.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
 From mathcomp Require Import boolp classical_sets functions cardinality reals.
+<<<<<<< HEAD
+=======
+From mathcomp Require Import ereal sequences.
+>>>>>>> b7fff898a (less imports on meas_struct.v)
 
 (**md**************************************************************************)
 (* # Measure Theory                                                           *)
