@@ -4,7 +4,7 @@ From mathcomp Require Import all_ssreflect_compat all_algebra finmap.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
 From mathcomp Require Import boolp classical_sets functions cardinality reals.
-From mathcomp Require Import ereal topology normedtype sequences.
+From mathcomp Require Import ereal sequences.
 
 (**md**************************************************************************)
 (* # Measure Theory                                                           *)
