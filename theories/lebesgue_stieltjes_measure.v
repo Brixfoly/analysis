@@ -605,7 +605,7 @@ Qed.
 
 (*Maybe make a lemma that could replace ler_ltP which only uses {1/k, k>0}*)
 Lemma ocitv_measurableTop (a b : R) : measurableTop `]a,b]%classic.
-Proof. 
+Proof.
   rewrite [(`]a,b]%classic)] (_:_ = \bigcap_k `]a,b+(k.+1%:R)^-1[%classic).
   rewrite eqEsubset set_itvoc. split=> [x /= /andP[ax xb] i _|x cupx/=].
   rewrite set_itvoo/=. apply/andP; split=>[//|]. apply: (le_lt_trans xb). 
@@ -623,13 +623,13 @@ Proof.
   by apply: bigcapT_measurable=>k; rewrite /measurable/=/smallest=> T [saT oT]; apply: oT.
 Qed.
 
-(*TODO: Make the proof work (maybe modify the top_measurable section ?)*)
+Import HBTopMeas.
 Lemma eq_measTop_measR : @measurableTop R = measurableR.
 Proof.
   rewrite eqEsubset/measurableTop /measurableR; split. 
-  apply: sigma_algebra_subset open_octiv_measurable.
-  have:= @sigma_algebra_subset (open.-sigma) (R:measurableType open.-sigma).
-
+  apply: sigma_algebra_subset open_octiv_measurable. 
+  apply: sigma_algebra_subset; rewrite /measurable/= => I; 
+  case=> [[a b] _]<-/=; exact : ocitv_measurableTop.
 Qed.
 (*TODO : do HB stuff to prove that the default measure displays are the same*)
 
