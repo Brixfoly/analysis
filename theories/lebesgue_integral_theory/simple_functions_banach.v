@@ -55,6 +55,9 @@ HB.instance Definition topological_isMeasurable (T : topologicalType) :
   @isMeasurable.Build _ T (@measurableTop T)
     (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).
 
+
+(*All of these are not that useful, just need to have a forgetful inheritance
+of measurable spaces by topological spaces*)
 #[short(type = "measurableTopologicalType")] 
 HB.structure Definition MeasurableTopological d := 
 {U of Topological U & Measurable d U}.
@@ -178,20 +181,20 @@ Section composition.
 Context d (aT : measurableType d) (rT : realType) (T1 T2 T3 : normedModType rT).
 Import HBSimple.
 
-Lemma singleton_inter {R : realType }{N : normedModType R} (x:N) : [set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
+Lemma singleton_bigcap {R : realType} {N : normedModType R} (x:N) : [set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
 Proof.
   rewrite eqEsubset; split=> [x0 ->| y] /=. rewrite /bigcap /= => k _;
   apply: ballxx; by rewrite ltr_pdivlMr.
   rewrite /bigcap/=; apply: contraPP=> ynx; rewrite -existsNE.
-  exists (Num.truncn (1/ `|x- y|)). rewrite not_implyE; split => [//|].
+  exists (truncn (1/ `|x- y|)). rewrite not_implyE; split => [//|].
   rewrite pseudo_metric_ball_norm/= ltr_pdivlMr => //; have := truncnS_gt (1/`|x-y|);
-  rewrite ltr_pdivrMr. rewrite normr_gt0. apply/eqP=>/subr0_eq. exact: nesym ynx.
+  rewrite ltr_pdivrMr. rewrite normr_gt0; apply/eqP=>/subr0_eq; exact: nesym.
   by rewrite mulrC => asb bsa; have:= lt_trans asb bsa; rewrite lt_irreflexive.
 Qed.
 
 Lemma measurable1 {R : realType} {N : normedModType R} (x : measurableTypeTop N) : measurable [set x].
 Proof.
-  rewrite singleton_inter; apply: bigcap_measurable=> [//|k _]; 
+  rewrite singleton_bigcap; apply: bigcap_measurable=> [//|k _]; 
   rewrite/measurable/=/smallest/bigcap/= => A [sda osa]; apply: osa; exact: (ball_open x).
 Qed.
 
