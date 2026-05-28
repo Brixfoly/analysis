@@ -47,9 +47,19 @@ Qed.
 
 Lemma basis_nonzero {T : ptopologicalType} {B : set (set T)} : basis B -> B!=set0.
 Proof.
+<<<<<<< HEAD
 move=> /basisP [Bo /(_ [set:T] openT) Tb]. apply/set0P/eqP => B0.
   move: B0 Tb ->. rewrite [X in _=X] (_:_ = set0).
   apply: eq_set=> x. apply: propF=> [[A/= [F//]]]. apply/eqP. exact: setT0.
+=======
+  rewrite eqEsubset; split=> [_ ->| y] /=. rewrite /bigcap /= => k _;
+  apply: ballxx; by rewrite ltr_pdivlMr.
+  rewrite /bigcap/=; apply: contraPP=> ynx; rewrite -existsNE.
+  exists (truncn (1/ `|x- y|)). rewrite not_implyE; split => [//|].
+  rewrite pseudo_metric_ball_norm/= ltr_pdivlMr => //. have := truncnS_gt (1/`|x-y|);
+  rewrite ltr_pdivrMr. rewrite normr_gt0; apply/eqP=>/subr0_eq; exact: nesym.
+  by rewrite mulrC => asb bsa; have:= lt_trans asb bsa; rewrite lt_irreflexive.
+>>>>>>> f38715604 (simplified sfun_op and singleton_bigcap's proof)
 Qed.
 
 Lemma countable_basis_to_seq {T : ptopologicalType} {B : set (set T)} :
