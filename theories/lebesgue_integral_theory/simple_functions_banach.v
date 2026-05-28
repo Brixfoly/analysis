@@ -202,31 +202,22 @@ Qed.
 B(X x Y) != B(X) \otimes B(Y) in the general case.*)
 Lemma sfun_op (f: {sfun aT >-> T1}) (g: {sfun aT >-> T2}) (h: T1*T2 -> T3) : (fun x:aT => h (f x, g x)) \in sfun.
 Proof.
-  rewrite inE. apply/andP; split. all: rewrite in_setE /=.
-    move=> maT W mW. rewrite /preimage/= [X in measurable X] (_:_ = \bigcup_( a in range f) \bigcup_(b in range g) 
-    [set t | f t = a /\ g t = b /\ W (h (a, b))]) /bigcup.
-      apply: eq_set=>t. rewrite exists2E propeqE; split=>[[_ hfgt]|exa]. exists (f t). split=> [//|/=]. 
-      exists (g t). by exists t. by[]. case: exa=> a [rfa] /=. rewrite exists2E. case=> b. 
-      rewrite exists2E. move=> [_ [fta [gtb habW]]]. by rewrite fta gtb.
-    apply: fin_bigcup_measurable=> [//| a rfa]. apply: fin_bigcup_measurable=>[//|b rgb].
-    rewrite [X in measurable X] (_:_ = (f@^-1`[set a])`&`(g@^-1`[set b]) `&`[set t | W (h(a,b)) ]).
-    apply: eq_set=> x//=. by rewrite andA. apply: measurableI. apply: measurableI. 
-      rewrite -(setTI (_ @^-1` [set _])); have := measurable1 a; have : measurable_fun [set:aT] f by[]; 
-      by rewrite /measurable_fun=> /(_ maT [set a]).
-      rewrite -(setTI (_ @^-1` [set _])); have := measurable1 b; have : measurable_fun [set:aT] g by[]; 
-      by rewrite /measurable_fun=> /(_ maT [set b]).
-    rewrite -(in_setE W). have[_|_] := boolP (h (a,b) \in W). by rewrite trueE. 
-    rewrite falseE. rewrite [[set _ | False]] (_:_ = set0)=>//.
-  
-  rewrite -image_comp. apply: finite_image. 
-  apply: (@sub_finite_set _ _ [set (a,b)|a in range f & b in range g]). move=> [x y] /=. 
-  rewrite exists2E. case=> t [_ [ftx gty]]. exists x. by exists t. exists y. by exists t. by[].
-  rewrite [X in finite_set X] (_:_ = \bigcup_(b in range g) [set (a,b) | a in range f]).
-  apply: eq_set=> [[x y]]/=. rewrite ?exists2E. apply: propext; 
-  split=> [[a [[x0 _] fx0a]] [b [x1 _] gx1b] axby | [b [[x0 _] gx0b]] [a [x1 _] fx1a axby]].
-  exists b; split. by exists x1. exists a. by exists x0. by[].
-  exists a; split. by exists x1. exists b. by exists x0. by[].
-  apply: bigcup_finite=>[//| b _]. by apply: finite_image.
+  rewrite inE; apply/andP; split. all: rewrite in_setE /=.
+    move=> maT W mW. rewrite /preimage/= [X in measurable X] 
+    (_:_ = \bigcup_( a in range f) \bigcup_(b in range g) 
+   ((f@^-1`[set a])`&`(g@^-1`[set b])`&`[set t | W (h(a,b))])) /bigcup.
+    apply: eq_set=>t/=; rewrite propeqE.
+    split=>[[_ whfgt]|[a [x _ <-]] [b [x0 _ <-]] [[-> ->] Whfgt]//].
+    exists (f t). by exists t. exists (g t). by exists t. by[].
+    apply: fin_bigcup_measurable => [//| a rfa]. apply: fin_bigcup_measurable=>[//|b rgb].
+    apply: measurableI. apply: measurableI.
+    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT f maT [set a] (measurable1 a).
+    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT g maT [set b] (measurable1 b).
+    rewrite -(in_setE W); have[_|_] := boolP (h (a,b) \in W). 
+    by rewrite trueE. rewrite falseE [[set _ | False]] (_:_ = set0)=>//.
+  rewrite -image_comp; apply: finite_image.
+  apply: (@sub_finite_set _ _ ((range f) `*`(range g))) => [[a b] [x _ [<- <-]]/=|].
+  by split; exists x. by apply: finite_setX.
 Qed.
 
 End composition.
