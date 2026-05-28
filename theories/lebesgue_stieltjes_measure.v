@@ -624,6 +624,7 @@ Proof.
 Qed.
 
 Import HBTopMeas.
+
 Lemma eq_measTop_measR : @measurableTop R = measurableR.
 Proof.
   rewrite eqEsubset/measurableTop /measurableR; split. 
@@ -631,7 +632,12 @@ Proof.
   apply: sigma_algebra_subset; rewrite /measurable/= => I; 
   case=> [[a b] _]<-/=; exact : ocitv_measurableTop.
 Qed.
-(*TODO : do HB stuff to prove that the default measure displays are the same*)
+
+Lemma eq_meas_measR : measurable = measurableR.
+Proof. by[]. Qed.
+
+Lemma eq_meas_measTop : measurable = @measurableTop R.
+Proof. by[]. Qed.
 
 End salgebra_R_ssets.
 #[global]
