@@ -158,11 +158,18 @@ Proof.
     apply: eq_set=>t/=; rewrite propeqE.
     split=>[[_ whfgt]|[a [x _ <-]] [b [x0 _ <-]] [[-> ->] Whfgt]//].
     exists (f t). by exists t. exists (g t). by exists t. by[].
+<<<<<<< HEAD
     apply: fin_bigcup_measurable => [//| a rfa]. 
     apply: fin_bigcup_measurable=>[//|b rgb]. apply: measurableI. 
     apply: measurableI. 
     rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT f maT _ (measurable1 a).
     rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT g maT _ (measurable1 b).
+=======
+    apply: fin_bigcup_measurable => [//| a rfa]. apply: fin_bigcup_measurable=>[//|b rgb].
+    apply: measurableI. apply: measurableI.
+    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT f maT [set a] (measurable1 a).
+    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT g maT [set b] (measurable1 b).
+>>>>>>> 7e16988e2 (simplified sfun_op proof)
     rewrite -(in_setE W); have[_|_] := boolP (h (a,b) \in W). 
     by rewrite trueE. rewrite falseE [[set _ | False]] (_:_ = set0)=>//.
   rewrite -image_comp; apply: finite_image.
