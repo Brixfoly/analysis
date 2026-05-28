@@ -183,11 +183,11 @@ Import HBSimple.
 
 Lemma singleton_bigcap {R : realType} {N : normedModType R} (x:N) : [set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
 Proof.
-  rewrite eqEsubset; split=> [x0 ->| y] /=. rewrite /bigcap /= => k _;
+  rewrite eqEsubset; split=> [_ ->| y] /=. rewrite /bigcap /= => k _;
   apply: ballxx; by rewrite ltr_pdivlMr.
   rewrite /bigcap/=; apply: contraPP=> ynx; rewrite -existsNE.
   exists (truncn (1/ `|x- y|)). rewrite not_implyE; split => [//|].
-  rewrite pseudo_metric_ball_norm/= ltr_pdivlMr => //; have := truncnS_gt (1/`|x-y|);
+  rewrite pseudo_metric_ball_norm/= ltr_pdivlMr => //. have := truncnS_gt (1/`|x-y|);
   rewrite ltr_pdivrMr. rewrite normr_gt0; apply/eqP=>/subr0_eq; exact: nesym.
   by rewrite mulrC => asb bsa; have:= lt_trans asb bsa; rewrite lt_irreflexive.
 Qed.
