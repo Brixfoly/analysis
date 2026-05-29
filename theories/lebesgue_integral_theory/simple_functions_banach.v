@@ -54,33 +54,6 @@ HB.instance Definition topological_isMeasurable (T : topologicalType) :
   isMeasurable default_measure_display T :=
   @isMeasurable.Build _ T (@measurableTop T)
     (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T).
-
-
-(*All of these are not that useful, just need to have a forgetful inheritance
-of measurable spaces by topological spaces*)
-#[short(type = "measurableTopologicalType")] 
-HB.structure Definition MeasurableTopological d := 
-{U of Topological U & Measurable d U}.
-
-HB.instance Definition _ (T : topologicalType) := Measurable.on T.
-HB.instance Definition _ (T : topologicalType) := Topological.on T.
-HB.instance Definition _ (T : topologicalType) := MeasurableTopological.on T.
-
-Axioms (R : realType) (N : normedModType R) (T : topologicalType).
-Fail Check N : measurableType _.
-Check measurableTypeTop N : normedModType _.
-Check measurableTypeTop N : measurableTopologicalType _.
-Check N : topologicalType.
-Check T : measurableType _.
-
-Axiom x:T.
-Check measurable [set x].
-
-Axiom v : measurableTypeTop N.
-Check measurable [set v].
-
-Axiom u : N.
-Fail Check measurable [set u].
 *)
 Module HBSimple.
 
@@ -256,60 +229,56 @@ HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
 HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g). *)
 
-Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT) (x:aT) := (\1_D x) *: z.
+Definition mindic_mod {A : set aT} (mA : d.-measurable A) (z: nT) (x:aT) := (\1_A x) *: z.
 
-Lemma mindic_modE {D : set aT} (mD : d.-measurable D) (z: nT) :
-mindic_mod mD z = fun x => if x \in D then z else 0.
+Lemma mindic_modE {A : set aT} (mA : d.-measurable A) (z: nT) :
+mindic_mod mA z = fun x => if x \in A then z else 0.
 Proof.
   apply/funext=>x; rewrite /mindic_mod indicE; case: ifP=>/=. by rewrite scale1r.
   by rewrite scale0r.
 Qed.
 
-Lemma mindic_comp {D : set aT} (mD : d.-measurable D) (z : nT) :
-mindic_mod mD z = *:%R^~ z \o \1_D.
+Lemma mindic_comp {A : set aT} (mA : d.-measurable A) (z : nT) :
+mindic_mod mA z = *:%R^~ z \o \1_A.
 Proof.
   by rewrite /mindic_mod/comp.
 Qed.
 
-Lemma measurable_mindic_mod {D : set aT} (mD : d.-measurable D) (z:nT) : 
-measurable_fun [set: aT] (mindic_mod mD z : aT -> g_sigma_algebraType open).
+Lemma measurable_mindic_mod {D A : set aT} (mA : d.-measurable A) (z:nT) :
+measurable_fun D (mindic_mod mA z : aT -> g_sigma_algebraType open).
 Proof.
-  move=> maT Y mY. rewrite mindic_modE /preimage [X in _`&`X] 
-  (_:_ = (if z \in Y then D else set0)`|`(if 0 \in Y then ~`D else set0)).
-    apply: eq_set=> x/=. have [xD|nxD] := boolP (x\in D).
-    have [zY|nzY] := boolP (z\in Y). have [zeroY|nzeroY] := boolP (0\in Y).
-    rewrite propeqE/=; split=>[_|_]. exact: lem. by rewrite -in_setE.
-    rewrite in_setE in xD; rewrite in_setE in zY.
-    rewrite propeqE/=; split=>//. by left.
-    rewrite [Y z] (_:_ = False); rewrite notin_setE in nzY. by apply: notTE.
-    apply: esym. apply: notTE=>/=. case=>[//|]. case: ifP=>[_/= ndx|_ //=].
-    by apply: ndx; rewrite -in_setE.
-    rewrite propeqE if_arg. split=>[|[|]]. 
-      by rewrite -in_setE=>->/=; right; rewrite -notin_setE.
-    case:ifP=>[_ xD|_ f]; exfalso. by rewrite notin_setE in nxD. by simpl in f.
-    rewrite if_arg/=; case:ifP=>[oiY _|_ //]. by rewrite -in_setE.
-  apply: measurableI=>//. apply: measurableU.
-    case: ifP=>//.
-  case: ifP=>// _. by apply: measurableC.
+  move=> mD Y mY. rewrite mindic_modE /preimage [X in _`&`X] 
+  (_:_ = if z \in Y then (if 0 \in Y then [set:aT] else A) else (if 0\in Y then ~`A else set0)).
+  have [zY|nzY] := boolP (z \in Y); have [zeroY|nzeroY] := boolP (0\in Y); apply: eq_set=>t; 
+  case: ifP=> tA//=; try apply: propT; try apply: propF; try rewrite propeqE.
+  by rewrite -in_setE. by rewrite -in_setE. by split=>_//; rewrite -in_setE.
+  rewrite notin_setE in nzeroY. apply/iff_not2.
+  by have : ~ A t by rewrite -notin_setE tA.
+  by rewrite notin_setE in nzY; apply/iff_notr; rewrite in_setE in tA.
+    rewrite in_setE in zeroY. by rewrite -notin_setE tA/=.
+    by rewrite -notin_setE. by rewrite -notin_setE.
+  apply: measurableI=>//. case: ifP=>_//. case: ifP=>// _. 
+  case: ifP=>_//. exact: measurableC.
 Qed.
 
-HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT 
-(g_sigma_algebraType open) (@mindic_mod D mD z) (measurable_mindic_mod mD z).
+HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT
+(g_sigma_algebraType open) (mindic_mod mD z) (@measurable_mindic_mod _ D mD z).
 
-Lemma mindic_mod_fimfun_subproof {D : set aT} (mD : d.-measurable D) (z:nT) : 
-@FiniteImage aT nT (mindic_mod mD z).
+Lemma mindic_mod_fimfun_subproof {A : set aT} (mA : d.-measurable A) (z:nT) : 
+@FiniteImage aT nT (mindic_mod mA z).
 Proof.
 split. apply: (finite_subfset [fset 0; z]%fset) => x [a _ <-/=].
 rewrite mindic_modE !inE. case: ifP=>[_|_]; by rewrite ?eqxx ?orbT. 
 Qed.
 
-HB.instance Definition _ D mD z := @mindic_mod_fimfun_subproof D mD z.
-HB.instance Definition _ (D : set aT) (mD : measurable D) z:
-  @FImFun aT (g_sigma_algebraType open) (mindic_mod mD z) := 
-  FImFun.on (mindic_mod mD z).
+HB.instance Definition _ A mA z := @mindic_mod_fimfun_subproof A mA z.
+HB.instance Definition _ (A : set aT) (mA : measurable A) z:
+  @FImFun aT (g_sigma_algebraType open) (mindic_mod mA z) := 
+  FImFun.on (mindic_mod mA z).
 
-Definition indic_mod_sfun {D : set aT} (mD : measurable D) z : {mfun aT >-> (g_sigma_algebraType open)} :=
-  mindic_mod mD z.
+(* TODO : can't turn it into a mfun*)
+Definition indic_mod_sfun {A : set aT} (mA : measurable A) (z: g_sigma_algebraType open) : {sfun aT >-> nT} :=
+  mindic_mod mA z.
 
 End module.
 
@@ -367,6 +336,8 @@ HB.instance Definition _ x := @isNonNegFun.Build T R (cst x%:num)
   (cst_nnfun_subproof x).
 
 (*TODO*)
+(* Definition cst_nnfun (r : {nonneg R}) : {nnfun T >-> R} := cst r%:num.
+Definition cst_mfun (r : {nonneg R}) : {mfun T >-> R} := cst r%:num. *)
 Definition cst_nnsfun (r : {nonneg R}) : {nnsfun T >-> R} := cst r%:num.
 
 Definition nnsfun0 : {nnsfun T >-> R} := cst_nnsfun 0%:nng.
