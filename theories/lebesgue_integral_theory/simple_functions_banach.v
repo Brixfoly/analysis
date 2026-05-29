@@ -30,7 +30,7 @@ Reserved Notation "{ 'sfun' aT >-> T }"
   (at level 0, format "{ 'sfun'  aT  >->  T }").
 Reserved Notation "[ 'sfun' 'of' f ]"
   (at level 0, format "[ 'sfun'  'of'  f ]").
-
+(*
 (* Introducing the Borel sigma-algebra for topological spaces*)
 Section Topological_measurable.
 Variable T : topologicalType.
@@ -81,12 +81,12 @@ Check measurable [set v].
 
 Axiom u : N.
 Fail Check measurable [set u].
-
+*)
 Module HBSimple.
 
 HB.structure Definition SimpleFun d (aT : sigmaRingType d) 
 (T : topologicalType) :=
-  {f of @isMeasurableFun _ _ aT T f & @FiniteImage aT T f}.
+  {f of @isMeasurableFun _ _ aT (@g_sigma_algebraType T open) f & @FiniteImage aT (@g_sigma_algebraType T open) f}.
 
 End HBSimple.
 
@@ -107,7 +107,7 @@ Notation "[ 'nnsfun' 'of' f ]" := [the {nnsfun _ >-> _} of f] : form_scope.
 
 Section sfun_pred.
 Context {d} {aT : sigmaRingType d} {T: topologicalType}.
-Definition sfun : {pred _ -> _} := [predI (@mfun d _ aT T) & fimfun].
+Definition sfun : {pred _ -> _} := [predI (@mfun d _ aT (@g_sigma_algebraType T open)) & @fimfun aT (@g_sigma_algebraType T open)].
 Definition sfun_key : pred_key sfun. Proof. exact. Qed.
 Canonical sfun_keyed := KeyedPred sfun_key.
 Lemma sub_sfun_mfun : {subset sfun <= mfun}. Proof. by move=> x /andP[]. Qed.
@@ -120,9 +120,9 @@ Context {d} {aT : measurableType d} {T : topologicalType}.
 Notation Sf := {sfun aT >-> T}.
 Notation sfun := (@sfun _ aT T).
 Section Sub.
-Context (f : aT -> T) (fP : f \in sfun).
+Context (f : aT -> (g_sigma_algebraType open)) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
-  @isMeasurableFun.Build d _ aT T f (set_mem (sub_sfun_mfun fP)).
+  @isMeasurableFun.Build d _ aT (g_sigma_algebraType open) f (set_mem (sub_sfun_mfun fP)).
 #[local] HB.instance Definition _ := sfun_Sub1_subproof.
 Definition sfun_Sub2_subproof :=
   @FiniteImage.Build aT T f (set_mem (sub_sfun_fimfun fP)).
@@ -155,7 +155,7 @@ Proof. by split=> [->//|fg]; apply/val_inj/funext. Qed.
 HB.instance Definition _ := [Choice of {sfun aT >-> T} by <:].
 
 (* NB: already in cardinality.v *)
-HB.instance Definition _ x : @FImFun aT T (cst x) := FImFun.on (cst x).
+HB.instance Definition _ x : @FImFun aT (@g_sigma_algebraType T open) (cst x) := FImFun.on (cst x).
 
 Definition cst_sfun x : {sfun aT >-> T} := cst x.
 
@@ -192,7 +192,7 @@ Proof.
   by rewrite mulrC => asb bsa; have:= lt_trans asb bsa; rewrite lt_irreflexive.
 Qed.
 
-Lemma measurable1 {R : realType} {N : normedModType R} (x : measurableTypeTop N) : measurable [set x].
+Lemma measurable1 {R : realType} {N : normedModType R} (x : @g_sigma_algebraType N open) : measurable [set x].
 Proof.
   rewrite singleton_bigcap; apply: bigcap_measurable=> [//|k _]; 
   rewrite/measurable/=/smallest/bigcap/= => A [sda osa]; apply: osa; exact: (ball_open x).
@@ -250,11 +250,11 @@ Lemma sfun_prod I r (P : {pred I}) (f : I -> {sfun aT >-> nT}) (x : aT) :
   (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
 Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
   
-(* TODO : make these work*)
+(* TODO : make these work*)(*
 HB.instance Definition _ f g := MeasurableFun.copy (f \+ g) (f + g).
 HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
 HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
-HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g).
+HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g).*)
 
 Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT) (x:aT) := (\1_D x) *: z.
 
@@ -265,18 +265,38 @@ Proof.
   by rewrite scale0r.
 Qed.
 
-Lemma measurable_indic_mod (D : set aT) (mD : measurable D) (z:(measurableTypeTop nT)) :
-  measurable_fun [set:aT] (mindic_mod mD z).
+Lemma measurable_mindic_mod {D : set aT} (mD : d.-measurable D) (z:nT) : 
+measurable_fun [set: aT] (mindic_mod mD z : aT -> g_sigma_algebraType open).
+Proof.
+  move=> maT Y mY. rewrite mindinic_modE /preimage [X in _`&`X] 
+  (_:_ = (if z \in Y then D else set0)`|`(if 0 \in Y then ~`D else set0)).
+    apply: eq_set=> x/=. have [xD|nxD] := boolP (x\in D).
+    have [zY|nzY] := boolP (z\in Y). have [zeroY|nzeroY] := boolP (0\in Y).
+    rewrite propeqE/=; split=>[_|_]. exact: lem. by rewrite -in_setE.
+    rewrite in_setE in xD; rewrite in_setE in zY.
+    rewrite propeqE/=; split=>//. by left.
+    rewrite [Y z] (_:_ = False); rewrite notin_setE in nzY. by apply: notTE.
+    apply: esym. apply: notTE=>/=. case=>[//|]. case: ifP=>[_/= ndx|_ //=].
+    by apply: ndx; rewrite -in_setE.
+    rewrite propeqE if_arg. split=>[|[|]]. 
+      by rewrite -in_setE=>->/=; right; rewrite -notin_setE.
+    case:ifP=>[_ xD|_ f]; exfalso. by rewrite notin_setE in nxD. by simpl in f.
+    rewrite if_arg/=; case:ifP=>[oiY _|_ //]. by rewrite -in_setE.
+  apply: measurableI=>//. apply: measurableU.
+    case: ifP=>//.
+  case: ifP=>// _. by apply: measurableC.
+Qed.
 
-HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT nT (mindic_mod mD z)
-  (@measurable_indic _ aT rT setT D mD).
-
-HB.instance Definition _ (D : set aT) (mD : measurable D) (z:nT):
-  @FImFun aT nT (mindic_mod mD z) := FImFun.on (mindic_mod mD z).
+HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT 
+(g_sigma_algebraType open) (@mindic_mod D mD z) (measurable_mindic_mod mD z).
+(*
+HB.instance Definition _ (D : set aT) (mD : measurable D) z:
+  @FImFun aT (g_sigma_algebraType open) (mindic_mod mD z) := 
+  FImFun.on (@mindic_mod D mD z).
 
 Definition indic_mod_sfun (D : set aT) (mD : measurable D) (z:nT) : {sfun aT >-> nT} :=
   mindic_mod mD z.
-
+*)
 End module.
 
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
@@ -327,13 +347,16 @@ Section nnsfun_functions.
 Context d (T : measurableType d) (R : realType).
 
 Import HBNNSimple.
-
+Import HBSimple.
 Lemma cst_nnfun_subproof (x : {nonneg R}) : forall t : T, 0 <= cst x%:num t.
 Proof. by move=> /=. Qed.
 HB.instance Definition _ x := @isNonNegFun.Build T R (cst x%:num)
   (cst_nnfun_subproof x).
-
+Axiom r:{nonneg R}.
+Check cst r%:num : {sfun T >-> R}.
 (*TODO*)
+Definition cst_sfun x : {sfun T >-> R} := cst x.
+
 Definition cst_nnsfun (r : {nonneg R}) : {nnsfun T >-> R} := cst r%:num.
 
 Definition nnsfun0 : {nnsfun T >-> R} := cst_nnsfun 0%:nng.
