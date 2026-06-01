@@ -229,26 +229,22 @@ HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
 HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g). *)
 
-Definition mindic_mod {A : set aT} (mA : d.-measurable A) (z: nT) (x:aT) := (\1_A x) *: z.
+Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT)
+    : aT -> g_sigma_algebraType (@open nT) :=
+  *:%R^~ z \o \1_D.
 
 Lemma mindic_modE {A : set aT} (mA : d.-measurable A) (z: nT) :
 mindic_mod mA z = fun x => if x \in A then z else 0.
 Proof.
-  apply/funext=>x; rewrite /mindic_mod indicE; case: ifP=>/=. by rewrite scale1r.
-  by rewrite scale0r.
-Qed.
-
-Lemma mindic_comp {A : set aT} (mA : d.-measurable A) (z : nT) :
-mindic_mod mA z = *:%R^~ z \o \1_A.
-Proof.
-  by rewrite /mindic_mod/comp.
+  by apply/funext=>x; rewrite /mindic_mod/=indicE; 
+  case: ifP; [rewrite scale1r | rewrite scale0r].
 Qed.
 
 Lemma measurable_mindic_mod {D A : set aT} (mA : d.-measurable A) (z:nT) :
-measurable_fun D (mindic_mod mA z : aT -> g_sigma_algebraType open).
+measurable_fun D (mindic_mod mA z).
 Proof.
-  move=> mD Y mY. rewrite mindic_modE /preimage [X in _`&`X] 
-  (_:_ = if z \in Y then (if 0 \in Y then [set:aT] else A) else (if 0\in Y then ~`A else set0)).
+  move=> mD Y mY. rewrite mindic_modE /preimage [X in _`&`X] (_:_ = 
+  if z \in Y then (if 0 \in Y then [set:aT] else A) else (if 0\in Y then ~`A else set0)).
   have [zY|nzY] := boolP (z \in Y); have [zeroY|nzeroY] := boolP (0\in Y); apply: eq_set=>t; 
   case: ifP=> tA//=; try apply: propT; try apply: propF; try rewrite propeqE.
   by rewrite -in_setE. by rewrite -in_setE. by split=>_//; rewrite -in_setE.
@@ -276,8 +272,7 @@ HB.instance Definition _ (A : set aT) (mA : measurable A) z:
   @FImFun aT (g_sigma_algebraType open) (mindic_mod mA z) := 
   FImFun.on (mindic_mod mA z).
 
-(* TODO : can't turn it into a mfun*)
-Definition indic_mod_sfun {A : set aT} (mA : measurable A) (z: g_sigma_algebraType open) : {sfun aT >-> nT} :=
+Definition indic_mod_sfun {A : set aT} (mA : measurable A) (z: nT) : {sfun aT >-> nT} :=
   mindic_mod mA z.
 
 End module.
@@ -326,6 +321,22 @@ Qed.
 
 End simple_bounded.
 
+Section real_sfun.
+  Context d (aT : measurableType d) (rT : realType).
+
+Import HBSimple.
+Lemma sfun_subring_closed : subring_closed (@sfun d aT rT).
+Proof.
+split=> [|f g|f g]. exact: valP (cst_sfun (1:rT)).
+  by move=> sf sg; rewrite rpredB.
+  move=> sf sg; exact: (sfun_op (sfun_Sub sf) (sfun_Sub sg) (fun x => x.1 * x.2)).
+Qed.
+
+HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d aT rT)
+  sfun_subring_closed.
+
+End real_sfun.
+
 Section nnsfun_functions.
 Context d (T : measurableType d) (R : realType).
 
@@ -335,12 +346,10 @@ Proof. by move=> /=. Qed.
 HB.instance Definition _ x := @isNonNegFun.Build T R (cst x%:num)
   (cst_nnfun_subproof x).
 
-(*TODO*)
-(* Definition cst_nnfun (r : {nonneg R}) : {nnfun T >-> R} := cst r%:num.
-Definition cst_mfun (r : {nonneg R}) : {mfun T >-> R} := cst r%:num. *)
-Definition cst_nnsfun (r : {nonneg R}) : {nnsfun T >-> R} := cst r%:num.
+(*TODO : make this work *)
+(* Definition cst_nnsfun (r : {nonneg R}) : {nnsfun T >-> R} := cst r%:num. *)
 
-Definition nnsfun0 : {nnsfun T >-> R} := cst_nnsfun 0%:nng.
+(* Definition nnsfun0 : {nnsfun T >-> R} := cst_nnsfun 0%:nng. *)
 
 Lemma indic_nnfun_subproof (D : set T) : forall x, 0 <= (\1_D) x :> R.
 Proof. by []. Qed.
@@ -376,7 +385,7 @@ Context d (T : measurableType d) (R : realType).
 Variables f g : {nnsfun T >-> R}.
 
 Import HBNNSimple.
-
+(* TODO *)
 HB.instance Definition _ := MeasurableFun.on (f \+ g).
 Definition add_nnsfun : {nnsfun T >-> R} := f \+ g.
 
