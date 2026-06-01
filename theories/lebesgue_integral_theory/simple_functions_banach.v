@@ -334,6 +334,14 @@ Qed.
 
 HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d aT rT)
   sfun_subring_closed.
+(* TODO : no instance gen + can't recognize ring*)
+HB.instance Definition _ := [SubChoice_isSubComPzRing of {sfun aT >-> rT} by <:].
+
+Implicit Types (f g : {sfun aT >-> rT}).
+Lemma sfunM f g : f * g =1 f \* g. Proof. by []. Qed.
+Lemma sfun1 : (1 : {sfun aT >-> rT}) =1 cst 1. Proof. by []. Qed.
+Lemma sfunX f n : f ^+ n =1 (fun x => f x ^+ n).
+Proof. by move=> x; elim: n => [|n IHn]//; rewrite !exprS sfunM/= IHn. Qed.
 
 End real_sfun.
 
