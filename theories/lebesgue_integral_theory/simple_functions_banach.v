@@ -40,13 +40,13 @@ Let G := @open T.
 Definition measurableTop : set (set T) :=
   G.-sigma.-measurable.
 
+Definition measurableTypeTop := g_sigma_algebraType G.
+
 Lemma measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
 Lemma measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
 Proof. exact: sigma_algebraC. Qed.
 Lemma measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i)) -> 
 measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
-
-Definition measurableTypeTop := g_sigma_algebraType G.
 
 End Topological_measurable.
 
