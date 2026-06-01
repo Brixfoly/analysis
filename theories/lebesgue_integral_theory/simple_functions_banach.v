@@ -297,10 +297,107 @@ Qed.
 
 End simple_bounded.
 
+<<<<<<< HEAD
 Section set_lemmas.
 
 Lemma bigcapDr {T I} (F : I -> set T) [P : set I] (A : set T) : 
 \bigcup_(i in P)  (A `\` F i) = A `\` \bigcap_(i in P)  F i.
+=======
+Section real_sfun.
+  Context d (aT : measurableType d) (rT : realType).
+
+Import HBSimple.
+Lemma sfun_subring_closed : subring_closed (@sfun d aT rT).
+Proof.
+split=> [|f g|f g]. exact: valP (cst_sfun (1:rT)).
+  by move=> sf sg; rewrite rpredB.
+  move=> sf sg; exact: (sfun_op (sfun_Sub sf) (sfun_Sub sg) (fun x => x.1 * x.2)).
+Qed.
+
+HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d aT rT)
+  sfun_subring_closed.
+
+End real_sfun.
+
+Section nnsfun_functions.
+Context d (T : measurableType d) (R : realType).
+
+Import HBNNSimple.
+Lemma cst_nnfun_subproof (x : {nonneg R}) : forall t : T, 0 <= cst x%:num t.
+Proof. by move=> /=. Qed.
+HB.instance Definition _ x := @isNonNegFun.Build T R (cst x%:num)
+  (cst_nnfun_subproof x).
+
+(*TODO : make this work *)
+(* Definition cst_nnsfun (r : {nonneg R}) : {nnsfun T >-> R} := cst r%:num. *)
+
+(* Definition nnsfun0 : {nnsfun T >-> R} := cst_nnsfun 0%:nng. *)
+
+Lemma indic_nnfun_subproof (D : set T) : forall x, 0 <= (\1_D) x :> R.
+Proof. by []. Qed.
+
+HB.instance Definition _ D := @isNonNegFun.Build T R \1_D
+  (indic_nnfun_subproof D).
+
+HB.instance Definition _ D (mD : measurable D) :
+   @NonNegFun T R (mindic R mD) := NonNegFun.on (mindic R mD).
+
+End nnsfun_functions.
+Arguments nnsfun0 {d T R}.
+
+Section nnfun_bin.
+Variables (T : Type) (R : numDomainType) (f g : {nnfun T >-> R}).
+
+Lemma add_nnfun_subproof : @isNonNegFun T R (f \+ g).
+Proof. by split => x; rewrite addr_ge0//; apply/fun_ge0. Qed.
+HB.instance Definition _ := add_nnfun_subproof.
+
+Lemma mul_nnfun_subproof : @isNonNegFun T R (f \* g).
+Proof. by split => x; rewrite mulr_ge0//; apply/fun_ge0. Qed.
+HB.instance Definition _ := mul_nnfun_subproof.
+
+Lemma max_nnfun_subproof : @isNonNegFun T R (f \max g).
+Proof. by split => x /=; rewrite /maxr; case: ifPn => _; apply: fun_ge0. Qed.
+HB.instance Definition _ := max_nnfun_subproof.
+
+End nnfun_bin.
+
+Section nnsfun_bin.
+Context d (T : measurableType d) (R : realType).
+Variables f g : {nnsfun T >-> R}.
+
+Import HBNNSimple.
+(* TODO *)
+HB.instance Definition _ := MeasurableFun.on (f \+ g).
+Definition add_nnsfun : {nnsfun T >-> R} := f \+ g.
+
+HB.instance Definition _ := MeasurableFun.on (f \* g).
+Definition mul_nnsfun : {nnsfun T >-> R} := f \* g.
+
+HB.instance Definition _ := MeasurableFun.on (f \max g).
+Definition max_nnsfun : {nnsfun T >-> R} := f \max g.
+
+Definition indic_nnsfun A (mA : measurable A) : {nnsfun T >-> R} := mindic R mA.
+
+End nnsfun_bin.
+Arguments add_nnsfun {d T R} _ _.
+Arguments mul_nnsfun {d T R} _ _.
+Arguments max_nnsfun {d T R} _ _.
+
+Definition scale_nnsfun d (T : measurableType d) (R : realType)
+    (f : {nnsfun T >-> R}) (k : R) (k0 : 0 <= k) :=
+  mul_nnsfun (cst_nnsfun T (NngNum k0)) f.
+
+Definition proj_nnsfun d (T : measurableType d) (R : realType)
+    (f : {nnsfun T >-> R}) (A : set T) (mA : measurable A) :=
+  mul_nnsfun f (indic_nnsfun R mA).
+
+Section mrestrict.
+Import HBNNSimple.
+
+Lemma mrestrict d (T : measurableType d) (R : realType) (f : {nnsfun T >-> R})
+  A (mA : measurable A) : f \_ A = proj_nnsfun f mA.
+>>>>>>> 251abb634 (mindic ok, started thms for real sfun)
 Proof.
 by rewrite setDE setC_bigcap setI_bigcupr; 
   apply: eq_bigcup; rewrite -?eqEsubset.
