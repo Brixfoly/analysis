@@ -297,7 +297,6 @@ Qed.
 
 End simple_bounded.
 
-<<<<<<< HEAD
 Section set_lemmas.
 
 Lemma bigcapDr {T I} (F : I -> set T) [P : set I] (A : set T) : 
@@ -311,9 +310,6 @@ End set_lemmas.
 
 (* Will be moved to measurable_structure.v *)
 Section sigma_algebra_lemmas.
-=======
-(* Will be moved to measurable_structure.v *)
->>>>>>> 129f6465b (small)
 Lemma sigma_algebra_subset {d} {M : measurableType d} {H : set (set M)}
 (mH : H `<=`d.-measurable) : <<s H>> `<=` measurable.
 Proof.
