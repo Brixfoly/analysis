@@ -35,7 +35,7 @@ Module HBSimple.
 
 HB.structure Definition SimpleFun d (aT : sigmaRingType d) 
 (T : topologicalType) :=
-  {f of @isMeasurableFun _ _ aT (@g_sigma_algebraType T open) f & @FiniteImage aT (@g_sigma_algebraType T open) f}.
+  {f of @isMeasurableFun _ _ aT (@g_sigma_algebraType T open) f & @FiniteImage aT _ f}.
 
 End HBSimple.
 
