@@ -190,12 +190,20 @@ apply: ball_sym; apply: le_ball bd. rewrite invf_ple ?posrE //;
 exact: (ltW (truncnS_gt r^-1)).
 Qed.
 
+<<<<<<< HEAD
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
   and realType for rational radii. 
   Not really used right now, and proof can be optimised a lot *)
 Lemma second_countable_ball {R : realType} {M : pseudoMetricNormedZmodType R} : 
 @second_countable M -> exists D : set M, countable D /\
 basis [set ball m k.+1%:R^-1 | m in D & k in [set:nat]].
+=======
+End simple_bounded.
+
+(* Will be moved to measurable_structure.v *)
+Lemma sigma_algebra_subset {d} {M : measurableType d} {H : set (set M)}
+(mH : H `<=`d.-measurable) : <<s H>> `<=` measurable.
+>>>>>>> d11e16fff (small)
 Proof.
   move=> /second_countable_separable [D [cD dD]]. exists D. split=>//.
   split=>[U [n _ [k _ ]<-]|x U]. exact: ball_open.
