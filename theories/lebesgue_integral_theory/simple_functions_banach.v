@@ -322,8 +322,6 @@ Qed.
 End simple_bounded.
 
 (* Will be moved to measurable_structure.v *)
-
-Search <<s _>>.
 Lemma sigma_algebra_subset {d} {M : measurableType d} {H : set (set M)}
 (mH : H `<=`d.-measurable) : <<s H>> `<=` measurable.
 Proof.
