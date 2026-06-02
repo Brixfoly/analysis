@@ -190,7 +190,6 @@ apply: ball_sym; apply: le_ball bd. rewrite invf_ple ?posrE //;
 exact: (ltW (truncnS_gt r^-1)).
 Qed.
 
-<<<<<<< HEAD
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
   and realType for rational radii. 
   Not really used right now, and proof can be optimised a lot *)
@@ -1035,6 +1034,3 @@ About fsbig_finite. About fsbig_supp. About fsbig_seq.
 Abort.
 
 End sbintegralD.
-=======
-End simple_bounded.
->>>>>>> 9384a60b0 (moved real stuff in branch sfun_banach_real)
