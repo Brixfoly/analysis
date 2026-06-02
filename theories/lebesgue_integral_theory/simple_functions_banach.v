@@ -320,3 +320,119 @@ by rewrite (unstable.bigmax_sup_seq _ _ (lexx _)).
 Qed.
 
 End simple_bounded.
+
+(* Will be moved to measurable_structure.v *)
+
+Search <<s _>>.
+Lemma sigma_algebra_subset {d} {M : measurableType d} {H : set (set M)}
+(mH : H `<=`d.-measurable) : <<s H>> `<=` measurable.
+Proof.
+  by rewrite /smallest/bigcap=> K/= /(_ d.-measurable) oK; apply: oK;
+  split=>[|//]; apply:sigma_algebra_measurable.
+Qed.
+
+Lemma sigma_algebra_gen {d} {M : measurableType d} {G : set (set M)} : G `<=`<<s G>>.
+Proof.
+  by rewrite /smallest=>A hA H [saH GH]; apply: GH.
+Qed.
+
+Section mu_measurable_function. (* will be moved to bochner_integral.v*)
+Import HBSimple.
+Context {d} {T : measurableType d} {R : realType}
+  (mu : {finite_measure set T -> \bar R}) (X : normedModType R).
+
+Definition mu_measurable (f: T -> X) := exists f_ : {sfun T >-> X}^nat, 
+\forall x \ae mu, f_ n x @[n --> \oo]--> f x.
+
+Lemma ae_forall2 {P1 P2 Q: T -> Prop} : (forall x, P1 x /\ P2 x -> Q x) -> 
+(\forall x \ae mu, P1 x) -> (\forall x \ae mu, P2 x) -> \forall x \ae mu, Q x.
+Proof.
+  move=> P12Q [A [mA mA0 p1A]] [B [mB mB0 p1B]]. exists (A`|`B); split. exact: measurableU.
+  exact: null_set_setU. have P12sQ: [set x | P1 x]`&`[set x | P2 x] `<=`[set x | Q x] 
+  by rewrite /setI=>x/=; exact:P12Q. apply: (subset_trans (subsetC P12sQ)); 
+  rewrite setCI; exact: setUSS.
+Qed.
+
+Lemma open_closed_measurable (t : topologicalType) : 
+(@open t).-sigma.-measurable = (@closed t).-sigma.-measurable.
+Proof.
+  rewrite eqEsubset; split; rewrite{1}/measurable/=. 
+  apply: (@sigma_algebra_subset _ (g_sigma_algebraType (@closed t)) (@open t))=> U oU.
+  rewrite -(setCK U); apply: sigma_algebraC. 
+  apply: sigma_algebra_gen=>//; exact: open_closedC.
+  apply: sigma_algebra_subset=> F cF; rewrite -(setCK F); apply:sigma_algebraC.
+  apply: sigma_algebra_gen=>//; exact: closed_openC.
+Qed.
+
+Lemma measurable_fun_open_closed {t : topologicalType} {D : set T} (f : T -> t) :
+measurable_fun D (f : T -> g_sigma_algebraType (@open t)) = 
+measurable_fun D (f : T -> g_sigma_algebraType (@closed t)).
+Proof.
+  rewrite propeqE; split=> mf mD Y;
+  [rewrite -open_closed_measurable| rewrite open_closed_measurable]; exact: mf.
+Qed.
+
+Search measurable_fun "cvg".
+ 
+Lemma measurable_fun_cv [D : set T] [h : (T->X)^nat] [f : T -> X] : 
+(forall m:nat, measurable_fun D (h m : T -> g_sigma_algebraType open)) -> (forall x : T, D x -> h ^~ x @\oo --> f x)
+-> measurable_fun D (f : T -> g_sigma_algebraType open).
+Proof.
+  move=> mhn hf; rewrite measurable_fun_open_closed. 
+  apply: measurability=>// F. case=>C fC<-.
+  pose G := fun n => [set y | exists c:X, c \in C /\ `|c-y| < (n.+1%:R)^-1].
+  rewrite [D`&`f@^-1` C] (_:_ = D`&`\bigcap_m \bigcup_n \bigcap_(k>=n) (h k)@^-1`(G m)).
+  rewrite eqEsubset; split=>[x/= [Dx Cfx]|x /=[Dx]]; split=>//. rewrite/bigcup/bigcap/G/==> m _.
+  have mp : 0<m.+1%:R^-1. move=>N; by rewrite invr_gt0. 
+  have:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ (mp _).
+  move=>[n0 _]; rewrite/subset/==>bn0. exists n0=>// n n0n; exists (f x).
+  split. by rewrite in_setE. by have:= (bn0 _ n0n); rewrite -ball_normE/=.
+  rewrite/bigcup/bigcap/= in b. have: \bigcap_n G n `<=`C.
+  rewrite/bigcap/G=>y/=bGy.
+  
+
+
+
+
+  rewrite eqEsubset; split=>[x/= [Dx fxV]| x/=[Dx [n0 _ caphV]]]. split=>//. rewrite /bigcup/bigcap/=.
+  have:= open_subball oV fxV. case=> r/= rpos br.
+  have r2pos : 0<r/2 by rewrite ltr_pdivlMr//mul0r.
+  have:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ r2pos.
+  move=>[n0 _ ]; rewrite/subset/==>bn0.
+  exists n0=>// i ir. rewrite /subset/= in br.
+  apply: (br (r/2)). rewrite add0r normrN normrZ gtr0_norm//gtr_pMr//.
+  rewrite gtr0_norm. by rewrite invr_gt0. rewrite invf_lt1// Rint_ltr_addr1=>//;
+  exact: Rint1. rewrite ltr_pdivlMr//mul0r//. exact: bn0.
+  split=>//. apply: (open_subball oV).
+
+
+(*TODO : remove the cast when top_meas will be automatic*)
+Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : 
+measurable_fun [set:T] (f : T -> g_sigma_algebraType (@open X)).
+Proof.
+  case:mmf=> F [A [mA mA0 cv]].
+  About measurable_fun_cvg.
+
+Lemma mmeas_add (f g : T -> X) (mmf : mu_measurable f) (mmg : mu_measurable g) :
+mu_measurable (f + g).
+Proof.
+  case: mmf=> F aFf; case: mmg=> G aGg. exists (F+G). 
+  have cvgD : forall x:T, (F n x @[n --> \oo] --> f x) /\ (G n x @[n --> \oo] --> g x)
+  -> (F n x + G n x @[n --> \oo] --> f x + g x) 
+  by move=> x [Ffx Ggx]; exact: fun_cvgD.
+  by apply: (ae_forall2 cvgD).
+Qed.
+
+Lemma mmeas_cvg (f : (T -> X)^nat) (g : T -> X) 
+(mmf : forall n:nat, mu_measurable (f n)) (fg : forall x, f ^~ x  @\oo--> g x) : mu_measurable g.
+Proof.
+  have cvaeu_g : exists (A: (set T)^nat) (F : (T->X)^nat^nat), forall n:nat, 
+  (mu (A n) < (1/(n%:R))%:E)%E /\ {uniform [set:T] `\`(A n), F n @\oo--> f n}.
+  rewrite /mu_measurable in mmf. have [F P] := choice mmf.
+  have Q := forall n:nat, ae_pointwise_almost_uniform (P n). 
+  
+
+  
+
+
+End mu_measurable_function.
