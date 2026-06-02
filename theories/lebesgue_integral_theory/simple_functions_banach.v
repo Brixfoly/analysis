@@ -370,24 +370,29 @@ Proof.
   [rewrite -open_closed_measurable| rewrite open_closed_measurable]; exact: mf.
 Qed.
 
-Search measurable_fun "cvg".
- 
+Lemma closed_dist0 {R:realFieldType} {M:metricType R} {F : set M} 
+(cF : closed F) (x:M) :
+F x <-> forall e:R, exists f:M, F f /\ mdist x f < n.+1%:R^-1.
+Proof.
+  split=>[Fx n|Cx]. exists x; split=>//. by rewrite mdistxx.
+  have [f Ffx]:= choice Cx.
+
 Lemma measurable_fun_cv [D : set T] [h : (T->X)^nat] [f : T -> X] : 
 (forall m:nat, measurable_fun D (h m : T -> g_sigma_algebraType open)) -> (forall x : T, D x -> h ^~ x @\oo --> f x)
 -> measurable_fun D (f : T -> g_sigma_algebraType open).
 Proof.
   move=> mhn hf; rewrite measurable_fun_open_closed. 
-  apply: measurability=>// F. case=>C fC<-.
-  pose G := fun n => [set y | exists c:X, c \in C /\ `|c-y| < (n.+1%:R)^-1].
-  rewrite [D`&`f@^-1` C] (_:_ = D`&`\bigcap_m \bigcup_n \bigcap_(k>=n) (h k)@^-1`(G m)).
+  apply: measurability=>// C. case=>F cF<-.
+  pose G := fun n => [set y | exists c:X, c \in F /\ `|c-y| < (n.+1%:R)^-1].
+  rewrite [D`&`f@^-1` F] (_:_ = D`&`\bigcap_m \bigcup_n \bigcap_(k>=n) (h k)@^-1`(G m)).
   rewrite eqEsubset; split=>[x/= [Dx Cfx]|x /=[Dx]]; split=>//. rewrite/bigcup/bigcap/G/==> m _.
   have mp : 0<m.+1%:R^-1. move=>N; by rewrite invr_gt0. 
   have:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ (mp _).
   move=>[n0 _]; rewrite/subset/==>bn0. exists n0=>// n n0n; exists (f x).
   split. by rewrite in_setE. by have:= (bn0 _ n0n); rewrite -ball_normE/=.
-  rewrite/bigcup/bigcap/= in b. have: \bigcap_n G n `<=`C.
-  rewrite/bigcap/G=>y/=bGy.
-  
+  rewrite/bigcup/bigcap/= in b. 
+
+
 
 
 
