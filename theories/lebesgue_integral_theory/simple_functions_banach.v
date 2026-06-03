@@ -154,15 +154,15 @@ Section composition.
 Context d (aT : measurableType d) (rT : realType) (T1 T2 T3 : normedModType rT).
 Import HBSimple.
 
-Lemma singleton_bigcap {R : realType} {N : normedModType R} (x:N) : [set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
+Lemma singleton_bigcap {R : realType} {N : normedModType R} (x:N) : [set x] = \bigcap_(k:nat) (ball x (k.+1%:R)^-1).
 Proof.
   rewrite eqEsubset; split=> [_ ->| y] /=. rewrite /bigcap /= => k _;
-  apply: ballxx; by rewrite ltr_pdivlMr.
-  rewrite /bigcap/=; apply: contraPP=> ynx; rewrite -existsNE.
-  exists (truncn (1/ `|x- y|)). rewrite not_implyE; split => [//|].
-  rewrite pseudo_metric_ball_norm/= ltr_pdivlMr => //. have := truncnS_gt (1/`|x-y|);
-  rewrite ltr_pdivrMr. rewrite normr_gt0; apply/eqP=>/subr0_eq; exact: nesym.
-  by rewrite mulrC => asb bsa; have:= lt_trans asb bsa; rewrite lt_irreflexive.
+  apply: ballxx. by rewrite invr_gt0. 
+  rewrite /bigcap/==> bbxy. apply: Logic.eq_sym. have cxy : close x y.
+  rewrite ball_close=> e. have [n0 _ a] := near_infty_natSinv_lt e.
+  apply: (@le_ball _ _ _ n0.+1%:R^-1 e%:num); rewrite /subset/= in a;
+  have ins:= a n0 (le_refl n0). apply/lt_le=> t tn0. exact: (lt_trans tn0).
+  exact: (bbxy n0). exact: (close_eq (@norm_hausdorff _ N) cxy).
 Qed.
 
 Lemma measurable1 {R : realType} {N : normedModType R} (x : @g_sigma_algebraType N open) : measurable [set x].
@@ -182,10 +182,11 @@ Proof.
     apply: eq_set=>t/=; rewrite propeqE.
     split=>[[_ whfgt]|[a [x _ <-]] [b [x0 _ <-]] [[-> ->] Whfgt]//].
     exists (f t). by exists t. exists (g t). by exists t. by[].
-    apply: fin_bigcup_measurable => [//| a rfa]. apply: fin_bigcup_measurable=>[//|b rgb].
-    apply: measurableI. apply: measurableI.
-    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT f maT [set a] (measurable1 a).
-    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT g maT [set b] (measurable1 b).
+    apply: fin_bigcup_measurable => [//| a rfa]. 
+    apply: fin_bigcup_measurable=>[//|b rgb]. apply: measurableI. 
+    apply: measurableI. 
+    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT f maT _ (measurable1 a).
+    rewrite -(setTI (_ @^-1` [set _])); exact: measurable_funPT g maT _ (measurable1 b).
     rewrite -(in_setE W); have[_|_] := boolP (h (a,b) \in W). 
     by rewrite trueE. rewrite falseE [[set _ | False]] (_:_ = set0)=>//.
   rewrite -image_comp; apply: finite_image.
@@ -223,8 +224,8 @@ Lemma sfun_prod I r (P : {pred I}) (f : I -> {sfun aT >-> nT}) (x : aT) :
   (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
 Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
   
-(* TODO : make these work*)(* 
-HB.instance Definition _ f g := MeasurableFun.copy (f \+ g) (f + g).
+(* TODO : make these work*)
+(* HB.instance Definition _ f g := MeasurableFun.copy (f \+ g) (f + g).
 HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
 HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ (k: rT) g := MeasurableFun.copy (k \*: g) (k *: g). *)
@@ -334,23 +335,6 @@ Proof.
   by rewrite /smallest=>A hA H [saH GH]; apply: GH.
 Qed.
 
-Section mu_measurable_function. (* will be moved to bochner_integral.v*)
-Import HBSimple.
-Context {d} {T : measurableType d} {R : realType}
-  (mu : {finite_measure set T -> \bar R}) (X : normedModType R).
-
-Definition mu_measurable (f: T -> X) := exists f_ : {sfun T >-> X}^nat, 
-\forall x \ae mu, f_ n x @[n --> \oo]--> f x.
-
-Lemma ae_forall2 {P1 P2 Q: T -> Prop} : (forall x, P1 x /\ P2 x -> Q x) -> 
-(\forall x \ae mu, P1 x) -> (\forall x \ae mu, P2 x) -> \forall x \ae mu, Q x.
-Proof.
-  move=> P12Q [A [mA mA0 p1A]] [B [mB mB0 p1B]]. exists (A`|`B); split. exact: measurableU.
-  exact: null_set_setU. have P12sQ: [set x | P1 x]`&`[set x | P2 x] `<=`[set x | Q x] 
-  by rewrite /setI=>x/=; exact:P12Q. apply: (subset_trans (subsetC P12sQ)); 
-  rewrite setCI; exact: setUSS.
-Qed.
-
 Lemma open_closed_measurable (t : topologicalType) : 
 (@open t).-sigma.-measurable = (@closed t).-sigma.-measurable.
 Proof.
@@ -362,52 +346,96 @@ Proof.
   apply: sigma_algebra_gen=>//; exact: closed_openC.
 Qed.
 
-Lemma measurable_fun_open_closed {t : topologicalType} {D : set T} (f : T -> t) :
-measurable_fun D (f : T -> g_sigma_algebraType (@open t)) = 
-measurable_fun D (f : T -> g_sigma_algebraType (@closed t)).
+Lemma measurable_fun_open_closed {d} {aT : measurableType d} 
+{T : topologicalType} {D : set aT} (f : aT -> T) :
+measurable_fun D (f : aT -> g_sigma_algebraType (@open T)) = 
+measurable_fun D (f : aT -> g_sigma_algebraType (@closed T)).
 Proof.
   rewrite propeqE; split=> mf mD Y;
   [rewrite -open_closed_measurable| rewrite open_closed_measurable]; exact: mf.
 Qed.
 
-Lemma closed_dist0 {R:realFieldType} {M:metricType R} {F : set M} 
-(cF : closed F) (x:M) :
-F x <-> forall e:R, exists f:M, F f /\ mdist x f < n.+1%:R^-1.
+(* Could be done for pseudometric spaces using edist, but more tidious 
+(because (_<_)%E isn't transitive ????)*)
+Lemma closed_dist0 {R:realType} {N:normedModType R} {F : set N} 
+(cF : closed F) (x:N) :
+F x = forall e:R, 0 < e -> exists f:N, F f /\ `|x - f| < e.
 Proof.
-  split=>[Fx n|Cx]. exists x; split=>//. by rewrite mdistxx.
-  have [f Ffx]:= choice Cx.
+  rewrite propeqE; split=>[Fx e|Cx]. exists x; split=>//=. by rewrite subrr normr0.
+  have Q : forall n:nat, exists f:N, F f /\ `|x-f| < n.+1%:R^-1.
+  move=> n; apply: (Cx n.+1%:R^-1)=>//.
+  have [f Pf] := choice Q. apply: (@closed_cvg _ _ _ eventually_filter f _ cF).
+  by exists 0=>// n _; have [Ffn _] := Pf n.
+  apply/cvg_ballP=> e e0. rewrite pseudo_metric_ball_norm/=.
+  have Pfe := (Pf (truncn (e^-1))). near=>n. apply: (@lt_trans _ _ (n.+1%:R^-1)).
+  near:n. by apply: nearW=>n; have [_ d] := (Pf n).
+  rewrite invf_plt=>//. by rewrite posrE. apply: (@lt_trans _ _ n%:R).
+  near:n. exact: nbhs_infty_gtr. by rewrite ltr_nat.
+Unshelve. all: end_near. Qed.
 
-Lemma measurable_fun_cv [D : set T] [h : (T->X)^nat] [f : T -> X] : 
-(forall m:nat, measurable_fun D (h m : T -> g_sigma_algebraType open)) -> (forall x : T, D x -> h ^~ x @\oo --> f x)
+Lemma measurable_fun_cv {d} {T : measurableType d} {R : realType} 
+{X : normedModType R} [D : set T] [h : (T->X)^nat] [f : T -> X] : 
+(forall m:nat, measurable_fun D (h m : T -> g_sigma_algebraType open)) -> 
+(forall x : T, D x -> h ^~ x @\oo --> f x)
 -> measurable_fun D (f : T -> g_sigma_algebraType open).
 Proof.
   move=> mhn hf; rewrite measurable_fun_open_closed. 
-  apply: measurability=>// C. case=>F cF<-.
+  rewrite/measurable_fun=> /[dup] mD. apply: measurability=>// C. case=>F cF<-.
   pose G := fun n => [set y | exists c:X, c \in F /\ `|c-y| < (n.+1%:R)^-1].
-  rewrite [D`&`f@^-1` F] (_:_ = D`&`\bigcap_m \bigcup_n \bigcap_(k>=n) (h k)@^-1`(G m)).
-  rewrite eqEsubset; split=>[x/= [Dx Cfx]|x /=[Dx]]; split=>//. rewrite/bigcup/bigcap/G/==> m _.
-  have mp : 0<m.+1%:R^-1. move=>N; by rewrite invr_gt0. 
-  have:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ (mp _).
-  move=>[n0 _]; rewrite/subset/==>bn0. exists n0=>// n n0n; exists (f x).
-  split. by rewrite in_setE. by have:= (bn0 _ n0n); rewrite -ball_normE/=.
-  rewrite/bigcup/bigcap/= in b. 
+  rewrite [D`&`f@^-1` F] (_:_ = \bigcap_m \bigcup_n \bigcap_(k>=n) 
+  (D`&`(h k)@^-1`(G m))).
+  rewrite eqEsubset; split=>[x/= [Dx Cfx]|x b/=].
+    rewrite/bigcup/bigcap/G/==> m _. have mp : 0<m.+1%:R^-1. move=>N; 
+    by rewrite invr_gt0. 
+    have:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ (mp _).
+    move=>[n0 _]; rewrite/subset/==>bn0. exists n0=>// n n0n; split=>//. 
+    exists (f x). split. by rewrite in_setE. 
+    by have:= (bn0 _ n0n); rewrite -ball_normE/=.
+    split; rewrite/bigcup/bigcap/= in b. 
+    by have [i _]:= (b 0 I)=> /(_ i (le_refl i)) [Dx _].
+  have [i _]:= (b 0 I)=> /(_ i (le_refl i)) [Dx _].
+  rewrite (@closed_dist0 R X F cF) => e e0. rewrite (splitr e).
+  have e20 : 0 < e/2 by apply: divr_gt0=>//.
+  have [n0 _] := b (truncn (e/2)^-1) I.
+  have [n1 _ bfehn]:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ e20.
+  rewrite /G => /= /(_ (maxn n0 n1) (leq_maxl n0 n1)) [_ [f0 [f0F yhe]]].
+  rewrite /subset/= in bfehn.
+  have := bfehn (maxn n0 n1) (leq_maxr n0 n1). rewrite -ball_normE=> /= fhn0e.
+  exists f0; split. by rewrite -in_setE. 
+    rewrite -(subrKA (h (maxn n0 n1) x) (f x) (-f0)).
+    apply: (le_lt_trans (ler_normD (f x-h (maxn n0 n1) x) (h (maxn n0 n1) x-f0))). 
+    apply: ltrD=>//. rewrite distrC; apply: (lt_trans yhe).
+    rewrite invf_plt=>//. by rewrite posrE.
+    exact: truncnS_gt.
+  apply: bigcap_measurable=>// m _. apply: bigcup_measurable=>// n _. 
+  apply: bigcap_measurable. exists n=>//=. rewrite /G=> k /= nk.
+  apply: (mhn k)=>//. apply: (@sigma_algebra_gen _ (g_sigma_algebraType open) _).
+  rewrite [X in open X] (_:_ = \bigcup_(c in F) [set y | `|c-y| < m.+1%:R^-1]).
+  apply eq_set=> x/=. rewrite exists2E; apply: eq_exists=>y/=. by rewrite in_setE.
+  apply: bigcup_open=> f0 f0F. have df0c : continuous (normr \o(fun y=> f0-y)).
+  move=> x. apply: continuous_comp. apply: continuousB=>//. exact: cst_continuous.
+  exact: norm_continuous. rewrite -preimage_itvNyo.
+  exact: open_comp.
+Qed.
 
 
+Section mu_measurable_function. (* will be moved to bochner_integral.v*)
+Import HBSimple.
+Context {d} {T : measurableType d} {R : realType}
+  (mu : {finite_measure set T -> \bar R}) (X : normedModType R).
 
+Definition mu_measurable (f: T -> X) := exists f_ : {sfun T >-> X}^nat, 
+\forall x \ae mu, f_ n x @[n --> \oo]--> f x.
 
-
-
-  rewrite eqEsubset; split=>[x/= [Dx fxV]| x/=[Dx [n0 _ caphV]]]. split=>//. rewrite /bigcup/bigcap/=.
-  have:= open_subball oV fxV. case=> r/= rpos br.
-  have r2pos : 0<r/2 by rewrite ltr_pdivlMr//mul0r.
-  have:= @cvg_ball _ _ _ _ eventually_filter _ _ (hf x Dx) _ r2pos.
-  move=>[n0 _ ]; rewrite/subset/==>bn0.
-  exists n0=>// i ir. rewrite /subset/= in br.
-  apply: (br (r/2)). rewrite add0r normrN normrZ gtr0_norm//gtr_pMr//.
-  rewrite gtr0_norm. by rewrite invr_gt0. rewrite invf_lt1// Rint_ltr_addr1=>//;
-  exact: Rint1. rewrite ltr_pdivlMr//mul0r//. exact: bn0.
-  split=>//. apply: (open_subball oV).
-
+Lemma ae_forall2 {P1 P2 Q: T -> Prop} : (forall x, P1 x /\ P2 x -> Q x) -> 
+(\forall x \ae mu, P1 x) -> (\forall x \ae mu, P2 x) -> \forall x \ae mu, Q x.
+Proof.
+  move=> P12Q [A [mA mA0 p1A]] [B [mB mB0 p1B]]. exists (A`|`B); split. 
+  exact: measurableU. exact: null_set_setU. 
+  have P12sQ: [set x | P1 x]`&`[set x | P2 x] `<=`[set x | Q x] 
+  by rewrite /setI=>x/=; exact:P12Q. apply: (subset_trans (subsetC P12sQ)); 
+  rewrite setCI; exact: setUSS.
+Qed.
 
 (*TODO : remove the cast when top_meas will be automatic*)
 Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : 
@@ -426,13 +454,13 @@ Proof.
   by apply: (ae_forall2 cvgD).
 Qed.
 
+(* Needs Egorov's theorem extended for normed modules*)
 Lemma mmeas_cvg (f : (T -> X)^nat) (g : T -> X) 
 (mmf : forall n:nat, mu_measurable (f n)) (fg : forall x, f ^~ x  @\oo--> g x) : mu_measurable g.
 Proof.
   have cvaeu_g : exists (A: (set T)^nat) (F : (T->X)^nat^nat), forall n:nat, 
   (mu (A n) < (1/(n%:R))%:E)%E /\ {uniform [set:T] `\`(A n), F n @\oo--> f n}.
-  rewrite /mu_measurable in mmf. have [F P] := choice mmf.
-  have Q := forall n:nat, ae_pointwise_almost_uniform (P n). 
+rewrite /mu_measurable in mmf. have [F P] := choice mmf. Abort.  
   
 
   
