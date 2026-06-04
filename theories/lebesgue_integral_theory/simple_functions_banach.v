@@ -335,6 +335,41 @@ Proof.
   by rewrite /smallest=>A hA H [saH GH]; apply: GH.
 Qed.
 
+Lemma bigcup_cvg_mu {d} {M : measurableType d} {R : realType} 
+{mu : {measure set M -> \bar R}} (A : (set M)^nat) : (forall i:nat, measurable (A i)) ->
+mu (\bigcup_(i<n) A i) @[n-->\oo] --> mu (\bigcup_n A n).
+Proof.
+  have nduA : nondecreasing_seq (fun n=>\bigcup_(i<n) A i).
+  move=> n m nm/=. apply/subsetPset=> a [i/= i_n ai].
+  exists i=>//=. rewrite -ltz_nat. rewrite -?ltz_nat -?lez_nat in i_n, nm.
+  apply: (lt_le_trans i_n nm). move=> ma. 
+  have mua: forall n, measurable (\bigcup_(i<n) A i). move=>n. exact: bigcup_measurable.
+  rewrite [\bigcup_n A n] (_:_ = \bigcup_n (\bigcup_(i<n) A i)). 
+  rewrite eqEsubset; split=> [a [n _ Ana]|a [n _ [k kn aka]]]. 
+  exists n.+1=>//; exists n=>//=. by exists k.
+  apply: (nondecreasing_cvg_mu mua _ nduA). exact: bigcup_measurable.
+Qed.
+
+Lemma bigcap_cvg_mu {d} {M : measurableType d} {R : realType} 
+{mu : {finite_measure set M -> \bar R}} (A : (set M)^nat) : (forall i:nat, measurable (A i)) ->
+mu (\bigcap_(i<n) A i) @[n-->\oo] --> mu (\bigcap_n A n).
+Proof.
+  have ndiA : nonincreasing_seq (fun n=>\bigcap_(i<n) A i).
+    rewrite /bigcap => n m nm/=. apply/subsetPset=> a/= Ia i i_n.
+    apply: Ia; rewrite -ltz_nat; rewrite -?ltz_nat -?lez_nat in nm, i_n.
+    apply: lt_le_trans i_n nm.
+  move=> ma. have mia: forall n, measurable (\bigcap_(i<n) A i). move=>n. 
+    exact: bigcap_measurableType.
+  rewrite [\bigcap_n A n] (_:_ = \bigcap_n (\bigcap_(i<n) A i)). 
+  rewrite eqEsubset/bigcap; split=> [a/=aia j _ i ij|a/= aIa i _]. exact: aia.
+  exact: (aIa i.+1).
+  apply: (nonincreasing_cvg_mu _ mia _ ndiA). rewrite/bigcap/=. 
+  under eq_set do under eq_forall do rewrite ltn0 [false -> _] 
+  (_:_ = True) ?propeqE//. rewrite [X in mu X] (_:_ = [set:M]) -?subTset=>//=.
+  apply: fin_num_fun_lty.
+Qed.
+
+
 Lemma open_closed_measurable (t : topologicalType) : 
 (@open t).-sigma.-measurable = (@closed t).-sigma.-measurable.
 Proof.
@@ -373,6 +408,8 @@ Proof.
   near:n. exact: nbhs_infty_gtr. by rewrite ltr_nat.
 Unshelve. all: end_near. Qed.
 
+(* Lemma 4.29 Infinite Dimensional Analysis A Hitchhikers Guide, 
+Third Edition (Charalambos D. Aliprantis, Kim C. Border)*)
 Lemma measurable_fun_cv {d} {T : measurableType d} {R : realType} 
 {X : normedModType R} [D : set T] [h : (T->X)^nat] [f : T -> X] : 
 (forall m:nat, measurable_fun D (h m : T -> g_sigma_algebraType open)) -> 
@@ -418,6 +455,37 @@ Proof.
   exact: open_comp.
 Qed.
 
+Section egorov.
+Context d {R : realType} {N : normedModType R}
+ {T : measurableType d} {mu : {finite_measure set T -> \bar R}}.
+Local Open Scope ereal_scope.
+
+Lemma pointwise_almost_uniform (f : (T -> N)^nat) (g : T -> N) 
+  (D : set T) (eps : R) :
+  (forall n, measurable_fun D (f n : T -> g_sigma_algebraType open)) ->
+  measurable D -> (forall x, D x -> f ^~ x @ \oo --> g x) ->
+  (0 < eps)%R -> exists E, [/\ measurable E, mu E < eps%:E &
+    {uniform D `\` E, f @ \oo --> g}].
+Proof.
+  move=> mf mD fg e0. pose A n k := [set x | D x /\ (`|f n x - g x| >= k.+1%:R^-1)%R].
+  pose B n k := \bigcup_(i>=n) A i k. have capB_0 : forall k, \bigcap_n B n k = set0.
+  rewrite/bigcap/B/bigcup/A/==>k; rewrite -subset0 =>a/=. apply: contraPP=> _. 
+  rewrite -existsNE. under eq_exists=>n do rewrite not_implyE exists2E -forallNE.
+  have[ad|nad]:= boolP (a\in D). rewrite in_setE in ad.
+  have invkp : (0 < k.+1%:R^-1)%R. by move=> t; rewrite invr_gt0.
+  have [n0 _ P]:= @cvg_ball _ _ _ _ eventually_filter _ _ (fg a ad) _ (invkp R).
+  exists n0. split=>// n [n0n [_ kfg]].
+  have:= P n n0n. rewrite -ball_normE/= -normrN opprB=>fgk. 
+  by have := (le_lt_trans kfg fgk); rewrite (lt_irreflexive k.+1%:R^-1%R).
+  exists (0:nat). split=>// n. 
+  by rewrite not_andE not_andE; right; left; rewrite -notin_setE.
+  have : forall k, mu (\bigcap_(i<n) B n k) @[n --> \oo] --> 0.
+  
+
+
+
+End egorov.
+
 
 Section mu_measurable_function. (* will be moved to bochner_integral.v*)
 Import HBSimple.
@@ -437,12 +505,16 @@ Proof.
   rewrite setCI; exact: setUSS.
 Qed.
 
-(*TODO : remove the cast when top_meas will be automatic*)
-Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : 
-measurable_fun [set:T] (f : T -> g_sigma_algebraType (@open X)).
+(*Only true if the measure is complete*)
+Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : measure_is_complete mu
+ -> measurable_fun [set:T] (f : T -> g_sigma_algebraType open).
 Proof.
-  case:mmf=> F [A [mA mA0 cv]].
-  About measurable_fun_cvg.
+  case:mmf=> F [A [mA mA0 /subsetCl cv]] cmu. rewrite -(setvU A). 
+  apply/measurable_funU=>//. exact: measurableC. split=>[|_ Y mY].
+  apply: measurable_fun_cv _ cv=>m. apply: measurable_funP.
+  apply: cmu. apply: (@negligibleS _ _ _ _ A). exact: subIsetl.
+  by exists A; split.
+Qed.  
 
 Lemma mmeas_add (f g : T -> X) (mmf : mu_measurable f) (mmg : mu_measurable g) :
 mu_measurable (f + g).
