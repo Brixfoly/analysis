@@ -513,7 +513,7 @@ End mulem_ge0.
 (*************)
 
 (* General lemmas, to add after *)
-(*
+
 Definition measurableTypeNormedModType (R : numDomainType)
     (V : normedModType R) :=
   @g_sigma_algebraType V open.
@@ -531,7 +531,8 @@ HB.instance Definition NormedModType_isMeasurable (R : numDomainType)
     measurable0 (@measurableC _ _) (@bigcupT_measurable _ _).
 
 
-Lemma singleton_bigcap {R : realType} {N : normedModType R} (x:N) : [set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
+Lemma singleton_bigcap {R : realType} {N : normedModType R} (x:N) : 
+[set x] = \bigcap_(k:nat) (ball x (1/((k.+1)%:R))).
 Proof.
   rewrite eqEsubset; split=> [_ ->| y] /=. rewrite /bigcap /= => k _;
   apply: ballxx; by rewrite ltr_pdivlMr.
@@ -546,16 +547,16 @@ Lemma measurable1 {R : realType} {N : normedModType R}
 (x : N) : measurable [set x].
 Proof.
   rewrite singleton_bigcap; apply: bigcap_measurable=> [//|k _].
-  rewrite/measurable/=/smallest/bigcap/=. [sda osa]. apply: osa; exact: (ball_open x).
+  rewrite/measurable/=/measurableNormedModType/measurable/==> A [sda osa]. 
+  apply: osa; exact: (ball_open x).
 Qed.
 
 Section composition.
 Context d (aT : measurableType d) (rT : realType) (T1 T2 T3 : normedModType rT).
 Import HBSimple.
 
-(* No choice but to do it all at the same time: 
-B(X x Y) != B(X) \otimes B(Y) in the general case.*)
-Lemma sfun_op (f: {sfun aT >-> (g_sigma_algebraType (@open T1))}) (g: {sfun aT >-> T2}) (h: T1*T2 -> T3) : (fun x:aT => h (f x, g x)) \in sfun.
+Lemma sfun_op (f: {sfun aT >-> T1}) (g: {sfun aT >-> T2}) (h: T1*T2 -> T3) : 
+(fun x:aT => h (f x, g x)) \in sfun.
 Proof.
   rewrite inE; apply/andP; split. all: rewrite in_setE /=.
     move=> maT W mW. rewrite /preimage/= [X in measurable X] 
@@ -579,21 +580,22 @@ End composition.
 
 Section module.
 Context d (aT : measurableType d) (rT : realType) (nT : normedModType rT).
-Import HBSimple.
 
-Lemma sfun_submod_closed : submod_closed (@sfun d aT nT).
+Lemma sfun_submod_closed : submod_closed (@sfun d _ aT nT).
 Proof.
 split=> [|k f g sf sg]. exact: (valP (cst_sfun (0:nT))).
   apply: (sfun_op (sfun_Sub sf) (sfun_Sub sg) (fun t=>k*:t.1 + t.2)).
 Qed.
 
-HB.instance Definition _ := GRing.isSubmodClosed.Build _ _ sfun
+HB.instance Definition _ := GRing.isSubmodClosed.Build _ _ (@sfun d _ aT nT)
   sfun_submod_closed.
 HB.instance Definition _ := [SubChoice_isSubLmodule of {sfun aT >-> nT} by <:].
 
-Implicit Types (f g : {sfun aT >-> nT}).
+Check {sfun aT >-> nT} : lmodType rT.
 
-Lemma sfun0 : (0 : {sfun aT >-> nT}) =1 cst 0. Proof. by []. Qed.
+Implicit Types (f g : {sfun aT >-> nT}).
+Import HBSimple.
+Lemma sfun0n : (0 : {sfun aT >-> nT}) =1 cst 0. Proof. by []. Qed.
 Lemma sfunN f : - f =1 \- f. Proof. by []. Qed.
 Lemma sfunD f g : f + g =1 f \+ g. Proof. by []. Qed.
 Lemma sfunB f g : f - g =1 f \- g. Proof. by []. Qed.
@@ -678,4 +680,3 @@ by rewrite (unstable.bigmax_sup_seq _ _ (lexx _)).
 Qed.
 
 End simple_bounded.
-*)
