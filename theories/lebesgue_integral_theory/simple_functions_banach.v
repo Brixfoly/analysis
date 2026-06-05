@@ -366,9 +366,9 @@ Proof.
   apply: (nonincreasing_cvg_mu _ mia _ ndiA). rewrite/bigcap/=. 
   under eq_set do under eq_forall do rewrite ltn0 [false -> _] 
   (_:_ = True) ?propeqE//. rewrite [X in mu X] (_:_ = [set:M]) -?subTset=>//=.
-  apply: fin_num_fun_lty.
+  apply: fin_num_fun_lty. exact: fin_num_measure.
+  exact: bigcap_measurable.
 Qed.
-
 
 Lemma open_closed_measurable (t : topologicalType) : 
 (@open t).-sigma.-measurable = (@closed t).-sigma.-measurable.
@@ -389,6 +389,15 @@ Proof.
   rewrite propeqE; split=> mf mD Y;
   [rewrite -open_closed_measurable| rewrite open_closed_measurable]; exact: mf.
 Qed.
+
+Lemma normr_measurable_gen {R : realType} {N : normedModType R} {A : set N} : 
+measurable_fun (A : set (g_sigma_algebraType open)) normr.
+Proof.
+  move=> /[dup] mA.
+  apply: (@measurability _ _ _ _ _ (normr : g_sigma_algebraType open -> R) _).
+  by rewrite/measurable/=/measurableR/measurable/=.
+  move=> U [I [[a b] _] <-] <-/=. apply: measurableI=>//.
+  rewrite /preimage/=. rewrite ltr_normr.
 
 (* Could be done for pseudometric spaces using edist, but more tidious 
 (because (_<_)%E isn't transitive ????)*)
@@ -468,6 +477,11 @@ Lemma pointwise_almost_uniform (f : (T -> N)^nat) (g : T -> N)
     {uniform D `\` E, f @ \oo --> g}].
 Proof.
   move=> mf mD fg e0. pose A n k := [set x | D x /\ (`|f n x - g x| >= k.+1%:R^-1)%R].
+  have mg := measurable_fun_cv mf fg.
+  have mA : forall n k, measurable (A n k).
+  rewrite /A/==>n k.
+  have:= measurableT_comp (@normr_measurable _ [set:R]) (measurable_funB (mf n) mg). 
+  have : measurable_fun D (normr%R \o (f n \- g)%R).
   pose B n k := \bigcup_(i>=n) A i k. have capB_0 : forall k, \bigcap_n B n k = set0.
   rewrite/bigcap/B/bigcup/A/==>k; rewrite -subset0 =>a/=. apply: contraPP=> _. 
   rewrite -existsNE. under eq_exists=>n do rewrite not_implyE exists2E -forallNE.
@@ -477,9 +491,12 @@ Proof.
   exists n0. split=>// n [n0n [_ kfg]].
   have:= P n n0n. rewrite -ball_normE/= -normrN opprB=>fgk. 
   by have := (le_lt_trans kfg fgk); rewrite (lt_irreflexive k.+1%:R^-1%R).
-  exists (0:nat). split=>// n. 
+  exists (0:nat). split=>// n.
   by rewrite not_andE not_andE; right; left; rewrite -notin_setE.
   have : forall k, mu (\bigcap_(i<n) B n k) @[n --> \oo] --> 0.
+  move=>k. rewrite [0%R] (_:_ = mu (\bigcap_n B n k)). by rewrite capB_0.
+  apply: bigcap_cvg_mu.
+  
   
 
 
