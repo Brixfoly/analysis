@@ -74,23 +74,14 @@ Local Open Scope ring_scope.
 
 Module HBSimple.
 
-<<<<<<< HEAD
 HB.structure Definition SimpleFun d d'
     (aT : sigmaRingType d) (bT : sigmaRingType d') :=
-=======
-HB.structure Definition SimpleFun d d' (aT : sigmaRingType d)
-    (bT : sigmaRingType d') :=
->>>>>>> 2bca65ad1 (generalize SimpleFun codomain from realType to sigmaRingType)
   {f of @isMeasurableFun d d' aT bT f & @FiniteImage aT bT f}.
 
 End HBSimple.
 
-<<<<<<< HEAD
 Notation "{ 'sfun' aT >-> T }" :=
   (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
-=======
-Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
->>>>>>> 2bca65ad1 (generalize SimpleFun codomain from realType to sigmaRingType)
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
 Module HBNNSimple.
