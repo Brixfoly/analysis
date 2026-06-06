@@ -297,6 +297,8 @@
 
 - in `simple_functions.v`:
   + lemmas `fctD`, `fctN`, `fctM`, `fctZ`
+  + structure `SimpleFun` (and notation `{sfun aT >-> _}`): codomain
+    generalized from `realType` to `sigmaRingType d'`, adding a display parameter `d'`;
 
 ### Deprecated
 
