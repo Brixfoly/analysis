@@ -87,14 +87,18 @@ HB.instance Definition topological_isMeasurable (T : topologicalType) :
 
 Module HBSimple.
 
+<<<<<<< HEAD
 HB.structure Definition SimpleFun d d'
     (aT : sigmaRingType d) (bT : sigmaRingType d') :=
+=======
+HB.structure Definition SimpleFun d d' (aT : sigmaRingType d)
+    (bT : sigmaRingType d') :=
+>>>>>>> 7ded8aa7a (generalize SimpleFun codomain from realType to sigmaRingType)
   {f of @isMeasurableFun d d' aT bT f & @FiniteImage aT bT f}.
 
 End HBSimple.
 
-Notation "{ 'sfun' aT >-> T }" :=
-  (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
+Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
 Module HBNNSimple.
@@ -126,10 +130,13 @@ Notation T := {sfun aT >-> bT}.
 Notation sfun := (@sfun _ _ aT bT).
 Section Sub.
 Context (f : aT -> bT) (fP : f \in sfun).
+Context (f : aT -> bT) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
+  @isMeasurableFun.Build d d' aT bT f (set_mem (sub_sfun_mfun fP)).
   @isMeasurableFun.Build d d' aT bT f (set_mem (sub_sfun_mfun fP)).
 #[local] HB.instance Definition _ := sfun_Sub1_subproof.
 Definition sfun_Sub2_subproof :=
+  @FiniteImage.Build aT bT f (set_mem (sub_sfun_fimfun fP)).
   @FiniteImage.Build aT bT f (set_mem (sub_sfun_fimfun fP)).
 
 Import HBSimple.
@@ -155,13 +162,17 @@ Proof. by []. Qed.
 HB.instance Definition _ := isSub.Build _ _ Sf sfun_rect sfun_valP.
 
 Lemma sfuneqP (f g : {sfun aT >-> bT}) : f = g <-> f =1 g.
+Lemma sfuneqP (f g : {sfun aT >-> bT}) : f = g <-> f =1 g.
 Proof. by split=> [->//|fg]; apply/val_inj/funext. Qed.
 
+HB.instance Definition _ := [Choice of {sfun aT >-> bT} by <:].
 HB.instance Definition _ := [Choice of {sfun aT >-> bT} by <:].
 
 (* NB: already in cardinality.v *)
 HB.instance Definition _ x : @FImFun aT bT (cst x) := FImFun.on (cst x).
+HB.instance Definition _ x : @FImFun aT bT (cst x) := FImFun.on (cst x).
 
+Definition cst_sfun x : {sfun aT >-> bT} := cst x.
 Definition cst_sfun x : {sfun aT >-> bT} := cst x.
 
 Lemma cst_sfunE x : @cst_sfun x =1 cst x. Proof. by []. Qed.
@@ -185,11 +196,13 @@ Section ring.
 Context d (aT : measurableType d) (rT : realType).
 
 Lemma sfun_subring_closed : subring_closed (@sfun d _ aT rT).
+Lemma sfun_subring_closed : subring_closed (@sfun d _ aT rT).
 Proof.
 by split=> [|f g|f g]; rewrite ?inE/= ?rpred1//;
    move=> /andP[/= mf ff] /andP[/= mg fg]; rewrite !(rpredB, rpredM).
 Qed.
 
+HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d _ aT rT)
 HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d _ aT rT)
   sfun_subring_closed.
 HB.instance Definition _ := [SubChoice_isSubComPzRing of {sfun aT >-> rT} by <:].
