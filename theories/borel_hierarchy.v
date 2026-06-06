@@ -106,10 +106,13 @@ Qed.
 
 End borel_normedModType.
 
+<<<<<<< HEAD
 #[non_forgetful_inheritance]
 HB.instance Definition _ (R : realType) (V : normedModType R) :=
   Measurable.copy V (borel_type V).
 
+=======
+>>>>>>> dde7bd053 (add Borel sigma-algebra wrapper borel_type and measurable singletons)
 Lemma not_rational_Gdelta (R : realType) : ~ Gdelta (@rational R).
 Proof.
 apply/forall2NP => A; apply/not_andP => -[oA ratrA].
