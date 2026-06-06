@@ -280,6 +280,7 @@ End ring.
 
 Arguments indic_sfun {d aT rT} _.
 
+<<<<<<< HEAD
 (* TODO : move it in another file *)
 Section indic_mod.
 Context {T : Type} {rT : pzRingType} {nT : lmodType rT}.
@@ -348,6 +349,56 @@ HB.instance Definition _ A mA z := @mindic_mod_fimfun_subproof A mA z.
   mindic_mod mA z. *)
 
 End mindic_mod_sfun.
+=======
+Section sfun_lmodType.
+Context d (aT : measurableType d) (R : realType).
+Import HBSimple.
+
+HB.instance Definition _ (V : normedModType R) := GRing.Lmodule.on (borel_type V).
+
+Lemma sfun_op (U V W : normedModType R)
+    (f : {sfun aT >-> borel_type U}) (g : {sfun aT >-> borel_type V})
+    (h : U * V -> W) :
+  (fun x => h (f x, g x)) \in @sfun _ _ aT (borel_type W).
+Proof.
+rewrite inE; apply/andP; split; rewrite inE/=.
+  move=> _ Y mY; rewrite setTI.
+  rewrite (_ : _ @^-1` Y =
+      \bigcup_(a in range f) (\bigcup_(b in range g)
+        ((f @^-1` [set a] `&` g @^-1` [set b]) `&` [set _ | Y (h (a, b))]))).
+    apply/seteqP; split=> [x/= Yfg|x [a _] [b _] [[/= <- <-]]//].
+    by exists (f x); [exists x|exists (g x); [exists x|split]].
+  apply: fin_bigcup_measurable; first exact: fimfunP.
+  move=> a _; apply: fin_bigcup_measurable; first exact: fimfunP.
+  move=> b _; apply: measurableI; last first.
+    have [Yhab|Yhab] := pselect (Y (h (a, b))).
+      by rewrite (_ : [set _ | _] = setT);
+          [apply/seteqP; split|exact: measurableT].
+    rewrite (_ : [set _ | _] = set0); last exact: measurable0.
+    by apply/seteqP; split.
+  apply: measurableI.
+    exact: (measurable_funPTI f (measurable1 a)).
+  exact: (measurable_funPTI g (measurable1 b)).
+apply: (sub_finite_set (B := h @` (range f `*` range g))).
+  by move=> _ [x _ <-]/=; exists (f x, g x) => //; split; exists x.
+by apply: finite_image; apply: finite_setX; exact: fimfunP.
+Qed.
+
+Lemma sfun_submod_closed (V : normedModType R) :
+  submod_closed (@sfun _ _ aT (borel_type V)).
+Proof.
+split=> [|k f g sf sg]; first exact: (valP (cst_sfun (0 : borel_type V))).
+exact: (sfun_op (sfun_Sub sf) (sfun_Sub sg) (fun t => k *: t.1 + t.2)).
+Qed.
+
+HB.instance Definition _ (V : normedModType R) :=
+  GRing.isSubmodClosed.Build _ _ (@sfun _ _ aT (borel_type V))
+    (sfun_submod_closed V).
+HB.instance Definition _ (V : normedModType R) :=
+  [SubChoice_isSubLmodule of {sfun aT >-> borel_type V} by <:].
+
+End sfun_lmodType.
+>>>>>>> 52484903c (lmodType structure on simple functions valued in a normed module)
 
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
   t < 0 -> f @^-1` [set t] = set0.
