@@ -28,9 +28,14 @@ From mathcomp Require Import borel_hierarchy.
 (*                                                                            *)
 (* Detailed contents:                                                         *)
 (* ````                                                                       *)
+<<<<<<< HEAD
 (*         {sfun aT >-> bT} == type of simple functions                       *)
 (*                           They can form a ring or a module depending on    *)
 (*                            the structure of bT                             *)
+=======
+(*         {sfun T >-> R} == type of simple functions                         *)
+(*                           They form a (potentially zero) ring.             *)
+>>>>>>> 4a09add7f (lmodType structure on simple functions valued in a normed module)
 (*       {nnsfun T >-> R} == type of non-negative simple functions            *)
 (*          indic_sfun mD := mindic _ mD                                      *)
 (*             cst_sfun r == constant simple function                         *)
