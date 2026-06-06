@@ -103,7 +103,6 @@ Proof.
 rewrite singleton_bigcap; apply: bigcap_measurable => // k _.
 by apply: sub_sigma_algebra; exact: ball_open.
 Qed.
-<<<<<<< HEAD
 #[local] Hint Resolve measurable1 : core.
 
 End borel_normedModType.
@@ -117,11 +116,6 @@ Hint Extern 0 (measurable [set _]) => solve [apply: measurable1] : core.
 HB.instance Definition _ (R : realType) (V : normedModType R) :=
   Measurable.copy V (borel_type V).
 
-=======
-
-End borel_normedModType.
-
->>>>>>> dde7bd053 (add Borel sigma-algebra wrapper borel_type and measurable singletons)
 Lemma not_rational_Gdelta (R : realType) : ~ Gdelta (@rational R).
 Proof.
 apply/forall2NP => A; apply/not_andP => -[oA ratrA].
