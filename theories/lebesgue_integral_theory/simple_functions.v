@@ -93,7 +93,8 @@ HB.structure Definition SimpleFun d d'
 
 End HBSimple.
 
-Notation "{ 'sfun' aT >-> T }" := (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
+Notation "{ 'sfun' aT >-> T }" :=
+  (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
 Module HBNNSimple.
