@@ -450,6 +450,7 @@
 
 - in `esum.v`:
   + lemma `esum_set1`
+    generalized from `realType` to `sigmaRingType d'`, adding a display parameter `d'`;
 
 ### Deprecated
 
