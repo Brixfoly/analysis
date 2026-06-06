@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- in `borel_hierarchy.v`:
+  + definition `borel_type`
+  + lemmas `singleton_bigcap`, `measurable1`
+
 - in `set_interval.v`:
   + lemmas `setU_itvob1`, `setU_1itvob`
 
