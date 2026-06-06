@@ -87,8 +87,13 @@ HB.instance Definition topological_isMeasurable (T : topologicalType) :
 
 Module HBSimple.
 
+<<<<<<< HEAD
 HB.structure Definition SimpleFun d d'
     (aT : sigmaRingType d) (bT : sigmaRingType d') :=
+=======
+HB.structure Definition SimpleFun d d' (aT : sigmaRingType d)
+    (bT : sigmaRingType d') :=
+>>>>>>> 06b27b397 (generalize SimpleFun codomain from realType to sigmaRingType)
   {f of @isMeasurableFun d d' aT bT f & @FiniteImage aT bT f}.
 
 End HBSimple.
