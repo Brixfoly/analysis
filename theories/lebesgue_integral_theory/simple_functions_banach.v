@@ -330,7 +330,7 @@ Proof.
   split=>[|//]; apply:sigma_algebra_measurable.
 Qed.
 
-Lemma sigma_algebra_gen {d} {M : measurableType d} {G : set (set M)} : G `<=`<<s G>>.
+Lemma sigma_algebra_gen {M : choiceType} {G : set (set M)} : G `<=`<<s G>>.
 Proof.
   by rewrite /smallest=>A hA H [saH GH]; apply: GH.
 Qed.
@@ -390,6 +390,7 @@ Proof.
   [rewrite -open_closed_measurable| rewrite open_closed_measurable]; exact: mf.
 Qed.
 
+(*Cannot be generalized yet as it is for a different display from normr_continuous*)
 Lemma normr_measurable_gen {R : realType} {N : normedModType R} {A : set N} : 
 measurable_fun (A : set (g_sigma_algebraType open)) normr.
 Proof.
@@ -397,7 +398,20 @@ Proof.
   apply: (@measurability _ _ _ _ _ (normr : g_sigma_algebraType open -> R) _).
   by rewrite/measurable/=/measurableR/measurable/=.
   move=> U [I [[a b] _] <-] <-/=. apply: measurableI=>//.
-  rewrite /preimage/=. rewrite ltr_normr.
+  rewrite /preimage/=. under eq_set do rewrite in_itv//=.
+  have [nopen _] := continuousP (normr: N-> R).
+  move: nopen => /(_ norm_continuous) nopen.
+  rewrite [X in measurable X] (_:_ = normr@^-1`(`]a,+oo[) `&` ~`normr@^-1`(`]b,+oo[)).
+    apply: eq_set=>/= x; rewrite in_itv propeqE. split=>[/andP [ax xb]|[/=/andP[ax _] xb]].
+    split=>//. exact/andP. rewrite in_itv/==>/andP [bx _]. have:= le_lt_trans xb bx.
+    by rewrite lt_irreflexive. apply/andP; split=>//. rewrite (real_leNgt _ _)=>//.
+    exact: num_real. rewrite /not in_itv/= in xb; apply/negP=>bx; apply: xb; exact/andP.
+  apply: measurableI. 
+    apply: (@sigma_algebra_gen _ open) (nopen `]a,+oo[%classic (rray_open a)).
+    apply: measurableC.
+    exact: (@sigma_algebra_gen _ open) (nopen `]b,+oo[%classic (rray_open b)).
+Qed.
+
 
 (* Could be done for pseudometric spaces using edist, but more tidious 
 (because (_<_)%E isn't transitive ????)*)
@@ -455,7 +469,7 @@ Proof.
     exact: truncnS_gt.
   apply: bigcap_measurable=>// m _. apply: bigcup_measurable=>// n _. 
   apply: bigcap_measurable. exists n=>//=. rewrite /G=> k /= nk.
-  apply: (mhn k)=>//. apply: (@sigma_algebra_gen _ (g_sigma_algebraType open) _).
+  apply: (mhn k)=>//. apply: (@sigma_algebra_gen _ open).
   rewrite [X in open X] (_:_ = \bigcup_(c in F) [set y | `|c-y| < m.+1%:R^-1]).
   apply eq_set=> x/=. rewrite exists2E; apply: eq_exists=>y/=. by rewrite in_setE.
   apply: bigcup_open=> f0 f0F. have df0c : continuous (normr \o(fun y=> f0-y)).
@@ -479,9 +493,9 @@ Proof.
   move=> mf mD fg e0. pose A n k := [set x | D x /\ (`|f n x - g x| >= k.+1%:R^-1)%R].
   have mg := measurable_fun_cv mf fg.
   have mA : forall n k, measurable (A n k).
-  rewrite /A/==>n k.
-  have:= measurableT_comp (@normr_measurable _ [set:R]) (measurable_funB (mf n) mg). 
-  have : measurable_fun D (normr%R \o (f n \- g)%R).
+  rewrite /A/==>n k. 
+  have mfBg : measurable_fun D (normr%R \o (f n \- g)%R). 
+  (*pb : no lemmas to prove that something is measurable outside of R*)
   pose B n k := \bigcup_(i>=n) A i k. have capB_0 : forall k, \bigcap_n B n k = set0.
   rewrite/bigcap/B/bigcup/A/==>k; rewrite -subset0 =>a/=. apply: contraPP=> _. 
   rewrite -existsNE. under eq_exists=>n do rewrite not_implyE exists2E -forallNE.
