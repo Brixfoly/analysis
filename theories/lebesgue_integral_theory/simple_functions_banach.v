@@ -490,26 +490,53 @@ Lemma pointwise_almost_uniform (f : (T -> N)^nat) (g : T -> N)
   (0 < eps)%R -> exists E, [/\ measurable E, mu E < eps%:E &
     {uniform D `\` E, f @ \oo --> g}].
 Proof.
-  move=> mf mD fg e0. pose A n k := [set x | D x /\ (`|f n x - g x| >= k.+1%:R^-1)%R].
-  have mg := measurable_fun_cv mf fg.
+  move=> mf mD fg e0. pose A n k := D `&` (normr \o  (f n \- g)%R) @^-1`
+   `[k.+1%:R^-1%R, +oo [. have mg := measurable_fun_cv mf fg.
   have mA : forall n k, measurable (A n k).
-  rewrite /A/==>n k. 
-  have mfBg : measurable_fun D (normr%R \o (f n \- g)%R). 
-  (*pb : no lemmas to prove that something is measurable outside of R*)
-  pose B n k := \bigcup_(i>=n) A i k. have capB_0 : forall k, \bigcap_n B n k = set0.
+  rewrite /A/==>n k.
+  have mfBg : measurable_fun D (normr%R \o (f n \- g)%R). About normr_measurable.
+  (*TODO : no lemmas to prove that something is measurable outside of R*)
+  apply: (mfBg mD `[k.+1%:R^-1, +oo[%classic%R). exact: measurable_itv.
+  pose B n k := \bigcup_(i>=n) A i k. have mB: forall n k, measurable (B n k).
+  rewrite/B=> n k. apply: bigcup_measurable=>//.
+  have capB_0 : forall k, \bigcap_n B n k = set0.
   rewrite/bigcap/B/bigcup/A/==>k; rewrite -subset0 =>a/=. apply: contraPP=> _. 
   rewrite -existsNE. under eq_exists=>n do rewrite not_implyE exists2E -forallNE.
   have[ad|nad]:= boolP (a\in D). rewrite in_setE in ad.
   have invkp : (0 < k.+1%:R^-1)%R. by move=> t; rewrite invr_gt0.
   have [n0 _ P]:= @cvg_ball _ _ _ _ eventually_filter _ _ (fg a ad) _ (invkp R).
-  exists n0. split=>// n [n0n [_ kfg]].
-  have:= P n n0n. rewrite -ball_normE/= -normrN opprB=>fgk. 
+  exists n0. under eq_forall do rewrite in_itv/=. split=>// n [n0n [_ /andP[kfg _]]].
+  have:= P n n0n. rewrite -ball_normE/= -normrN opprB=>fgk.
   by have := (le_lt_trans kfg fgk); rewrite (lt_irreflexive k.+1%:R^-1%R).
   exists (0:nat). split=>// n.
   by rewrite not_andE not_andE; right; left; rewrite -notin_setE.
-  have : forall k, mu (\bigcap_(i<n) B n k) @[n --> \oo] --> 0.
-  move=>k. rewrite [0%R] (_:_ = mu (\bigcap_n B n k)). by rewrite capB_0.
-  apply: bigcap_cvg_mu.
+  have cvB0 : forall k, mu (\bigcap_(i<n) B i k) @[n --> \oo] --> 0.
+    move=>k. rewrite [0%R] (_:_ = mu (\bigcap_n B n k)). by rewrite capB_0.
+    exact: bigcap_cvg_mu (mB ^~ k).
+  have nk_cap : forall k, exists n, true -> mu (\bigcap_(i<n.+1) B i k) <= (eps/(2^+(k+2))%:R)%:E. admit.
+  (* move=>k. have ekp : (0 < eps/2^k)%R by rewrite ltr_pdivlMr ?mul0r. 
+  have [cb1 _] := @cvgr0Pnorm_lt _ _ _ _ eventually_filter 
+  ((@contract R) \o mu \o (B ^~ k)). 
+  have cb := cb1 (cvB0 k) (eps/2^k)%R ekp.
+  have [n0 _ P] := @cvg_ball R _ _ _ eventually_filter _ _ (cvB0 k) _ ekp.
+  exists n0. have:= P n0 (le_refl n0). rewrite/ball/=/ereal_ball/=.
+  rewrite normr0 addr0 divr1 sub0r normrN. *)
+  have [p pBe] := choice nk_cap. have mBp : forall k:nat, 
+    measurable (\bigcap_(i<(p k).+1) (B i k)). move=>k; apply: bigcap_measurable=>//. 
+    exists 0%N=>//=; exact: ltn0Sn.  exists (\bigcup_k \bigcap_(i<(p k).+1) (B i k)).
+    split=>[||H ngh/=]. exact: bigcupT_measurable. 
+    apply: (le_lt_trans (generalized_Boole_inequality mu mBp _)).
+    exact: bigcup_measurable. have nn_muB : forall i:nat, (0 <= i)%N -> true -> 
+      0%R <= mu (\bigcap_(i0 < (p i).+1)  B i0 i). move=> i _ _; exact: measure_ge0.
+    have:= lee_nneseries nn_muB pBe. rewrite (@cvg_lim _ (@ereal_hausdorff R) 
+    _ _ eventually_filter _ _ (@cvg_geometric_eseries_half _ eps 1)).
+    move=> mBe2; apply: (le_lt_trans mBe2).
+    rewrite lte_fin expr1 ltr_pdivrMr ?ltr_pMr ?ltr1n=>//.
+    rewrite/nbhs/= /(\oo)/filter_from/=.
+
+
+
+
   
   
 
