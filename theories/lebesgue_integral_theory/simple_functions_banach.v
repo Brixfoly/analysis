@@ -846,7 +846,6 @@ Proof.
   move=> sf mf mD fg eps e0. pose A n k := D `&` 
   [set x | (`|f n x - g x| >=k.+1%:R^-1)%R]. have mg := measurable_fun_cv mf fg.
   have mA : forall n k, measurable (A n k).
-<<<<<<< HEAD
     rewrite /A/==>n k. rewrite -setDD {2}/setD/= [X in _`\`X] (_:_ = 
     [set x| D x /\ (`|f n x - g x| < k.+1%:R^-1)%R]).
       apply: eq_set=>x. rewrite propeqE; split=>/=[[Dx nle]|[Dx lt]]; split=>//.
@@ -879,33 +878,6 @@ Proof.
     ger0_norm -?lee_fin ?fineK ?fin_num_measure//; try (exact: bigcap_measurableType).
     rewrite -lte_fin fineK ?fin_num_measure//. exact: bigcap_measurableType. 
     rewrite /lee/lte/=lt_def_ereal => /andP[_ c2]//.
-=======
-  rewrite /A/==>n k.
-  have mfBg : measurable_fun D (normr%R \o (f n \- g)%R). admit.
-  (*TODO : no lemmas to prove that something is measurable outside of R*)
-  apply: (mfBg mD `[k.+1%:R^-1, +oo[%classic%R). exact: measurable_itv.
-  pose B n k := \bigcup_(i>=n) A i k. have mB: forall n k, measurable (B n k).
-  rewrite/B=> n k. apply: bigcup_measurable=>//.
-  have capB_0 : forall k, \bigcap_n B n k = set0.
-  rewrite/bigcap/B/bigcup/A/==>k; rewrite -subset0 =>a/=. apply: contraPP=> _. 
-  rewrite -existsNE. under eq_exists=>n do rewrite not_implyE exists2E -forallNE.
-  have[ad|nad]:= boolP (a\in D). rewrite in_setE in ad.
-  have invkp : (0 < k.+1%:R^-1)%R. by move=> t; rewrite invr_gt0.
-  have [n0 _ P]:= @cvg_ball _ _ _ _ eventually_filter _ _ (fg a ad) _ (invkp R).
-  exists n0. under eq_forall do rewrite in_itv/=. split=>// n [n0n [_ /andP[kfg _]]].
-  have:= P n n0n. rewrite -ball_normE/= -normrN opprB=>fgk.
-  by have := (le_lt_trans kfg fgk); rewrite (lt_irreflexive k.+1%:R^-1%R).
-  exists (0:nat). split=>// n.
-  by rewrite not_andE not_andE; right; left; rewrite -notin_setE.
-  have cvB0 : forall k, mu (\bigcap_(i<n) B i k) @[n --> \oo] --> 0.
-    move=>k. rewrite [0%R] (_:_ = mu (\bigcap_n B n k)). by rewrite capB_0.
-    exact: bigcap_cvg_mu (mB ^~ k).
-  have nk_cap : forall k, exists n, true -> mu (\bigcap_(i<n.+1) B i k) <= (eps/(2^+(k+2))%:R)%:E.
-  move=>k. have ekp : (0 < eps/2^k)%R by rewrite ltr_pdivlMr ?mul0r. 
-  have [n0 _ P] := @cvg_ball R _ _ _ eventually_filter _ _ (cvB0 k) _ ekp.
-  exists n0=> _. rewrite -[X in X <= _](fineK) ?(fin_num_measure)//. admit. rewrite lee_fin/=. have:= P n0 (le_refl n0). rewrite/ball/=/ereal_ball/=.
-  rewrite normr0 addr0 divr1 sub0r normrN.
->>>>>>> ce1c66a0f (fine stuff for ereal)
   have [p pBe] := choice nk_cap. have mBp : forall k:nat, 
     measurable (\bigcap_(i<p k) (B i k)). move=>k; apply: bigcap_measurableType=>//.
   pose C := (\bigcup_k \bigcap_(i<(p k)) (B i k)). exists C.
