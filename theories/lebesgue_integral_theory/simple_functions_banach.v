@@ -382,6 +382,15 @@ Proof.
   apply: sigma_algebra_gen=>//; exact: closed_openC.
 Qed.
 
+Lemma countable_bigcup_measurable {d} {T : sigmaRingType d} {U} {F : U -> set T}
+{P : set U} : countable P -> (forall i:U, P i -> measurable (F i)) -> 
+measurable (\bigcup_(i in P) F i).
+Proof.
+  move=>/[dup] cP /pfcard_geP=>[[-> _|/surjfunPex [f ->] mF]]. by rewrite bigcup0.
+  rewrite bigcup_image.
+  apply: bigcupT_measurable=>// i. exact: mF.
+Qed.
+
 End sigma_algebra_lemmas.
 
 (* Some should be moved in topology_structure.v, some in metric_structure.v*)
@@ -589,32 +598,62 @@ Proof.
     exact: (@sigma_algebra_gen _ open) (nopen `]b,+oo[%classic (rray_open b)).
 Qed.
 
-(* TODO, almost finished *)
-Lemma measurable_funD_gen {d} {A : measurableType d} {R : realType} 
+
+Lemma measurable_funD_dist {d} {A : measurableType d} {R : realType} 
 {N : normedModType R} {f g : A -> N} {D : set A} : 
 separable_set_ball (image D f) -> separable_set_ball (image D g) ->
 measurable_fun D (f: A -> g_sigma_algebraType open) -> 
-measurable_fun D (g: A -> g_sigma_algebraType open) -> 
+measurable_fun D (g: A -> g_sigma_algebraType open) -> measurable D ->
 forall (r:R), 0<r -> measurable (D `&` [set a | `|f a - g a| < r]).
-Proof.
-case: (boolP (D != set0)). move=> /set0P [d0 Dd0].
-  move=> [Df [Dfr [/pfcard_geP [-> /(_ (f d0) 1 ltr01)/=|[F DF]]]]].
-    have Df0 : exists2 x, D x & f x = f d0 by exists d0. move=>/(_ Df0) [d1 [B//]].
-  move=> [Dg [Dgr [/pfcard_geP [-> /(_ (g d0) 1 ltr01)/=|[G DG]]]]].
-    have Dg0 : exists2 x, D x & g x = g d0 by exists d0. move=>/(_ Dg0) [d1 [B//]].
-  move=> mf mg r r0. rewrite [X in measurable X] (_:_ = \bigcup_n \bigcup_
-  (k in [set k | k.1.+1%:R^-1 + k.2.1.+1%:R^-1 + k.2.2.+1%:R^-1 < r])
-  \bigcup_(m in [set m | `|F n - G m| < k.1.+1%:R^-1]) 
-  (D `&` f@^-1`(ball (F n) k.2.1.+1%:R^-1) `&` g@^-1`(ball (G m) k.2.2.+1%:R^-1))).
-Admitted.
-  
-
-    
-
-  
-  
-
-
+Proof. 
+move=> [Df [Dfr [cDf DF]]] 
+[Dg [Dgr [cDg DG]]] mf mg mD r r0. rewrite [X in measurable X] (_:_ = 
+\bigcup_q \bigcup_k1 \bigcup_(k2 in 
+[set k2 | rat.ratr q + k1.+1%:R^-1 + k2.+1%:R^-1 < r])
+\bigcup_(d1 in Df) \bigcup_(d2 in [set d2 | Dg d2 /\ `|d1 - d2| < rat.ratr q]) 
+((D `&` f@^-1`(ball d1 k1.+1%:R^-1)) `&` (D `&`g@^-1`(ball d2 k2.+1%:R^-1)))).
+  rewrite/bigcup eqEsubset. split=> [x [Dx/= fgxr] | x/= 
+  [q q0 [k1 _ [k2 qk [s Dfs] [t [Dgt stq] [[Dx bsf] [_ btg]]]]]]].
+    have fgrne : `]`|f x - g x|, r[%classic !=set0. exists ((`|f x - g x|+r)/2).
+      rewrite/=in_itv/=. apply/andP;split; apply (midf_lt fgxr). 
+    have[q]:= dense_rat fgrne (itv_open `|f x - g x| r). 
+    rewrite /=in_itv=>/= [[/andP[fgq qr]] [q1 _ q1q]].
+    set eps := (minr (q - `|f x - g x|) (r-q))/2. 
+    have eps0 : 0 < eps by rewrite ltr_pdivlMr//mul0r lt_min !subr_gt0; apply/andP.
+    have [erq eqfg] : eps <= (r-q)/2 /\ eps <= (q - `|f x - g x|)/2. 
+      rewrite/eps !ler_pdivlMr// -[X in _* X](divr1 2) mulf_div [X in _/X]mulrC
+      -mulf_div divr1 divff//mulr1 !ge_min; split; apply/orP. by right. by left.
+    exists q1=>//=. rewrite q1q/=.
+    have tee : (truncn eps^-1).+1%:R^-1 < eps by rewrite invf_plt ?posrE//; 
+      exact: truncnS_gt. exists (truncn eps^-1)=>//. exists (truncn eps^-1).
+      apply: (@lt_le_trans _ _ _ _ r (ltrD (ler_ltD (le_refl q) tee) tee)).
+      apply: (le_trans (lerD (lerD (le_refl q) erq) erq)).
+      by rewrite -addrA -splitr [X in _+X]addrC addrA subrr add0r.
+    have t0 : (0:R)<(truncn eps^-1).+1%:R^-1 by rewrite invr_gt0.
+    have [d1 [Dfd1 b1]]:= (DF (f x) _ t0 (imageP f Dx)).
+    exists d1=>//. have [d2 [Dgd2 b2]]:= (DG (g x) _ t0 (imageP g Dx)).
+    exists d2; split=>//; apply: (le_lt_trans (ler_distD (f x) d1 d2)).
+      rewrite -ball_normE/= in b1,b2.
+    apply: (lt_trans (ltr_leD (lt_trans b1 tee) (le_refl _))).
+    apply: (le_lt_trans (lerD eqfg (ler_distD (g x) (f x) d2))).
+    rewrite [X in _+(_+X)]distrC. 
+    apply: (lt_le_trans (ler_ltD (le_refl _) (ler_ltD (le_refl _) (lt_trans b2 tee)))).
+    rewrite [X in _+X]addrC addrA. 
+    apply: (le_trans (lerD (lerD (le_refl _) eqfg) (le_refl _))). 
+    by rewrite -splitr -addrA [X in _+X]addrC subrr addr0.
+  split=>//. rewrite -ball_normE/= in bsf,btg. 
+  apply: (le_lt_trans (ler_distD s (f x) (g x))); rewrite distrC.
+  apply: (lt_trans (ltr_leD bsf (ler_distD t s (g x)))); 
+  rewrite addrC -addrA [X in _+X]addrC addrA.
+  exact: (lt_trans (ltrD (ltr_leD stq (le_refl _)) btg)).
+apply: bigcupT_measurable_rat=>q; apply: bigcupT_measurable=>k1; 
+apply: bigcup_measurable=>k2/=qkr. apply countable_bigcup_measurable=>//d1 Dfd1.
+apply: countable_bigcup_measurable. exact : (sub_countable (subset_card_le 
+  (@subIsetl _ Dg [set d2 | `|d1-d2| < rat.ratr q]))).
+move=> d2 /= [Dgd2 dq]. apply: measurableI. 
+apply: mf=>//; apply: sigma_algebra_gen; exact: ball_open.
+apply: mg=>//; apply: sigma_algebra_gen; exact: ball_open.
+Qed.
 
 (* Lemma 4.29 Infinite Dimensional Analysis A Hitchhikers Guide, 
 Third Edition (Charalambos D. Aliprantis, Kim C. Border)*)
@@ -670,22 +709,27 @@ Context d {R : realType} {N : normedModType R}
  {T : measurableType d} {mu : {finite_measure set T -> \bar R}}.
 Local Open Scope ereal_scope.
 
-Lemma pointwise_almost_uniform (f : (T -> N)^nat) (g : T -> N) 
-  (D : set T) (eps : R) :
-  (forall n, measurable_fun D (f n : T -> g_sigma_algebraType open)) ->
+(* TODO : create a version for mu-measurable functions, given that they
+ satisfy separable_set_ball. For that, modify the def of sep_set_ball
+ so that the sequences doesn't need to be 
+ included in the set +modify measurable_funD_ball*)
+Lemma pointwise_almost_uniform_sep (f : (T -> N)^nat) (g : T -> N) 
+  (D : set T) (eps : R) : 
+  (forall n, separable_set_ball (image D (f n))) -> separable_set_ball (image D g)
+  -> (forall n, measurable_fun D (f n : T -> g_sigma_algebraType open)) ->
   measurable D -> (forall x, D x -> f ^~ x @ \oo --> g x) ->
   (0 < eps)%R -> exists E, [/\ measurable E, mu E < eps%:E &
     {uniform D `\` E, f @ \oo --> g}].
 Proof.
-  move=> mf mD fg e0. pose A n k := D `&` (normr \o  (f n \- g)%R) @^-1`
-   `[k.+1%:R^-1%R, +oo [. have mg := measurable_fun_cv mf fg.
+  move=> sf sg mf mD fg e0. pose A n k := D `&` 
+  [set x | (`|f n x - g x| >= k.+1%:R^-1)%R]. have mg := measurable_fun_cv mf fg.
   have mA : forall n k, measurable (A n k).
-    rewrite /A/==>n k.
-    (* have mfBg : measurable_fun D (normr%R \o (f n \- g)%R). *)
-    have mfBg:= (measurable_comp (@measurableT _ (g_sigma_algebraType open)) 
-    (subsetT [set (f n \- g)%R x | x in D]) normr_measurable_gen).
-    (*TODO : no lemmas to prove that something is measurable outside of R*)
-    apply: (mfBg mD `[k.+1%:R^-1, +oo[%classic%R). exact: measurable_itv.
+    rewrite /A/==>n k. rewrite -setDD {2}/setD/= [X in _`\`X] (_:_ = 
+    [set x| D x /\ (`|f n x - g x| < k.+1%:R^-1)%R]).
+      apply: eq_set=>x. rewrite propeqE; split=>/=[[Dx nle]|[Dx lt]]; split=>//.
+        apply: (contra_not_lt nle)=>//. 
+      exact: (@contra_lt_not _ _ (k.+1%:R^-1 <= `|f n x - g x|)%R _ _ _ lt).
+    apply: measurableD=>//. exact: measurable_funD_dist.
   pose B n k := \bigcup_(i>=n) A i k. have mB: forall n k, measurable (B n k) 
     by rewrite/B=> n k; apply: bigcup_measurable.
   have capB_0 : forall k, \bigcap_n B n k = set0.
@@ -694,7 +738,7 @@ Proof.
     have[ad|nad]:= boolP (a\in D). rewrite in_setE in ad.
     have invkp : (0 < k.+1%:R^-1)%R. by move=> t; rewrite invr_gt0.
     have [n0 _ P]:= @cvg_ball _ _ _ _ eventually_filter _ _ (fg a ad) _ (invkp R).
-    exists n0. under eq_forall do rewrite in_itv/=. split=>// n [n0n [_ /andP[kfg _]]].
+    exists n0. split=>// n [n0n [_ kfg]].
     have:= P n n0n. rewrite -ball_normE/= -normrN opprB=>fgk.
     by have := (le_lt_trans kfg fgk); rewrite (lt_irreflexive k.+1%:R^-1%R).
     exists (0:nat). split=>//n.
@@ -733,10 +777,9 @@ Proof.
   rewrite /B/A/bigcup/= => /(_ n0) /(_ I) [i ipn]. 
   rewrite exists2E -forallNE=> /(_ n).
   rewrite -implypN -implypN => /(_ (ltnW (@lt_le_trans _ _ _ i _ ipn pn0n)) xD). 
-  rewrite in_itv /= andbT => /negP nfgn. 
-  rewrite -real_ltNge in nfgn=>//; apply: (le_ball (ltW n0ir)). 
+  move=> /negP. rewrite -real_ltNge=>//fgn0; apply: (le_ball (ltW n0ir)). 
   by rewrite ball_symE -ball_normE.
-  
+Qed.
 
 End egorov.
 
