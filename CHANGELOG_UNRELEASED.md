@@ -230,6 +230,10 @@
 
 - in `functions.v`:
   + lemmas `zerofctE`, `onefctE`
+- in `lebesgue_stieltjes_measure.v`:
+  + definition `lebesgue_display`
+
+### Changed
 
 - in `functions.v`:
   + lemmas `linfunP`, `linfun_eqP`
