@@ -481,8 +481,8 @@ End topology_lemmas.
 
 Section norm_lemmas.
 
-Definition separable_set_ball {K : numDomainType} {M : pseudoMetricType K} 
-(A : set M) := exists D, D `<=` A /\ countable D /\ forall (x:M) (r : K), 
+Definition norm_separable_set {K : numDomainType} {M : pseudoMetricType K} 
+(A : set M) := exists D, countable D /\ forall (x:M) (r : K), 
 0<r -> A x -> exists d, D d /\ ball d r x.
 
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
@@ -598,61 +598,44 @@ Proof.
     exact: (@sigma_algebra_gen _ open) (nopen `]b,+oo[%classic (rray_open b)).
 Qed.
 
-
 Lemma measurable_funD_dist {d} {A : measurableType d} {R : realType} 
-{N : normedModType R} {f g : A -> N} {D : set A} : 
-separable_set_ball (image D f) -> separable_set_ball (image D g) ->
-measurable_fun D (f: A -> g_sigma_algebraType open) -> 
+{N : normedModType R} {f g : A -> N} {D : set A}: norm_separable_set (image D f)
+-> measurable_fun D (f: A -> g_sigma_algebraType open) -> 
 measurable_fun D (g: A -> g_sigma_algebraType open) -> measurable D ->
 forall (r:R), 0<r -> measurable (D `&` [set a | `|f a - g a| < r]).
-Proof. 
-move=> [Df [Dfr [cDf DF]]] 
-[Dg [Dgr [cDg DG]]] mf mg mD r r0. rewrite [X in measurable X] (_:_ = 
-\bigcup_q \bigcup_k1 \bigcup_(k2 in 
-[set k2 | rat.ratr q + k1.+1%:R^-1 + k2.+1%:R^-1 < r])
-\bigcup_(d1 in Df) \bigcup_(d2 in [set d2 | Dg d2 /\ `|d1 - d2| < rat.ratr q]) 
-((D `&` f@^-1`(ball d1 k1.+1%:R^-1)) `&` (D `&`g@^-1`(ball d2 k2.+1%:R^-1)))).
-  rewrite/bigcup eqEsubset. split=> [x [Dx/= fgxr] | x/= 
-  [q q0 [k1 _ [k2 qk [s Dfs] [t [Dgt stq] [[Dx bsf] [_ btg]]]]]]].
+Proof.
+move=> [Df [cDf DF]] mf mg mD r r0. rewrite [X in measurable X] (_:_ = 
+\bigcup_q \bigcup_(z in Df) \bigcup_(k in [set k | rat.ratr q + k.+1%:R^-1 < r])
+(D `&` f@^-1`(ball z k.+1%:R^-1) `&` (D `&` g@^-1`(ball z (rat.ratr q))))).
+  rewrite eqEsubset /bigcup; split=>[x [Dx /= fgxr]|x [q _ /= [z Dfz] [k qkr] 
+      [[Dx bzkf] [_ bzqg]]]].
     have fgrne : `]`|f x - g x|, r[%classic !=set0. exists ((`|f x - g x|+r)/2).
-      rewrite/=in_itv/=. apply/andP;split; apply (midf_lt fgxr). 
+      rewrite/=in_itv/=. apply/andP;split; by apply (midf_lt fgxr).
     have[q]:= dense_rat fgrne (itv_open `|f x - g x| r). 
     rewrite /=in_itv=>/= [[/andP[fgq qr]] [q1 _ q1q]].
-    set eps := (minr (q - `|f x - g x|) (r-q))/2. 
-    have eps0 : 0 < eps by rewrite ltr_pdivlMr//mul0r lt_min !subr_gt0; apply/andP.
-    have [erq eqfg] : eps <= (r-q)/2 /\ eps <= (q - `|f x - g x|)/2. 
-      rewrite/eps !ler_pdivlMr// -[X in _* X](divr1 2) mulf_div [X in _/X]mulrC
-      -mulf_div divr1 divff//mulr1 !ge_min; split; apply/orP. by right. by left.
+    pose eps := minr (q - `|f x - g x|) (r-q). pose k := truncn eps^-1.
+    have eps0 : 0 < eps by rewrite lt_min !subr_gt0; apply/andP.
+    have [erq eqfg] : eps <= r-q /\ eps <= q - `|f x - g x|. 
+      rewrite !ge_min; split; apply/orP. by right. by left.
     exists q1=>//=. rewrite q1q/=.
-    have tee : (truncn eps^-1).+1%:R^-1 < eps by rewrite invf_plt ?posrE//; 
-      exact: truncnS_gt. exists (truncn eps^-1)=>//. exists (truncn eps^-1).
-      apply: (@lt_le_trans _ _ _ _ r (ltrD (ler_ltD (le_refl q) tee) tee)).
-      apply: (le_trans (lerD (lerD (le_refl q) erq) erq)).
-      by rewrite -addrA -splitr [X in _+X]addrC addrA subrr add0r.
-    have t0 : (0:R)<(truncn eps^-1).+1%:R^-1 by rewrite invr_gt0.
-    have [d1 [Dfd1 b1]]:= (DF (f x) _ t0 (imageP f Dx)).
-    exists d1=>//. have [d2 [Dgd2 b2]]:= (DG (g x) _ t0 (imageP g Dx)).
-    exists d2; split=>//; apply: (le_lt_trans (ler_distD (f x) d1 d2)).
-      rewrite -ball_normE/= in b1,b2.
-    apply: (lt_trans (ltr_leD (lt_trans b1 tee) (le_refl _))).
-    apply: (le_lt_trans (lerD eqfg (ler_distD (g x) (f x) d2))).
-    rewrite [X in _+(_+X)]distrC. 
-    apply: (lt_le_trans (ler_ltD (le_refl _) (ler_ltD (le_refl _) (lt_trans b2 tee)))).
-    rewrite [X in _+X]addrC addrA. 
-    apply: (le_trans (lerD (lerD (le_refl _) eqfg) (le_refl _))). 
-    by rewrite -splitr -addrA [X in _+X]addrC subrr addr0.
-  split=>//. rewrite -ball_normE/= in bsf,btg. 
-  apply: (le_lt_trans (ler_distD s (f x) (g x))); rewrite distrC.
-  apply: (lt_trans (ltr_leD bsf (ler_distD t s (g x)))); 
-  rewrite addrC -addrA [X in _+X]addrC addrA.
-  exact: (lt_trans (ltrD (ltr_leD stq (le_refl _)) btg)).
-apply: bigcupT_measurable_rat=>q; apply: bigcupT_measurable=>k1; 
-apply: bigcup_measurable=>k2/=qkr. apply countable_bigcup_measurable=>//d1 Dfd1.
-apply: countable_bigcup_measurable. exact : (sub_countable (subset_card_le 
-  (@subIsetl _ Dg [set d2 | `|d1-d2| < rat.ratr q]))).
-move=> d2 /= [Dgd2 dq]. apply: measurableI. 
-apply: mf=>//; apply: sigma_algebra_gen; exact: ball_open.
-apply: mg=>//; apply: sigma_algebra_gen; exact: ball_open.
+    have ke : k.+1%:R^-1 < eps by rewrite invf_plt ?posrE//; 
+      exact: truncnS_gt.
+    have k0 : (0:R) < k.+1%:R^-1 by rewrite invr_gt0.
+    have [z [Dfz b1]]:= (DF (f x) _ k0 (imageP f Dx)).
+    exists z=>//. exists k. rewrite -ltrBrDl. exact: (lt_le_trans ke erq).
+    split=>//; split=>//. rewrite -ball_normE/=. rewrite -ball_normE/= in b1.
+    apply: (le_lt_trans (ler_distD (f x) z (g x))).
+    have zfq : `|z - f x| < q - `|f x - g x| by apply: (lt_le_trans 
+      (lt_trans b1 ke) eqfg).
+    apply: (lt_le_trans (ltr_leD zfq (le_refl _))). 
+    by rewrite -addrA [X in _ + X]addrC subrr addr0.
+  split=>//. rewrite -ball_normE /= in bzkf, bzqg. 
+  apply: (le_lt_trans (ler_distD z _ _)). rewrite {1}distrC addrC. 
+  exact: (lt_trans (ltrD bzqg bzkf) qkr).
+apply: bigcupT_measurable_rat=> q. apply: countable_bigcup_measurable=>// z Dfz.
+apply: bigcup_measurable=>k /= qkr. apply: measurableI. apply: (mf mD).
+  apply: sigma_algebra_gen; exact: ball_open.
+apply: (mg mD). apply: sigma_algebra_gen; exact: ball_open.
 Qed.
 
 (* Lemma 4.29 Infinite Dimensional Analysis A Hitchhikers Guide, 
@@ -704,25 +687,34 @@ Qed.
 
 End measurable_fun_lemmas.
 
+Section measure_lemmas.
+Context d {T : measurableType d} {R : realType} {mu : {measure set T -> \bar R}}.
+
+Lemma measure0P {A} : (forall eps, 0<eps -> (mu A < eps%:E)%E) -> mu A = 0.
+Proof.
+move=> mAe. apply/eqP; rewrite eq_le; apply/andP; split=>//.
+apply/le_ltP=> z z0. have [/(_ (ltW z0)) [->|[r r0 rz]] _] := (gee0P z).
+  apply: (lt_trans (mAe 1 (ltr01))). exact: ltry. 
+by move: z0; rewrite rz lte_fin=> /mAe.
+Qed.
+
+End measure_lemmas.
+
 Section egorov.
 Context d {R : realType} {N : normedModType R}
  {T : measurableType d} {mu : {finite_measure set T -> \bar R}}.
 Local Open Scope ereal_scope.
 
-(* TODO : create a version for mu-measurable functions, given that they
- satisfy separable_set_ball. For that, modify the def of sep_set_ball
- so that the sequences doesn't need to be 
- included in the set +modify measurable_funD_ball*)
+(* A more general version of Erogov's theorem *) 
 Lemma pointwise_almost_uniform_sep (f : (T -> N)^nat) (g : T -> N) 
-  (D : set T) (eps : R) : 
-  (forall n, separable_set_ball (image D (f n))) -> separable_set_ball (image D g)
+  (D : set T) (eps : R) : (forall n, norm_separable_set (image D (f n)))
   -> (forall n, measurable_fun D (f n : T -> g_sigma_algebraType open)) ->
   measurable D -> (forall x, D x -> f ^~ x @ \oo --> g x) ->
   (0 < eps)%R -> exists E, [/\ measurable E, mu E < eps%:E &
     {uniform D `\` E, f @ \oo --> g}].
 Proof.
-  move=> sf sg mf mD fg e0. pose A n k := D `&` 
-  [set x | (`|f n x - g x| >= k.+1%:R^-1)%R]. have mg := measurable_fun_cv mf fg.
+  move=> sf mf mD fg e0. pose A n k := D `&` 
+  [set x | (`|f n x - g x| >=k.+1%:R^-1)%R]. have mg := measurable_fun_cv mf fg.
   have mA : forall n k, measurable (A n k).
     rewrite /A/==>n k. rewrite -setDD {2}/setD/= [X in _`\`X] (_:_ = 
     [set x| D x /\ (`|f n x - g x| < k.+1%:R^-1)%R]).
@@ -802,7 +794,6 @@ Proof.
   rewrite setCI; exact: setUSS.
 Qed.
 
-(*Only true if the measure is complete*)
 Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : measure_is_complete mu
  -> measurable_fun [set:T] (f : T -> g_sigma_algebraType open).
 Proof.
@@ -811,9 +802,9 @@ Proof.
   apply: measurable_fun_cv _ cv=>m. apply: measurable_funP.
   apply: cmu. apply: (@negligibleS _ _ _ _ A). exact: subIsetl.
   by exists A; split.
-Qed.  
+Qed.
 
-Lemma mmeas_add (f g : T -> X) (mmf : mu_measurable f) (mmg : mu_measurable g) :
+Lemma mmeasD (f g : T -> X) (mmf : mu_measurable f) (mmg : mu_measurable g) :
 mu_measurable (f + g).
 Proof.
   case: mmf=> F aFf; case: mmg=> G aGg. exists (F+G). 
@@ -823,13 +814,64 @@ Proof.
   by apply: (ae_forall2 cvgD).
 Qed.
 
-(* Needs Egorov's theorem extended for normed modules*)
+Lemma sfun_norm_sep_val (f : {sfun T >-> X}) (D:set T) : 
+norm_separable_set (image D f).
+Proof.
+exists (image D f); split=>[|y r r0 [x Dx <-]]. apply: finite_set_countable. 
+  exact: (sub_finite_set (image_subset f (subsetT D))).
+exists (f x); split=>//. exact: (ballxx (f x) r0).
+Qed.
+
+Lemma mmeas_almost_uniformP (f : T -> X) : mu_measurable f <-> 
+exists (f_ : {sfun T>->X}^nat), forall eps, 0<eps -> exists E, [/\ measurable E, 
+(mu E < eps%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f}].
+Proof.
+split=> [[f_ [N [mN mN0 /subsetCl f_fN]]]|[f_] Cf]. exists f_=> eps eps0.
+  have nsf_ : forall n, norm_separable_set [set f_ n x  | x in ~` N] by move=>n;
+    apply: sfun_norm_sep_val.
+  have mf_ : forall n, measurable_fun (~`N) (f_ n) by move=>n; 
+    exact: (measurable_funS measurableT). 
+  have[E [mE mEe f_fnE]]:= @pointwise_almost_uniform_sep _ _ _ _ mu f_ f (~`N) eps nsf_ mf_ 
+    (measurableC mN) f_fN eps0.
+  exists (E`|`N); split. exact: measurableU. by rewrite measureU0.
+  rewrite [~`(E`|`N)] (_:_ = ~`N `\`E); by rewrite// setDE setCU setIC.
+have /choice [E_ Ce] : forall n, exists E, [/\ d.-measurable E, 
+  (mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f}].
+  move=>n. exact: (Cf n.+1%:R^-1).
+exists f_. exists (\bigcap_n (E_ n)); split. apply: bigcap_measurable=>// n _.
+    by have [mEn _]:= (Ce n). 
+  apply: measure0P=> e e0. have te : (truncn (e^-1)).+1%:R^-1 < e. 
+    rewrite invf_plt ?posrE=>//. exact: truncnS_gt.
+  apply: (lt_trans _ (lte_tofin te)). have nat_e: [set:nat] (truncn (e^-1)) by[].
+  apply: (le_lt_trans (le_measure mu _ _ (bigcap_inf nat_e))); 
+      rewrite ?in_setE. by apply: bigcapT_measurable=>k; have [mEn _] := Ce k.
+    by have [mEn _] := Ce (truncn e^-1).
+  by have [_ muEe] := Ce (truncn e^-1).
+apply: subsetCl. rewrite setC_bigcap=> z [i _ nEi]/=; 
+rewrite -in_setE -sub1set in nEi. have [_ _ CuEi] := Ce i. 
+have: {uniform [set z], (f_ : (T->X)^nat) @ \oo --> f}.
+  apply: uniform_subset_cvg; [exact: nEi| exact: CuEi].
+by rewrite uniform_set1.
+Qed.
+
+Lemma mmeas_almost_uniform_nat (f : T -> X) : mu_measurable f -> 
+exists (f_ : {sfun T>->X}^nat), forall n, exists E, [/\ measurable E, 
+(mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f}].
+Proof.
+  move=> /mmeas_almost_uniformP [f_ Cf]. exists f_=> n. exact: (Cf n.+1%:R^-1).
+Qed.
+
 Lemma mmeas_cvg (f : (T -> X)^nat) (g : T -> X) 
 (mmf : forall n:nat, mu_measurable (f n)) (fg : forall x, f ^~ x  @\oo--> g x) : mu_measurable g.
 Proof.
-  have cvaeu_g : exists (A: (set T)^nat) (F : (T->X)^nat^nat), forall n:nat, 
-  (mu (A n) < (1/(n%:R))%:E)%E /\ {uniform [set:T] `\`(A n), F n @\oo--> f n}.
-rewrite /mu_measurable in mmf. have [F P] := choice mmf. Abort.  
+apply/mmeas_almost_uniformP.
+have /choice [F PF] : forall n, exists f_ : {sfun T>->X}^nat, exists E, [/\ measurable E, 
+(mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f n}].
+  move=>n. have [f_ /(_ n) [E PE]] := mmeas_almost_uniform_nat (mmf n).
+  by exists f_, E.
+have [E [_ _ /cvg_fct_entourageP CE]] := PF 1.
+
+
   
 
 
