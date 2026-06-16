@@ -562,6 +562,11 @@ Proof.
   near:n. exact: nbhs_infty_gtr. by rewrite ltr_nat.
 Unshelve. all: end_near. Qed.
 
+(* Would be useful to have *)
+Lemma uniform_cvg_norm {T : choiceType} {R : realType} {N : normedModType R} 
+{f_ : (T->N)^nat} {f : T -> N} (A : set T) : {uniform A, f_ @ \oo --> f} <->
+sup [set `|f_ n x - f x| | x in A] @[n--> \oo] --> 0. Admitted.
+
 End norm_lemmas.
 
 (*Should be moved to measurable_fun.v*)
