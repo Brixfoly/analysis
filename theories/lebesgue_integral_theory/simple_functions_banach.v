@@ -562,10 +562,58 @@ Proof.
   near:n. exact: nbhs_infty_gtr. by rewrite ltr_nat.
 Unshelve. all: end_near. Qed.
 
-(* Would be useful to have *)
+Lemma supP {R : realType} (S : set R) (x : R) (supS: has_sup S) :
+sup S <= x <-> forall y, S y -> y<=x.
+Proof.
+split=> [sSx y Sy|Sx]. apply: (le_trans _ sSx); exact: sup_upper_bound. 
+apply: ge_sup=>//. by apply/set0P/eqP=> S0; apply: (@has_sup0 _ R); rewrite -S0.
+Qed.
+
+Lemma gt_sup {R : realType} (S : set R) (x : R) (supS : has_sup S): 
+sup S < x -> forall y, S y -> y<x.
+Proof.
+move=> sSx y Sy. apply: (le_lt_trans _ sSx); exact: sup_upper_bound.
+Qed.
+
+Lemma uniform_to_norm  {T : choiceType} {R : realType} {N : normedModType R} 
+{f_ : (T->N)^nat} {f : T -> N} (A : set T) (eps:R) (e0 : 0<eps):
+(A !=set0 /\ {uniform A, f_ @ \oo --> f}) -> 
+\forall n \near \oo, forall t:T, A t -> `|f_ n t - f t| < eps.
+move=> [An0]. rewrite -nbhs_entourageE uniform_entourage => [/filter_fromP/= Cuf].
+set C := [set gf: (T->N)*_ | forall t, A t -> ball (gf.1 t) eps (gf.2 t)]. 
+have: nbhs \oo (f_ @^-1` xsection C f). apply: Cuf. 
+  apply: (@in_filter_from _ _ _ _ [set xy | ball xy.1 (PosNum e0)%:num xy.2]);
+  exact: entourage_ball. rewrite /xsection/=. under eq_set do rewrite in_setE.
+rewrite/C/= => [[n0 _ Cvn]]; exists n0=>//n/Cvn. rewrite -ball_normE/= => 
+/[swap] t /[swap] At /(_ t At) fnte. by rewrite distrC.
+Qed.
+
 Lemma uniform_cvg_norm {T : choiceType} {R : realType} {N : normedModType R} 
-{f_ : (T->N)^nat} {f : T -> N} (A : set T) : {uniform A, f_ @ \oo --> f} <->
-sup [set `|f_ n x - f x| | x in A] @[n--> \oo] --> 0. Admitted.
+{f_ : (T->N)^nat} {f : T -> N} (A : set T): 
+(A !=set0 /\ {uniform A, f_ @ \oo --> f}) <->
+(\forall n\near \oo, has_sup [set `|f_ n x - f x| | x in A]) /\ 
+sup [set `|f_ n x - f x| | x in A] @[n--> \oo] --> 0.
+Proof.
+split=>[/[dup] [[An0 _]] /uniform_to_norm L |[[n1 _ has_sup_n1] /cvgr0Pnorm_lt s0]].
+  split. have [n0 _ fNf1] := (L 1 ltr01).
+    exists n0=>// n /fNf1 fnf1; split. exact: image_nonempty. 
+    exists 1=>a [t At <-]. exact: (ltW (fnf1 t At)).
+  apply/cvgr0Pnorm_le => e /(L e) [n0 _ fNfe]. exists n0=>// n /fNfe fnfe.
+  have /normr_idP -> : 0 <= sup [set `|f_ n x - f x| | x in A] by
+  apply: sup_ge0=>x /= [t At <-]; exact: normr_ge0. apply/supP=>[|y [t At <-]]. 
+    split. exact: image_nonempty. exists e=> a [t At <-]. 
+    1,2: try (exact: (ltW (fnfe t At))).
+split. by have [/nonempty_image nE _] := has_sup_n1 n1 (le_refl n1).
+rewrite -nbhs_entourageE uniform_entourage -entourage_from_ballE => 
+[F/= [G [H [e/=e0 beH] HG]]]. rewrite/xsection; under eq_set do rewrite in_setE.
+have [n0 _ Nfe] := s0 e e0 => GF. exists (maxn n0 n1)=>// n. 
+under eq_set do rewrite geq_max. move=> /andP /[dup] [[n0n n1n]] [/Nfe]. 
+have /normr_idP -> : 0 <= sup [set `|f_ n x - f x| | x in A] by
+  apply: sup_ge0=>x /= [t At <-]; exact: normr_ge0.
+move=> /[swap] /(has_sup_n1) hs /(gt_sup hs) fnfe/=. apply: GF;
+apply: HG=>t At; apply: beH=>/=. rewrite -ball_normE/= distrC. apply: fnfe.
+by exists t.
+Qed.
 
 End norm_lemmas.
 
@@ -705,6 +753,27 @@ Qed.
 
 End measure_lemmas.
 
+Section almost_uniform_cvg.
+Context {d} {T : measurableType d} {R : realType} 
+{U : pseudoMetricType R} (mu : {measure set T -> \bar R})
+(f_ : (T->U)^nat) (f : T -> U).
+
+Definition almost_uniform_cvg  (D : set T) :=
+forall eps:R, 0<eps -> exists E, [/\ measurable E, (mu E < eps%:E)%E &
+    {uniform D `\` E, f_ @ \oo --> f}].
+
+Definition almost_uniform_cvgT :=
+forall eps:R, 0<eps -> exists E, [/\ measurable E, (mu E < eps%:E)%E &
+    {uniform ~`E, f_ @ \oo --> f}].
+
+Lemma almost_uniform_cvgTP : almost_uniform_cvg [set:T] <-> almost_uniform_cvgT.
+Proof.
+  by rewrite /almost_uniform_cvg/almost_uniform_cvgT;
+  under eq_forall do under eq_exists do rewrite setTD.
+Qed.
+
+End almost_uniform_cvg.
+
 Section egorov.
 Context d {R : realType} {N : normedModType R}
  {T : measurableType d} {mu : {finite_measure set T -> \bar R}}.
@@ -712,13 +781,12 @@ Local Open Scope ereal_scope.
 
 (* A more general version of Erogov's theorem *) 
 Lemma pointwise_almost_uniform_sep (f : (T -> N)^nat) (g : T -> N) 
-  (D : set T) (eps : R) : (forall n, norm_separable_set (image D (f n)))
+  (D : set T) : (forall n, norm_separable_set (image D (f n)))
   -> (forall n, measurable_fun D (f n : T -> g_sigma_algebraType open)) ->
   measurable D -> (forall x, D x -> f ^~ x @ \oo --> g x) ->
-  (0 < eps)%R -> exists E, [/\ measurable E, mu E < eps%:E &
-    {uniform D `\` E, f @ \oo --> g}].
+  almost_uniform_cvg mu f g D.
 Proof.
-  move=> sf mf mD fg e0. pose A n k := D `&` 
+  move=> sf mf mD fg eps e0. pose A n k := D `&` 
   [set x | (`|f n x - g x| >=k.+1%:R^-1)%R]. have mg := measurable_fun_cv mf fg.
   have mA : forall n k, measurable (A n k).
     rewrite /A/==>n k. rewrite -setDD {2}/setD/= [X in _`\`X] (_:_ = 
@@ -828,21 +896,20 @@ exists (f x); split=>//. exact: (ballxx (f x) r0).
 Qed.
 
 Lemma mmeas_almost_uniformP (f : T -> X) : mu_measurable f <-> 
-exists (f_ : {sfun T>->X}^nat), forall eps, 0<eps -> exists E, [/\ measurable E, 
-(mu E < eps%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f}].
+exists (f_ : {sfun T>->X}^nat), almost_uniform_cvgT mu f_ f.
 Proof.
 split=> [[f_ [N [mN mN0 /subsetCl f_fN]]]|[f_] Cf]. exists f_=> eps eps0.
   have nsf_ : forall n, norm_separable_set [set f_ n x  | x in ~` N] by move=>n;
     apply: sfun_norm_sep_val.
   have mf_ : forall n, measurable_fun (~`N) (f_ n) by move=>n; 
     exact: (measurable_funS measurableT). 
-  have[E [mE mEe f_fnE]]:= @pointwise_almost_uniform_sep _ _ _ _ mu f_ f (~`N) eps nsf_ mf_ 
-    (measurableC mN) f_fN eps0.
+  have[E [mE mEe f_fnE]]:= @pointwise_almost_uniform_sep _ _ _ _ mu f_ f (~`N) nsf_ mf_ 
+    (measurableC mN) f_fN eps eps0.
   exists (E`|`N); split. exact: measurableU. by rewrite measureU0.
-  rewrite [~`(E`|`N)] (_:_ = ~`N `\`E); by rewrite// setDE setCU setIC.
+  rewrite [~`(E `|` N)] (_:_ = ~`N `\` E); by rewrite // setDE setCU setIC.
 have /choice [E_ Ce] : forall n, exists E, [/\ d.-measurable E, 
-  (mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f}].
-  move=>n. exact: (Cf n.+1%:R^-1).
+  (mu E < n.+1%:R^-1%:E)%E & {uniform ~`E, (f_ : (T->X)^nat) @ \oo --> f}] 
+  by move=>n; exact: (Cf n.+1%:R^-1).
 exists f_. exists (\bigcap_n (E_ n)); split. apply: bigcap_measurable=>// n _.
     by have [mEn _]:= (Ce n). 
   apply: measure0P=> e e0. have te : (truncn (e^-1)).+1%:R^-1 < e. 
@@ -853,7 +920,7 @@ exists f_. exists (\bigcap_n (E_ n)); split. apply: bigcap_measurable=>// n _.
     by have [mEn _] := Ce (truncn e^-1).
   by have [_ muEe] := Ce (truncn e^-1).
 apply: subsetCl. rewrite setC_bigcap=> z [i _ nEi]/=; 
-rewrite -in_setE -sub1set in nEi. have [_ _ CuEi] := Ce i. 
+rewrite -in_setE -sub1set in nEi. have [_ _ CuEi] := Ce i.
 have: {uniform [set z], (f_ : (T->X)^nat) @ \oo --> f}.
   apply: uniform_subset_cvg; [exact: nEi| exact: CuEi].
 by rewrite uniform_set1.
@@ -866,15 +933,16 @@ Proof.
   move=> /mmeas_almost_uniformP [f_ Cf]. exists f_=> n. exact: (Cf n.+1%:R^-1).
 Qed.
 
+(* TODO needs either more characterization or to extract from a sequence *)
 Lemma mmeas_cvg (f : (T -> X)^nat) (g : T -> X) 
-(mmf : forall n:nat, mu_measurable (f n)) (fg : forall x, f ^~ x  @\oo--> g x) : mu_measurable g.
+(mmf : forall n:nat, mu_measurable (f n)) (fg : forall x, f ^~ x  @\oo--> g x) :
+mu_measurable g.
 Proof.
-apply/mmeas_almost_uniformP.
+move.
 have /choice [F PF] : forall n, exists f_ : {sfun T>->X}^nat, exists E, [/\ measurable E, 
 (mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f n}].
   move=>n. have [f_ /(_ n) [E PE]] := mmeas_almost_uniform_nat (mmf n).
   by exists f_, E.
-have [E [_ _ /cvg_fct_entourageP CE]] := PF 1.
 
 
   
