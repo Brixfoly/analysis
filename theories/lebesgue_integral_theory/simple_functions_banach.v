@@ -939,10 +939,12 @@ Lemma mmeas_cvg (f : (T -> X)^nat) (g : T -> X)
 mu_measurable g.
 Proof.
 move.
-have /choice [F PF] : forall n, exists f_ : {sfun T>->X}^nat, exists E, [/\ measurable E, 
-(mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f n}].
+have /choice [F /choice [E_ PE]] : forall n, exists fn_ : {sfun T>->X}^nat, exists E, [/\ measurable E, 
+(mu E < n.+1%:R^-1%:E)%E, \forall k \near \oo, 
+has_sup [set `|fn_ k x - f n x| | x in ~`E] & 
+sup [set `|fn_ k x - f n x| | x in ~`E] @[k-->\oo] --> 0].
   move=>n. have [f_ /(_ n) [E PE]] := mmeas_almost_uniform_nat (mmf n).
-  by exists f_, E.
+  exists f_, E.
 
 
   
