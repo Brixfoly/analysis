@@ -243,6 +243,9 @@ HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ k f := MeasurableFun.copy (k \*: f) (k *: f).
 Definition scale_sfun k f : {sfun aT >-> nT} := k *: f.
 
+Lemma sfun0r : (0 : {sfun aT >-> R}) =1 cst 0.
+Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
+
 End sfun_lmodType.
 
 Section ring.
