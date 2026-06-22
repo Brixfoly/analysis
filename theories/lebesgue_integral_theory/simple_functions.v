@@ -269,6 +269,9 @@ Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
 =======
 >>>>>>> 5de993f2d (drop borel_type wrap on sfun_op and submodule structure)
 
+Lemma sfun0r : (0 : {sfun aT >-> R}) =1 cst 0.
+Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
+
 End sfun_lmodType.
 
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
