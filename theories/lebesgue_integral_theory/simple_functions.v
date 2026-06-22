@@ -130,13 +130,10 @@ Notation T := {sfun aT >-> bT}.
 Notation sfun := (@sfun _ _ aT bT).
 Section Sub.
 Context (f : aT -> bT) (fP : f \in sfun).
-Context (f : aT -> bT) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
-  @isMeasurableFun.Build d d' aT bT f (set_mem (sub_sfun_mfun fP)).
   @isMeasurableFun.Build d d' aT bT f (set_mem (sub_sfun_mfun fP)).
 #[local] HB.instance Definition _ := sfun_Sub1_subproof.
 Definition sfun_Sub2_subproof :=
-  @FiniteImage.Build aT bT f (set_mem (sub_sfun_fimfun fP)).
   @FiniteImage.Build aT bT f (set_mem (sub_sfun_fimfun fP)).
 
 Import HBSimple.
@@ -161,7 +158,6 @@ Proof. by []. Qed.
 
 HB.instance Definition _ := isSub.Build _ _ Sf sfun_rect sfun_valP.
 
-Lemma sfuneqP (f g : {sfun aT >-> bT}) : f = g <-> f =1 g.
 Lemma sfuneqP (f g : {sfun aT >-> bT}) : f = g <-> f =1 g.
 Proof. by split=> [->//|fg]; apply/val_inj/funext. Qed.
 
@@ -202,7 +198,6 @@ by split=> [|f g|f g]; rewrite ?inE/= ?rpred1//;
    move=> /andP[/= mf ff] /andP[/= mg fg]; rewrite !(rpredB, rpredM).
 Qed.
 
-HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d _ aT rT)
 HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d _ aT rT)
   sfun_subring_closed.
 HB.instance Definition _ := [SubChoice_isSubComPzRing of {sfun aT >-> rT} by <:].
