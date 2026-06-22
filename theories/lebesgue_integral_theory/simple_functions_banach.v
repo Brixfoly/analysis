@@ -5,7 +5,8 @@ From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
 From mathcomp Require Import cardinality reals fsbigop ereal topology tvs.
 From mathcomp Require Import normedtype sequences real_interval esum measure.
 From mathcomp Require Import lebesgue_measure numfun realfun measurable_realfun.
-From mathcomp Require Import normed_module measurable_structure.
+From mathcomp Require Import normed_module measurable_structure simple_functions.
+From mathcomp Require Import borel_hierarchy.
 
 Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 Set Implicit Arguments.
@@ -500,6 +501,28 @@ rewrite bigcup_mkcond => nsPA. apply: bigcupT_norm_separable=>n.
 case: ifPn=>[|_]. rewrite in_setE. apply: (nsPA n). by exists set0; split.
 Qed.
 
+Definition totally_bounded {K : numDomainType} {M : pseudoMetricType K} 
+  (A : set M) := forall eps, 0<eps -> exists F, [/\ finite_set F,
+  F `<=` A & A `<=` \bigcup_(x in F) ball x eps].
+
+Lemma totally_bounded_invnP {K : realType} {M : pseudoMetricType K} 
+  (A : set M) : totally_bounded A <-> forall n, exists F, [/\ finite_set F,
+  F `<=` A & A `<=` \bigcup_(x in F) ball x n.+1%:R^-1].
+Proof.
+split=> [tA n| /choice [F /all_and3 [Ffset FA AbF]] eps e0]. 
+  exact: (tA n.+1%:R^-1). set n := truncn (eps^-1).
+exists (F n); split=>//. have leb : forall x, F n x -> 
+  ball x n.+1%:R^-1 `<=` ball x eps. move=> x Fnx; apply: le_ball. 
+  rewrite invf_ple ?posrE //; exact (ltW (truncnS_gt eps^-1)).
+exact: (subset_trans (AbF n) (subset_bigcup leb)).
+Qed.
+
+(* TODO *)
+Lemma totally_bounded_norm_separable {K : realType} {M : pseudoMetricType K}
+(A : set M) : totally_bounded A -> norm_separable_set A.
+Proof.
+  move=> tA. have : forall n, exists F, 
+
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
   and realType for rational radii *)
 Lemma second_countable_ball {R : realType} {M : pseudoMetricNormedZmodType R} : 
@@ -659,10 +682,10 @@ Qed.
 
 (*Cannot be generalized yet as it is for a different display from normr_continuous*)
 Lemma normr_measurable_gen {R : realType} {N : normedModType R} {A : set N} : 
-measurable_fun (A : set (g_sigma_algebraType open)) normr.
+measurable_fun (A : set N) normr.
 Proof.
   move=> /[dup] mA.
-  apply: (@measurability _ _ _ _ _ (normr : g_sigma_algebraType open -> R) _).
+  apply: (@measurability _ _ _ _ _ (@normr R N) _).
   by rewrite/measurable/=/measurableR/measurable/=.
   move=> U [I [[a b] _] <-] <-/=. apply: measurableI=>//.
   rewrite /preimage/=. under eq_set do rewrite in_itv//=.
@@ -681,8 +704,7 @@ Qed.
 
 Lemma measurable_funD_dist {d} {A : measurableType d} {R : realType} 
 {N : normedModType R} {f g : A -> N} {D : set A}: norm_separable_set (image D f)
--> measurable_fun D (f: A -> g_sigma_algebraType open) -> 
-measurable_fun D (g: A -> g_sigma_algebraType open) -> measurable D ->
+-> measurable_fun D f -> measurable_fun D g -> measurable D ->
 forall (r:R), 0<r -> measurable (D `&` [set a | `|f a - g a| < r]).
 Proof.
 move=> [Df [cDf _ DF]] mf mg mD r r0. rewrite [X in measurable X] (_:_ = 
@@ -723,9 +745,9 @@ Qed.
 Third Edition (Charalambos D. Aliprantis, Kim C. Border)*)
 Lemma measurable_fun_cv {d} {T : measurableType d} {R : realType} 
 {X : normedModType R} [D : set T] [h : (T->X)^nat] [f : T -> X] : 
-(forall m:nat, measurable_fun D (h m : T -> g_sigma_algebraType open)) -> 
+(forall m:nat, measurable_fun D (h m)) -> 
 (forall x : T, D x -> h ^~ x @\oo --> f x)
--> measurable_fun D (f : T -> g_sigma_algebraType open).
+-> measurable_fun D f.
 Proof.
   move=> mhn hf; rewrite measurable_fun_open_closed. 
   rewrite/measurable_fun=> /[dup] mD. apply: measurability=>// C. case=>F cF<-.
@@ -839,7 +861,7 @@ Local Open Scope ereal_scope.
 (* A more general version of Erogov's theorem *) 
 Lemma pointwise_almost_uniform_sep (f : (T -> N)^nat) (g : T -> N) 
   (D : set T) : (forall n, norm_separable_set (image D (f n)))
-  -> (forall n, measurable_fun D (f n : T -> g_sigma_algebraType open)) ->
+  -> (forall n, measurable_fun D (f n)) ->
   measurable D -> (forall x, D x -> f ^~ x @ \oo --> g x) ->
   almost_uniform_cvg mu f g D.
 Proof.
@@ -925,7 +947,7 @@ Proof.
 Qed.
 
 Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : measure_is_complete mu
- -> measurable_fun [set:T] (f : T -> g_sigma_algebraType open).
+ -> measurable_fun [set:T] f.
 Proof.
 case:mmf=> F [A [mA mA0 /subsetCl cv]] cmu. rewrite -(setvU A).
 apply/measurable_funU=>//. exact: measurableC. split=>[|_ Y mY].
@@ -1065,7 +1087,7 @@ Unshelve. all: end_near. Qed.
   and thm2 (petti's measurability theorem) in Vector Measures (math survey)*)
 Lemma mmeas_meas_ess_sepP (f : T -> X) : mu_measurable f <-> exists A, 
   [/\ measurable A, mu A = 0,  measurable_fun (~`A)
-  (f : _ -> g_sigma_algebraType open) & norm_separable_set (image (~`A) f)].
+  f & norm_separable_set (image (~`A) f)].
 Proof.
   split=>[/mmeas_almost_uniformP_invn [f_ /choice[E_ /all_and3 [mE mEn UEn]]]|].
   exists (\bigcap_n E_ n); split. exact: bigcap_measurableType.
@@ -1077,16 +1099,10 @@ Proof.
     have nEin0 : ~`E_ i !=set0 by exists x.
     apply/cvgrPdist_lt=> eps e0.
     have /(uniform_cvg_has_sup0 nEin0) /(_ eps e0) [n0 _ nhs] := UEn i.
-    exists n0=>// n /nhs [hsn sne].
-    
-(* exists (maxn n1 n2)=>//n. rewrite /= geq_max => /andP[/hsn1 n1n /s0n2].
-    rewrite distrC (normr_idP _). apply: sup_ge0=> y [z _ <-]//.
-    move=> /(gt_sup n1n)/= /(_ `|f_ n x - f x|) se; apply: se. by exists x.
-  rewrite setC_bigcap image_bigcup.
-  apply: bigcupT_norm_separable=>n.
-  have[->|/set0P nEn0]:= eqVneq (~`E_ n) set0. 
-    by rewrite image_set0; exists set0; split.
-  have /(uniform_cvg_sup0 nEn0) [hs /cvgr0_norm_lt s0] := UEn n. *)
+    exists n0=>// n /nhs [hsn sne]. apply: (gt_sup hsn sne _). 
+    by rewrite distrC; exists x.
+  rewrite setC_bigcap image_bigcup. apply: bigcup_norm_separable=> n _.
+
 Abort.
 
 
