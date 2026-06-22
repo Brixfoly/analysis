@@ -103,6 +103,7 @@ Proof.
 rewrite singleton_bigcap; apply: bigcap_measurable => // k _.
 by apply: sub_sigma_algebra; exact: ball_open.
 Qed.
+<<<<<<< HEAD
 #[local] Hint Resolve measurable1 : core.
 
 End borel_normedModType.
@@ -112,6 +113,11 @@ Hint Extern 0 (measurable [set _]) => solve [apply: measurable1] : core.
 #[global] Hint Extern 0 (measurable (_ @^-1` [set _])) =>
   solve [apply: measurable_funPTI; exact: measurable1] : core.
 
+=======
+
+End borel_normedModType.
+
+>>>>>>> c6a5a2f5e (rebased+added pr 1988, now delete g_sigma_algebraType open)
 #[non_forgetful_inheritance]
 HB.instance Definition _ (R : realType) (V : normedModType R) :=
   Measurable.copy V (borel_type V).
