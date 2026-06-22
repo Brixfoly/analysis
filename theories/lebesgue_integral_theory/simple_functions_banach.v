@@ -322,6 +322,17 @@ Qed.
 
 End simple_bounded.
 
+Section set_lemmas.
+
+Lemma bigcapDr {T I} (F : I -> set T) [P : set I] (A : set T) : 
+\bigcup_(i in P)  (A `\` F i) = A `\` \bigcap_(i in P)  F i.
+Proof.
+by rewrite setDE setC_bigcap setI_bigcupr; 
+  apply: eq_bigcup; rewrite -?eqEsubset.
+Qed.
+
+End set_lemmas.
+
 (* Will be moved to measurable_structure.v *)
 Section sigma_algebra_lemmas.
 Lemma sigma_algebra_subset {d} {M : measurableType d} {H : set (set M)}
@@ -477,13 +488,42 @@ Proof.
   exact: subset_trans Bo (sigma_algebra_gen).
 Qed.
 
+Lemma cvg_uniform_fin_bigcup {U : choiceType} {V : uniformType} [f : U -> V] 
+[F : set_system (U -> V)] {I} [D : set I] {A : I -> set U} : Filter F -> 
+finite_set D -> (forall i, D i -> {uniform A i, F --> f}) -> 
+{uniform \bigcup_(i in D) A i, F --> f}.
+Proof.
+move=> fF /finite_setP [n]. move:D.
+elim:n=>/=[D|n Ih D /eq_cardSP [x Dx /Ih Dxn] UD]. 
+  rewrite II0 card_eq0 => /eqP -> _; rewrite bigcup0 => //=;
+  exact: cvg_uniform_set0. rewrite -(setD1K Dx) bigcup_setU1. 
+apply: cvg_uniformU. exact: (UD x). by apply: Dxn=>i [/UD Di//].
+Qed.
+
 End topology_lemmas.
 
 Section norm_lemmas.
 
 Definition norm_separable_set {K : numDomainType} {M : pseudoMetricType K} 
-(A : set M) := exists D, countable D /\ forall (x:M) (r : K), 
-0<r -> A x -> exists d, D d /\ ball d r x.
+(A : set M) := exists D, [/\ countable D, D `<=` A & forall (x:M) (r : K), 
+0<r -> A x -> exists d, D d /\ ball d r x].
+
+Lemma bigcupT_norm_separable {K : numDomainType} {M : pseudoMetricType K}
+[A : (set M)^nat] : (forall n, norm_separable_set (A n)) -> 
+norm_separable_set (\bigcup_n A n).
+Proof.
+move=>/choice [D_ /all_and3 [cDx DAx dDx]]. exists (\bigcup_n D_ n); split.
+  exact: bigcup_countable. exact: subset_bigcup. move=> x r r0 [n _ Anx].
+have [d [Dnd bdrx]] := dDx n x r r0 Anx; exists d; split=>//. by exists n.
+Qed.
+
+Lemma bigcup_norm_separable {K : numDomainType} {M : pseudoMetricType K}
+[A : (set M)^nat] [P : set nat] : (forall n, P n -> norm_separable_set (A n)) 
+-> norm_separable_set (\bigcup_(i in P) A i).
+Proof.
+rewrite bigcup_mkcond => nsPA. apply: bigcupT_norm_separable=>n.
+case: ifPn=>[|_]. rewrite in_setE. apply: (nsPA n). by exists set0; split.
+Qed.
 
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
   and realType for rational radii *)
@@ -576,10 +616,10 @@ move=> sSx y Sy. apply: (le_lt_trans _ sSx); exact: sup_upper_bound.
 Qed.
 
 Lemma uniform_to_norm  {T : choiceType} {R : realType} {N : normedModType R} 
-{f_ : (T->N)^nat} {f : T -> N} (A : set T) (eps:R) (e0 : 0<eps):
-(A !=set0 /\ {uniform A, f_ @ \oo --> f}) -> 
+{f_ : (T->N)^nat} {f : T -> N} (A : set T) (An0 : A !=set0) (eps:R) (e0 : 0<eps):
+{uniform A, f_ @ \oo --> f} -> 
 \forall n \near \oo, forall t:T, A t -> `|f_ n t - f t| < eps.
-move=> [An0]. rewrite -nbhs_entourageE uniform_entourage => [/filter_fromP/= Cuf].
+rewrite -nbhs_entourageE uniform_entourage => [/filter_fromP/= Cuf].
 set C := [set gf: (T->N)*_ | forall t, A t -> ball (gf.1 t) eps (gf.2 t)]. 
 have: nbhs \oo (f_ @^-1` xsection C f). apply: Cuf. 
   apply: (@in_filter_from _ _ _ _ [set xy | ball xy.1 (PosNum e0)%:num xy.2]);
@@ -588,13 +628,13 @@ rewrite/C/= => [[n0 _ Cvn]]; exists n0=>//n/Cvn. rewrite -ball_normE/= =>
 /[swap] t /[swap] At /(_ t At) fnte. by rewrite distrC.
 Qed.
 
-Lemma uniform_cvg_norm {T : choiceType} {R : realType} {N : normedModType R} 
-{f_ : (T->N)^nat} {f : T -> N} (A : set T): 
-(A !=set0 /\ {uniform A, f_ @ \oo --> f}) <->
+Lemma uniform_cvg_sup0 {T : choiceType} {R : realType} {N : normedModType R} 
+{f_ : (T->N)^nat} {f : T -> N} (A : set T) (An0 : A !=set0):
+{uniform A, f_ @ \oo --> f} <->
 (\forall n\near \oo, has_sup [set `|f_ n x - f x| | x in A]) /\ 
 sup [set `|f_ n x - f x| | x in A] @[n--> \oo] --> 0.
 Proof.
-split=>[/[dup] [[An0 _]] /uniform_to_norm L |[[n1 _ has_sup_n1] /cvgr0Pnorm_lt s0]].
+split=>[/(uniform_to_norm An0) L |[[n1 _ has_sup_n1] /cvgr0Pnorm_lt s0]].
   split. have [n0 _ fNf1] := (L 1 ltr01).
     exists n0=>// n /fNf1 fnf1; split. exact: image_nonempty. 
     exists 1=>a [t At <-]. exact: (ltW (fnf1 t At)).
@@ -603,7 +643,6 @@ split=>[/[dup] [[An0 _]] /uniform_to_norm L |[[n1 _ has_sup_n1] /cvgr0Pnorm_lt s
   apply: sup_ge0=>x /= [t At <-]; exact: normr_ge0. apply/supP=>[|y [t At <-]]. 
     split. exact: image_nonempty. exists e=> a [t At <-]. 
     1,2: try (exact: (ltW (fnfe t At))).
-split. by have [/nonempty_image nE _] := has_sup_n1 n1 (le_refl n1).
 rewrite -nbhs_entourageE uniform_entourage -entourage_from_ballE => 
 [F/= [G [H [e/=e0 beH] HG]]]. rewrite/xsection; under eq_set do rewrite in_setE.
 have [n0 _ Nfe] := s0 e e0 => GF. exists (maxn n0 n1)=>// n. 
@@ -614,6 +653,20 @@ move=> /[swap] /(has_sup_n1) hs /(gt_sup hs) fnfe/=. apply: GF;
 apply: HG=>t At; apply: beH=>/=. rewrite -ball_normE/= distrC. apply: fnfe.
 by exists t.
 Qed.
+
+Lemma uniform_cvg_has_sup0 {T : choiceType} {R : realType} {N : normedModType R} 
+{f_ : (T->N)^nat} {f : T -> N} (A : set T) (An0 : A !=set0):
+{uniform A, f_ @ \oo --> f} <->
+forall eps, 0<eps -> \forall n\near \oo, has_sup 
+  [set `|f_ n x - f x| | x in A] /\ sup [set `|f_ n x - f x| | x in A] < eps.
+Proof.
+apply: (iff_trans (uniform_cvg_sup0 An0)); split=> [[hs /cvgr0_norm_lt s0 eps 
+/(s0 eps) se]|S0]. near=>n; split. by near:n. rewrite -[X in X < _](normr_idP _). 
+  apply: sup_ge0=> x [y _ <-]//. by near:n.
+split. have [n _ nP] := S0 1 ltr01; exists n=>// n0 /nP [//].
+apply/cvgr0Pnorm_lt=> eps /(S0 eps) [n0 _ ns]. exists n0=>// n /ns [_ se].
+by rewrite (normr_idP _)//; apply: sup_ge0=> x [y _ <-]//.
+Unshelve. all: end_near. Qed.
 
 End norm_lemmas.
 
@@ -657,7 +710,7 @@ Lemma measurable_funD_dist {d} {A : measurableType d} {R : realType}
 measurable_fun D (g: A -> g_sigma_algebraType open) -> measurable D ->
 forall (r:R), 0<r -> measurable (D `&` [set a | `|f a - g a| < r]).
 Proof.
-move=> [Df [cDf DF]] mf mg mD r r0. rewrite [X in measurable X] (_:_ = 
+move=> [Df [cDf _ DF]] mf mg mD r r0. rewrite [X in measurable X] (_:_ = 
 \bigcup_q \bigcup_(z in Df) \bigcup_(k in [set k | rat.ratr q + k.+1%:R^-1 < r])
 (D `&` f@^-1`(ball z k.+1%:R^-1) `&` (D `&` g@^-1`(ball z (rat.ratr q))))).
   rewrite eqEsubset /bigcup; split=>[x [Dx /= fgxr]|x [q _ /= [z Dfz] [k qkr] 
@@ -751,6 +804,12 @@ apply/le_ltP=> z z0. have [/(_ (ltW z0)) [->|[r r0 rz]] _] := (gee0P z).
 by move: z0; rewrite rz lte_fin=> /mAe.
 Qed.
 
+Lemma measure0P_invn {A} : (forall n, (mu A < n.+1%:R^-1%:E))%E -> mu A = 0.
+Proof.
+move=> mAn; apply/measure0P=>eps e0. apply: (lt_trans (mAn (truncn eps^-1))).
+rewrite lte_fin invf_plt ?posrE //; exact: truncnS_gt.
+Qed.
+
 End measure_lemmas.
 
 Section almost_uniform_cvg.
@@ -768,8 +827,31 @@ forall eps:R, 0<eps -> exists E, [/\ measurable E, (mu E < eps%:E)%E &
 
 Lemma almost_uniform_cvgTP : almost_uniform_cvg [set:T] <-> almost_uniform_cvgT.
 Proof.
-  by rewrite /almost_uniform_cvg/almost_uniform_cvgT;
+by rewrite /almost_uniform_cvg/almost_uniform_cvgT;
   under eq_forall do under eq_exists do rewrite setTD.
+Qed.
+
+Lemma almost_uniform_cvg_nnincseqP (D : set T) (h : R^nat) 
+(ph : forall n, 0 < h n) (h0 : h @ \oo --> 0) : almost_uniform_cvg D <->
+exists E_ : (set T)^nat, {homo E_ : n m / (n<=m)%N >-> (m<=n)%O} /\
+  forall n, [/\ measurable (E_ n), (mu (E_ n) < (h n)%:E)%E & 
+  {uniform D`\`(E_ n), f_ @ \oo --> f}].
+Proof.
+split=>[aucD|[E_ [nniE /all_and3 [mE0 mEn CuEn] eps e0]]].
+  have /choice [E /all_and3 [mE0 mEn CuEn]] : forall n, exists E, 
+  [/\ measurable E, (mu E < (h n)%:E)%E & {uniform D`\`E, f_ @ \oo --> f}] by
+    move=>n; apply: (aucD (h n)).
+  exists (fun n => \bigcap_(k < n.+1) (E k)); split.
+  apply/nonincreasing_seqP=>n/=.
+  rewrite subsetEset/bigcap => x /= bn2x i in1; 
+    exact: (bn2x i (ltn_trans in1 (ltnSn n.+1))).
+  move=>n. split. apply: bigcap_measurableType=>//.
+    apply: (le_lt_trans _ (mEn n)). apply: le_measure; rewrite ?in_setE//.
+      apply: bigcap_measurableType=>//. apply: bigcap_inf=>/=; exact: ltnSn.
+  rewrite -bigcapDr; exact: cvg_uniform_fin_bigcup.
+have [n0 _ /=/(_ n0 (le_refl n0))]:= cvgr0_norm_lt h h0 eps e0.
+rewrite (normr_idP (ltW (ph n0)))=> hne; exists (E_ n0); split=>//.
+exact: lt_trans.
 Qed.
 
 End almost_uniform_cvg.
@@ -870,11 +952,11 @@ Qed.
 Lemma mmeas_meas (f : T -> X) (mmf : mu_measurable f) : measure_is_complete mu
  -> measurable_fun [set:T] (f : T -> g_sigma_algebraType open).
 Proof.
-  case:mmf=> F [A [mA mA0 /subsetCl cv]] cmu. rewrite -(setvU A). 
-  apply/measurable_funU=>//. exact: measurableC. split=>[|_ Y mY].
+case:mmf=> F [A [mA mA0 /subsetCl cv]] cmu. rewrite -(setvU A).
+apply/measurable_funU=>//. exact: measurableC. split=>[|_ Y mY].
   apply: measurable_fun_cv _ cv=>m. apply: measurable_funP.
-  apply: cmu. apply: (@negligibleS _ _ _ _ A). exact: subIsetl.
-  by exists A; split.
+apply: cmu. apply: (negligibleS (@subIsetl _ A (f@^-1`Y))).
+by exists A; split.
 Qed.
 
 Lemma mmeasD (f g : T -> X) (mmf : mu_measurable f) (mmg : mu_measurable g) :
@@ -887,67 +969,150 @@ Proof.
   by apply: (ae_forall2 cvgD).
 Qed.
 
+Lemma mmeasZ (x : R) (f : T -> X) (mmf : mu_measurable f) : 
+mu_measurable (x *: f).
+Proof.
+case: mmf=> F [A [mA mA0 CnA]]. exists (x*:F); exists A; split=>//.
+apply: (subset_trans _ CnA). apply: subsetC=>y /=. exact: cvgZl_tmp.
+Qed.
+
 Lemma sfun_norm_sep_val (f : {sfun T >-> X}) (D:set T) : 
 norm_separable_set (image D f).
 Proof.
-exists (image D f); split=>[|y r r0 [x Dx <-]]. apply: finite_set_countable. 
+exists (image D f); split=>//[|y r r0 [x Dx <-]]. apply: finite_set_countable. 
   exact: (sub_finite_set (image_subset f (subsetT D))).
-exists (f x); split=>//. exact: (ballxx (f x) r0).
+exists (f x); split=>//; exact: (ballxx (f x) r0).
 Qed.
 
 Lemma mmeas_almost_uniformP (f : T -> X) : mu_measurable f <-> 
-exists (f_ : {sfun T>->X}^nat), almost_uniform_cvgT mu f_ f.
+exists (f_ : {sfun T >-> X}^nat), almost_uniform_cvgT mu f_ f.
 Proof.
 split=> [[f_ [N [mN mN0 /subsetCl f_fN]]]|[f_] Cf]. exists f_=> eps eps0.
   have nsf_ : forall n, norm_separable_set [set f_ n x  | x in ~` N] by move=>n;
     apply: sfun_norm_sep_val.
   have mf_ : forall n, measurable_fun (~`N) (f_ n) by move=>n; 
     exact: (measurable_funS measurableT). 
-  have[E [mE mEe f_fnE]]:= @pointwise_almost_uniform_sep _ _ _ _ mu f_ f (~`N) nsf_ mf_ 
-    (measurableC mN) f_fN eps eps0.
+  have[E [mE0 mEe f_fnE]]:= @pointwise_almost_uniform_sep _ _ _ _ mu f_ f (~`N) 
+    nsf_ mf_ (measurableC mN) f_fN eps eps0.
   exists (E`|`N); split. exact: measurableU. by rewrite measureU0.
   rewrite [~`(E `|` N)] (_:_ = ~`N `\` E); by rewrite // setDE setCU setIC.
-have /choice [E_ Ce] : forall n, exists E, [/\ d.-measurable E, 
+have /choice [E_ /all_and3 [mE mEn Une]] : forall n, exists E, [/\ measurable E, 
   (mu E < n.+1%:R^-1%:E)%E & {uniform ~`E, (f_ : (T->X)^nat) @ \oo --> f}] 
   by move=>n; exact: (Cf n.+1%:R^-1).
-exists f_. exists (\bigcap_n (E_ n)); split. apply: bigcap_measurable=>// n _.
-    by have [mEn _]:= (Ce n). 
-  apply: measure0P=> e e0. have te : (truncn (e^-1)).+1%:R^-1 < e. 
-    rewrite invf_plt ?posrE=>//. exact: truncnS_gt.
-  apply: (lt_trans _ (lte_tofin te)). have nat_e: [set:nat] (truncn (e^-1)) by[].
-  apply: (le_lt_trans (le_measure mu _ _ (bigcap_inf nat_e))); 
-      rewrite ?in_setE. by apply: bigcapT_measurable=>k; have [mEn _] := Ce k.
-    by have [mEn _] := Ce (truncn e^-1).
-  by have [_ muEe] := Ce (truncn e^-1).
-apply: subsetCl. rewrite setC_bigcap=> z [i _ nEi]/=; 
-rewrite -in_setE -sub1set in nEi. have [_ _ CuEi] := Ce i.
-have: {uniform [set z], (f_ : (T->X)^nat) @ \oo --> f}.
-  apply: uniform_subset_cvg; [exact: nEi| exact: CuEi].
+exists f_. exists (\bigcap_n (E_ n)); split. exact: bigcap_measurable.
+  apply: measure0P_invn=>//n. 
+  apply: (le_lt_trans (le_measure mu _ _ (bigcap_inf _)) (mEn n)); 
+    rewrite ?in_setE //. exact: bigcap_measurableType. 
+apply: subsetCl. rewrite setC_bigcap=> z [i _ nEi]/=.
+rewrite -in_setE -sub1set in nEi. 
+have: {uniform [set z], (f_ : (T->X)^nat) @ \oo --> f} 
+  by apply: (uniform_subset_cvg _ nEi).
 by rewrite uniform_set1.
 Qed.
 
-Lemma mmeas_almost_uniform_nat (f : T -> X) : mu_measurable f -> 
+Lemma mmeas_almost_uniformP_invn (f : T -> X) : mu_measurable f <-> 
 exists (f_ : {sfun T>->X}^nat), forall n, exists E, [/\ measurable E, 
 (mu E < n.+1%:R^-1%:E)%E & {uniform (~`E), (f_ : (T->X)^nat) @ \oo --> f}].
 Proof.
-  move=> /mmeas_almost_uniformP [f_ Cf]. exists f_=> n. exact: (Cf n.+1%:R^-1).
+split=>[/mmeas_almost_uniformP [f_ Uf]|[f_ Ufn]]. 
+  exists f_=> n; exact: (Uf n.+1%:R^-1).
+apply/mmeas_almost_uniformP; exists f_ => eps e0. 
+have [Ee [mEe mEee UEe]] := Ufn (truncn eps^-1); exists Ee; split=>//.
+apply: (lt_trans mEee). rewrite lte_fin invf_plt ?posrE//; exact: truncnS_gt.
 Qed.
 
-(* TODO needs either more characterization or to extract from a sequence *)
 Lemma mmeas_cvg (f : (T -> X)^nat) (g : T -> X) 
 (mmf : forall n:nat, mu_measurable (f n)) (fg : forall x, f ^~ x  @\oo--> g x) :
 mu_measurable g.
 Proof.
-move.
-have /choice [F /choice [E_ PE]] : forall n, exists fn_ : {sfun T>->X}^nat, exists E, [/\ measurable E, 
-(mu E < n.+1%:R^-1%:E)%E, \forall k \near \oo, 
-has_sup [set `|fn_ k x - f n x| | x in ~`E] & 
-sup [set `|fn_ k x - f n x| | x in ~`E] @[k-->\oo] --> 0].
-  move=>n. have [f_ /(_ n) [E PE]] := mmeas_almost_uniform_nat (mmf n).
-  exists f_, E.
+have /choice [f_ /choice [E0_ /all_and2 [decE0 mE0_]]] : forall n,
+  exists (fn_ : {sfun T>->X}^nat), exists En_ : (set T) ^nat, 
+  {homo En_ : n m / (n <= m)%N >-> (m<=n)%O} /\ forall k : nat, 
+  [/\ d.-measurable (En_ k),  (mu (En_ k) < (k.+2%:R^-1 * 2^-n.+1)%:E)%E & 
+  {uniform ~`En_ k, (fn_ : (T->X)^nat) @\oo --> f n}].
+  move=>n; have /mmeas_almost_uniformP[fn_ /almost_uniform_cvgTP sfnf] := mmf n;
+  exists fn_. under eq_exists do under eq_forall do rewrite -setTD.
+  apply/almost_uniform_cvg_nnincseqP=>//. apply/cvgr0Pnorm_lt=> eps e0; near=>k. 
+  rewrite (normr_idP _) ?invr_ge0//; apply: (@lt_trans _ _ k.+2%:R^-1).
+    rewrite ltr_pdivrMr // ltr_pMr // exprn_egt1 // [1] (_:_ = (1:nat)%:R) 
+      ?ltr_nat //. apply: (@lt_trans _ _ k.+1%:R^-1). 
+    rewrite invf_plt ?posrE// -[X in X^-1]div1r invf_div divr1 ltr_nat//.
+  near:k; apply: (near_infty_natSinv_lt (PosNum e0)).
+pose E_ k := \bigcup_n E0_ n k.
+have [dE /all_and3 [mE mEk UEk]] : {homo E_ : n m / (n<=m)%N >-> (m<=n)%O} /\ 
+forall k, [/\ measurable (E_ k), (mu (E_ k) < k.+1%:R^-1%:E)%E & ~`E_ k !=set0 
+-> forall n, (\forall m \near \oo, 
+  has_sup [set `|f_ n m x - f n x| | x in ~`E_ k]) /\ 
+  sup [set `|f_ n m x - f n x| | x in ~`E_ k] @[m --> \oo] --> 0].
+  split=>[n m nm |k]. by rewrite subsetEset; apply: subset_bigcup => i _;
+    rewrite -subsetEset; exact: (decE0 i).
+  have /all_and3 [mE0 mE0nk UE0]: forall n, [/\ forall k, measurable (E0_ n k), 
+  forall k, (mu (E0_ n k) < (k.+2%:R^-1 / 2^+n.+1)%:E)%E & forall k, {uniform 
+    ~`E0_ n k, (f_ n : (T->X)^nat) @\oo --> f n}]. move=>n; exact: all_and3.
+  split. exact: bigcupT_measurable.
+    have k20: (0:R) <= k.+2%:R^-1 by rewrite invr_ge0.
+    have leE0k: forall n, xpredT n -> 
+      (mu (E0_ n k) <= (k.+2%:R^-1 / 2^+n.+1)%:E)%E 
+      by move=> n _; exact: (ltW (mE0nk n k)).
+    apply: (le_lt_trans (le_mu_bigcup _ _ _))=>//. exact: bigcupT_measurable.
+    apply: (le_lt_trans (lee_nneseries _ leE0k))=> [i _ _|]. exact: measure_ge0.
+    under eq_eseriesr do rewrite -natrX.
+    apply (le_lt_trans (epsilon_trick0 xpredT k20)).
+    by rewrite lte_fin invf_plt ?posrE// invrK ltr_nat.
+  move=> nEk0 n. have EkE0 : ~` E_ k `<=` ~` E0_ n k by apply: subsetC; 
+    exact: bigcup_sup. apply (uniform_cvg_sup0 nEk0). 
+    apply: (uniform_subset_cvg _ EkE0). exact: (UE0 n k).
+have /choice [M PM] : forall t, exists mt, forall x,
+  (~` E_ t.1) x -> `|f_ t.2 mt x - f t.2 x| < t.2.+1%:R^-1. move=> [k n]. 
+  have [->| /set0P nEk0] := eqVneq (~`E_ k) set0. by exists 0.
+  have invn0 : (0:R) < n.+1%:R^-1 by rewrite invr_gt0.
+  have [[m1 _ hsup] /cvgr0Pnorm_lt/(_ _ invn0) 
+    [m2 _  sup0]] := UEk k nEk0 n. exists (maxn m1 m2)=>x nEkx.
+  have hsupm := hsup _ (leq_maxl m1 m2); 
+  have := sup0 _ (leq_maxr m1 m2). rewrite (normr_idP _). 
+    apply: sup_ge0=> y /= [z _ <-]; exact: normr_ge0.
+  move=> /(gt_sup hsupm) supn. by apply: supn=>/=; exists x.
+exists (fun n => f_ n (M (n, n))); exists (\bigcap_k (E_ k)).
+split. exact: bigcap_measurableType. apply/measure0P_invn=>n.
+  apply: (le_lt_trans (le_measure mu _ _ (bigcap_inf _)) (mEk n)); 
+    rewrite ?in_setE //. exact: bigcap_measurableType.
+apply: subsetCl. rewrite setC_bigcap => x [i _ nEi] /=.
+apply/cvgrPdistC_lt=> eps e0. have e20: 0 < eps/2 by rewrite ltr_pdivlMr ?mul0r.
+have /=fnge2 := cvgr_distC_lt (f ^~ x) (g x) (fg x) _ e20.
+have /=n2e2 := near_infty_natSinv_lt (PosNum e20). near=>n.
+rewrite (splitr eps). apply: (le_lt_trans (ler_distD (f n x) _ _) (ltrD _ _)).
+  have /(dE i n) : (i<=n)%N by near:n; exact: nbhs_infty_ge. 
+  rewrite subsetEset => /subsetC /(_ x nEi) dEin.
+  apply: (lt_trans (PM (n,n) x dEin))=>/=. by near:n. by near:n; apply: fnge2.
+Unshelve. all: end_near. Qed.
 
-
-  
+(* Mix of lemma 11.37 in Infinite Dimensional Analysis : a Hitchhiker's guide
+  and thm2 (petti's measurability theorem) in Vector Measures (math survey)*)
+Lemma mmeas_meas_ess_sepP (f : T -> X) : mu_measurable f <-> exists A, 
+  [/\ measurable A, mu A = 0,  measurable_fun (~`A)
+  (f : _ -> g_sigma_algebraType open) & norm_separable_set (image (~`A) f)].
+Proof.
+  split=>[/mmeas_almost_uniformP_invn [f_ /choice[E_ /all_and3 [mE mEn UEn]]]|].
+  exists (\bigcap_n E_ n); split. exact: bigcap_measurableType.
+      apply: measure0P_invn=>n. apply: (le_lt_trans 
+        (le_measure mu _ _ (bigcap_inf _)) (mEn n)); rewrite ?in_setE //. 
+      exact: bigcap_measurableType.
+    apply: (@measurable_fun_cv _ _ _ _ _ f_). move=> m. 
+      exact: (measurable_funS measurableT). rewrite setC_bigcap=> x [i _ nEix].
+    have nEin0 : ~`E_ i !=set0 by exists x.
+    apply/cvgrPdist_lt=> eps e0.
+    have /(uniform_cvg_has_sup0 nEin0) /(_ eps e0) [n0 _ nhs] := UEn i.
+    exists n0=>// n /nhs [hsn sne].
+    
+(* exists (maxn n1 n2)=>//n. rewrite /= geq_max => /andP[/hsn1 n1n /s0n2].
+    rewrite distrC (normr_idP _). apply: sup_ge0=> y [z _ <-]//.
+    move=> /(gt_sup n1n)/= /(_ `|f_ n x - f x|) se; apply: se. by exists x.
+  rewrite setC_bigcap image_bigcup.
+  apply: bigcupT_norm_separable=>n.
+  have[->|/set0P nEn0]:= eqVneq (~`E_ n) set0. 
+    by rewrite image_set0; exists set0; split.
+  have /(uniform_cvg_sup0 nEn0) [hs /cvgr0_norm_lt s0] := UEn n. *)
+Abort.
 
 
 End mu_measurable_function.
