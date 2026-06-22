@@ -247,7 +247,7 @@ Import HBSimple.
 Lemma sfun_op (U V W : normedModType R)
     (f : {sfun aT >-> U}) (g : {sfun aT >-> V})
     (h : U * V -> W) :
-  (fun x => h (f x, g x)) \in @sfun _ _ aT W.
+  (fun x => h (f x, g x)) \in sfun.
 Proof.
 rewrite inE; apply/andP; split; rewrite inE/=.
   move=> _ Y mY; rewrite setTI.
