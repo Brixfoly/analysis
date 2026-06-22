@@ -103,6 +103,41 @@
 
 - in `reals.v`:
   + lemmas `sup_ge0`, `has_sup_wpZl`, `gt0_has_supZl`, `has_sup_Mn`, `sup_Mn`
+- in `mathcomp_extra.v`:
+  + lemmas `divDl_ge0`, `divDl_le1`
+
+- in `unstable.v`:
+  + lemmas `divD_onem`
+
+- in `filter.v`:
+  + mixin `isSubNbhs`, structure `SubNbhs`, notation `subNbhsType`
+
+- in `topology_structure.v`:
+  + structure `SubTopological`, notation `subTopologicalType`
+
+- in `tvs.v`:
+  + structure `SubConvexTvs`, notation `subConvexTvsType`
+
+- in `normed_module.v`:
+  + structure `SubNormedModule`, notation `subNormedModType`
+  + instance `ent_xsection_filter`
+  + light-weigth factory `subLmodule_isSubNormedmodule`
+
+- new file `hahn_banach_theorem.v`:
+  + module `LinearGraph`
+    * definitions `graph`, `linear_graph`
+    * lemmas `lingraph_00`, `lingraphZ`, `lingraphD`
+  + module `HahnBanachZorn`
+    * definitions `extend_graph`, `le_graph`, `functional_graph`, `le_extend_graph`
+    * record `zorn_type`
+    * definition `zphi`
+    * lemma `zorn_type_eq`
+    * definition `zornS`
+    * lemmas `zornS_ex`, `domain_extend`, `hahn_banach_witness`
+  + theorems `hahn_banach_extension`, `hahn_banach_extension_normed`
+
+- in `lebesgue_stieltjes_measure.v`:
+  + definition `lebesgue_display`
 
 ### Changed
 
@@ -134,9 +169,14 @@
 
 - new files `signed_measure.v` and `radon_nikodym.v`
   + with the contents of `charge.v` (deprecated)
-  
+
 ### Changed
 
+- moved from `measurable_structure.v` to `classical_sets.v`:
+  + definition `preimage_set_system`
+  + lemmas `preimage_set_system0`, `preimage_set_systemU`, `preimage_set_system_comp`,
+    `preimage_set_system_id`
+  
 - moved from `measurable_structure.v` to `classical_sets.v`:
   + definition `preimage_set_system`
   + lemmas `preimage_set_system0`, `preimage_set_systemU`, `preimage_set_system_comp`,
@@ -235,6 +275,9 @@
 - in `measure_function.v`:
   + `isFinite` -> `isFinNumFun`
 
+- in `topology_structure.v`:
+  + `closure_setC` -> `closureC`
+
 ### Generalized
 
 - in `measurable_structure.v`:
@@ -275,6 +318,30 @@
 
 - in `measurable_structure.v`:
   + lemmas `measurable_prod_g_measurableType`, `measurable_prod_g_measurableTypeR`
+
+- file `measurable_structure.v`:
+  + notations `preimage_class`, `image_class`, `sigma_algebra_preimage_class`,
+    `sigma_algebra_image_class`, `sigma_algebra_preimage_classE` (deprecated since 1.9.0)
+
+- in `ftc.v`:
+  + lemma `integrable_locally`
+
+- in `lebesgue_Rintegral.v`:
+  + notation `Rintegral_setU_EFin` (deprecated since 1.9.0)
+
+- in `topology_structure.v`:
+  + lemma `closureC_deprecated` (deprecated since 1.7.0)
+
+- in `num_normedtype.v`:
+  + notation `near_in_itv` (deprecated since 1.7.0)
+
+- in `measurable_fun_approximation.v`:
+  + lemma `approximation` (deprecated since 1.8.0)
+  + notations `emeasurable_fun_sum`, `emeasurable_fun_fsum`,
+    `ge0_emeasurable_fun_sum` (deprecated since 1.8.0)
+
+- in `random_variable.v`:
+  + notation `expectationM` (deprecated since 1.8.0)
 
 ### Infrastructure
 

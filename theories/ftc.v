@@ -68,24 +68,6 @@ Notation mu := (@lebesgue_measure R).
 Local Open Scope ereal_scope.
 Implicit Types (f : R -> R) (a : itv_bound R).
 
-Lemma integrable_locally f (A : set R) : measurable A ->
-  mu.-integrable A (EFin \o f) -> locally_integrable [set: R] (f \_ A).
-Proof.
-move=> mA intf; split.
-- move/integrableP : intf => [mf _].
-  by apply/(measurable_restrictT _ _).1 => //; exact/measurable_EFinP.
-- exact: openT.
-- move=> K _ cK.
-  move/integrableP : intf => [mf].
-  rewrite integral_mkcond/=.
-  under eq_integral do rewrite restrict_EFin restrict_normr.
-  apply: le_lt_trans.
-  apply: ge0_subset_integral => //=; first exact: compact_measurable.
-  apply/measurable_EFinP/measurableT_comp/measurable_EFinP => //=.
-  move/(measurable_restrictT _ _).1 : mf => /=.
-  by rewrite restrict_EFin; exact.
-Qed.
-
 Let FTC0 f a : mu.-integrable setT (EFin \o f) ->
   let F x := (\int[mu]_(t in [set` Interval a (BRight x)]) f t)%R in
   forall x, a < BRight x -> lebesgue_pt f x ->
@@ -281,8 +263,7 @@ Corollary FTC1 f a :
   {ae mu, forall x, a < BRight x -> derivable F x 1 /\ F^`() x = f x}.
 Proof.
 move=> intf locf F; move: (locf) => /lebesgue_differentiation.
-apply: filterS; first exact: (ae_filter_ringOfSetsType mu).
-move=> i fi ai.
+apply: filterS => i fi ai.
 by apply: (@FTC1_lebesgue_pt _ _ _ (i + 1)%R) => //; rewrite ltrDl.
 Qed.
 
@@ -292,8 +273,7 @@ Corollary FTC1Ny f :
   let F x := (\int[mu]_(t in [set` `]-oo, x]]) (f t))%R in
   {ae mu, forall x, derivable F x 1 /\ F^`() x = f x}.
 Proof.
-move=> intf locf F; have := FTC1 intf locf.
-apply: filterS; first exact: (ae_filter_ringOfSetsType mu).
+move=> intf locf F; have := FTC1 intf locf; apply: filterS.
 by move=> r /=; apply; rewrite ltNyr.
 Qed.
 
@@ -344,6 +324,9 @@ Corollary continuous_FTC1_closed f (a x : R) (u : R) : (x < u)%R ->
 Proof. by move=> xu locf F ax fx; exact: (@continuous_FTC1 _ _ _ u). Qed.
 
 End FTC.
+
+#[deprecated(since="mathcomp-analysis 1.17.0", note="renamed to `integrable_locally_restrict`")]
+Notation integrable_locally := integrable_locally_restrict (only parsing).
 
 Definition parameterized_integral {R : realType}
     (mu : {measure set (measurableTypeR R) -> \bar R})
