@@ -291,10 +291,54 @@ Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
 =======
 >>>>>>> daaddf326 (drop borel_type wrap on sfun_op and submodule structure)
 
-Lemma sfun0r : (0 : {sfun aT >-> R}) =1 cst 0.
-Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
-
+(* TODO : add the lemmas+measurable.copy (doesn't work for now) *)
+Lemma sfun0r : (0 : {sfun aT >-> R}) =1 cst 0. Proof. by[]. Qed.
+(* Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0. *)
 End sfun_lmodType.
+
+Section mindic_mod_sfun.
+Context {d} {aT : measurableType d} {rT : realType} {nT : normedModType rT}.
+
+Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT) :=
+  *:%R^~ z \o \1_D.
+
+Lemma mindic_modE {A : set aT} (mA : d.-measurable A) (z: nT) :
+  mindic_mod mA z = fun x => if x \in A then z else 0.
+Proof.
+by apply/funext=>x; rewrite /mindic_mod/=indicE; 
+  case: ifP; [rewrite scale1r | rewrite scale0r].
+Qed.
+
+Lemma preimage_indic_mod {D} (mA : measurable D) (B : set nT) (z : nT) : 
+(mindic_mod mA z) @^-1` B = if z  \in B then if 0  \in B then [set: aT] else D else if 0  \in B then ~` D
+else set0.
+Proof.
+rewrite comp_preimage preimage_indic. by do 4 (case: ifPn => [|]);
+  rewrite ?in_setE ?notin_setE //= ?scale0r ?scale1r.
+Qed.
+
+Lemma measurable_mindic_mod {D A : set aT} (mA : d.-measurable A) (z:nT) :
+measurable_fun D (mindic_mod mA z).
+Proof.
+rewrite /mindic_mod=> mD Y mY. rewrite preimage_indic_mod //.
+do 2 (case: ifP => _); apply: measurableI=>//. exact: measurableC.
+Qed.
+
+HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT nT 
+  (mindic_mod mD z) (@measurable_mindic_mod _ D mD z).
+
+Lemma mindic_mod_fimfun_subproof {A : set aT} (mA : d.-measurable A) (z:nT) : 
+@FiniteImage aT nT (mindic_mod mA z). Proof. by[]. Qed.
+
+HB.instance Definition _ A mA z := @mindic_mod_fimfun_subproof A mA z.
+HB.instance Definition _ (A : set aT) (mA : measurable A) z:
+  @FImFun aT nT (mindic_mod mA z) := FImFun.on (mindic_mod mA z).
+
+(* TODO *)
+(* Definition mindic_mod_sfun A (mA : measurable A) z : {sfun aT >-> nT} :=
+  mindic_mod mA z. *)
+
+End mindic_mod_sfun.
 
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
   t < 0 -> f @^-1` [set t] = set0.
