@@ -241,7 +241,7 @@ End ring.
 Arguments indic_sfun {d aT rT} _.
 
 Section sfun_lmodType.
-Context d (aT : measurableType d) (R : realType).
+Context d (aT : measurableType d) (R : realType) (nT : normedModType R).
 Import HBSimple.
 
 Lemma sfun_op (U V W : normedModType R)
@@ -272,10 +272,10 @@ apply: (sub_finite_set (B := h @` (range f `*` range g))).
 by apply: finite_image; apply: finite_setX; exact: fimfunP.
 Qed.
 
-Lemma sfun_submod_closed (V : normedModType R) :
-  submod_closed (@sfun _ _ aT V).
+Lemma sfun_submod_closed :
+  submod_closed (@sfun _ _ aT nT).
 Proof.
-split=> [|k f g sf sg]; first exact: (valP (cst_sfun (0 : V))).
+split=> [|k f g sf sg]; first exact: (valP (cst_sfun (0 : nT))).
 exact: (sfun_op (sfun_Sub sf) (sfun_Sub sg) (fun t => k *: t.1 + t.2)).
 Qed.
 
