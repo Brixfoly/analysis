@@ -6,7 +6,7 @@ From mathcomp Require Import cardinality reals fsbigop ereal topology tvs.
 From mathcomp Require Import normedtype sequences real_interval esum measure.
 From mathcomp Require Import lebesgue_measure numfun realfun measurable_realfun.
 From mathcomp Require Import normed_module measurable_structure simple_functions.
-From mathcomp Require Import borel_hierarchy.
+From mathcomp Require Import borel_hierarchy hahn_banach_theorem.
 
 Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 Set Implicit Arguments.
@@ -517,11 +517,15 @@ exists (F n); split=>//. have leb : forall x, F n x ->
 exact: (subset_trans (AbF n) (subset_bigcup leb)).
 Qed.
 
-(* TODO *)
 Lemma totally_bounded_norm_separable {K : realType} {M : pseudoMetricType K}
 (A : set M) : totally_bounded A -> norm_separable_set A.
 Proof.
-  move=> tA. have : forall n, exists F, 
+move=> /totally_bounded_invnP/choice [F /all_and3 [fF FA AbF]].
+  exists (\bigcup_n F n); split=>[||x r r0 /(AbF (truncn r^-1)) [d Fd bd]]. 
+    apply: bigcup_countable=> // i _; exact: finite_set_countable. 
+  exact: bigcup_sub. exists d; split. by exists (truncn r^-1).
+apply: le_ball bd; rewrite invf_ple ?posrE //. exact: (ltW (truncnS_gt r^-1)).
+Qed.
 
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
   and realType for rational radii *)
@@ -702,7 +706,7 @@ Proof.
     exact: (@sigma_algebra_gen _ open) (nopen `]b,+oo[%classic (rray_open b)).
 Qed.
 
-Lemma measurable_funD_dist {d} {A : measurableType d} {R : realType} 
+Lemma measurable_fun_dist {d} {A : measurableType d} {R : realType} 
 {N : normedModType R} {f g : A -> N} {D : set A}: norm_separable_set (image D f)
 -> measurable_fun D f -> measurable_fun D g -> measurable D ->
 forall (r:R), 0<r -> measurable (D `&` [set a | `|f a - g a| < r]).
@@ -873,7 +877,7 @@ Proof.
       apply: eq_set=>x. rewrite propeqE; split=>/=[[Dx nle]|[Dx lt]]; split=>//.
         apply: (contra_not_lt nle)=>//. 
       exact: (@contra_lt_not _ _ (k.+1%:R^-1 <= `|f n x - g x|)%R _ _ _ lt).
-    apply: measurableD=>//. exact: measurable_funD_dist.
+    apply: measurableD=>//. exact: measurable_fun_dist.
   pose B n k := \bigcup_(i>=n) A i k. have mB: forall n k, measurable (B n k) 
     by rewrite/B=> n k; apply: bigcup_measurable.
   have capB_0 : forall k, \bigcap_n B n k = set0.
@@ -1083,13 +1087,83 @@ rewrite (splitr eps). apply: (le_lt_trans (ler_distD (f n x) _ _) (ltrD _ _)).
   apply: (lt_trans (PM (n,n) x dEin))=>/=. by near:n. by near:n; apply: fnge2.
 Unshelve. all: end_near. Qed.
 
+Lemma mmeas_cvg_ae (f : (T -> X)^nat) (g : T -> X) 
+(mmf : forall n, mu_measurable (f n)) : (\forall x \ae mu, f ^~ x  @\oo--> g x)
+ -> mu_measurable g.
+Proof.
+move=> [A [mA mA0 /subsetCl nAcv]].
+pose f_ n := patch (f n) A g.
+have : forall x, f_ ^~ x  @\oo--> g x.
+move=> x; case: (boolP (x \in A)); rewrite/f_/patch. 
+    rewrite -{1}(eqb_id (x \in A))=>/eqP xA. under eq_cvg do rewrite xA. 
+    exact: cvg_cst.
+  move=> xnA; rewrite [x \in A] (_:_ = false). exact: negbTE.
+  rewrite notin_setE in xnA. by move: xnA => /nAcv.
+apply: mmeas_cvg => n. have [fn_ [B [mB mB0 /subsetCl nBcv]]] := mmf n.
+exists fn_; exists (A`|`B); split. exact: measurableU. exact: null_set_setU.
+apply: subsetCl; rewrite setCU /f_ => x [nAx nBx] /=. 
+rewrite [X in _ --> X] (_:_ = f n x). rewrite /patch ifF //. 
+  by apply: negbTE; rewrite notin_setE.
+exact: nBcv.
+Qed.
+
+(* TODO : Move to norm_lemmas *)
+Lemma hahn_banach_on_seq x : exists xs : {linear_continuous X -> R}, xs x = `|x|
+/\ forall y, `|xs y| <= `|y|.
+Proof.
+About hahn_banach_extension_normed.
+set P := fun z => `[<exists k, z = k*:x>].
+have := (@hahn_banach_extension_normed _ _ P _ _).
+Admitted.
+(* have := hahn_banach_extension_normed xss. *)
+
+Lemma ess_sep_lim_count  (f : T -> X) : (exists A, [/\ measurable A, mu A = 0, 
+  measurable_fun (~`A) f & norm_separable_set (image (~`A) f)]) -> forall eps, 
+  0<eps -> exists g: T->X, [/\ measurable_fun [set:T] g, 
+  countable (range g) & \forall t \ae mu, `|f t - g t| < eps].
+Proof.
+move=> [A [mA mA0 mAf /[dup] nsfA [D [/pcard_surjP [x_ cx] ifx dfx]]]] eps e0.
+have /choice [xs_ /all_and2 [xsx xsb]] : forall n, 
+  exists xs : {linear_continuous X -> R}, xs (x_ n) = `|x_ n| 
+    /\ forall y, `|xs y| <= `|y| by move=>n; exact:hahn_banach_on_seq.
+pose g_ n t := `|f t - x_ n|. pose E_ n := (~`A) `&` [set t | g_ n t < eps].
+have mE : forall n, measurable (E_ n) by move=>n;
+  apply: measurable_fun_dist=>//; exact: measurableC. 
+exists (x_ \o (fun t => xget 0 [set n | seqDU E_ n t])); split.
+rewrite -(setvU (\bigcup_n E_ n)). apply/measurable_funU. 
+        apply: measurableC; exact: bigcupT_measurable.
+      exact: bigcupT_measurable. split. 
+      apply: (eq_measurable_fun (cst (x_ 0)))=>// x.
+      rewrite in_setE setC_bigcup /bigcap=> /= nEx. 
+      rewrite xgetPN /seqDU=>//= n; rewrite not_andE; left; exact: nEx.
+    rewrite seqDU_bigcup_eq; apply/measurable_fun_bigcup=>// [|i]. 
+      exact: seqDU_measurable. apply: (eq_measurable_fun (cst (x_ i)))=>// x. 
+    rewrite in_setE [X in X -> _] (_:_ = [set n | seqDU E_ n x] i) // => Eni /=; 
+    rewrite (xget_unique 0 Eni) //= => m Enm. 
+    have /trivIsetP/(_ m i I I) /= /contra_not trvE := (trivIset_seqDU E_).
+    by apply/eqP/negPn/negP; apply: trvE; apply/eqP/set0P; exists x.
+  rewrite -(image_comp _ x_). 
+  apply: (sub_countable (subset_card_le (image_subset x_ (subsetT _))));
+  exact: card_image_le.
+exists (~`\bigcup_n E_ n); split. apply: measurableC; exact: bigcupT_measurable.
+  apply/eqP; rewrite eq_le; apply/andP; split=>//. rewrite -mA0.
+  apply: le_measure; rewrite ?in_setE //.
+    apply: measurableC; exact: bigcupT_measurable.
+  apply: subsetCl=> x nAx. rewrite surjE in cx. have [z [/cx [n _ <-]]]:= 
+    dfx (f x) eps e0 (imageP f nAx). rewrite -ball_normE /= distrC => fxnxe.
+  by exists n.
+rewrite setCS => x [n _ ] /=.
+  rewrite [X in X -> _] (_:_ = [set n0 | E_ n0 x] n) // => /(xgetI 0) /= [nAx].
+Qed.
+
 (* Mix of lemma 11.37 in Infinite Dimensional Analysis : a Hitchhiker's guide
-  and thm2 (petti's measurability theorem) in Vector Measures (math survey)*)
+  and thm2 (Petti's measurability theorem) in Vector Measures (math surveys)*)
 Lemma mmeas_meas_ess_sepP (f : T -> X) : mu_measurable f <-> exists A, 
   [/\ measurable A, mu A = 0,  measurable_fun (~`A)
   f & norm_separable_set (image (~`A) f)].
 Proof.
-  split=>[/mmeas_almost_uniformP_invn [f_ /choice[E_ /all_and3 [mE mEn UEn]]]|].
+  split=>[/mmeas_almost_uniformP_invn [f_ /choice[E_ /all_and3 [mE mEn UEn]]]| 
+  /ess_sep_lim_count exCe].
   exists (\bigcap_n E_ n); split. exact: bigcap_measurableType.
       apply: measure0P_invn=>n. apply: (le_lt_trans 
         (le_measure mu _ _ (bigcap_inf _)) (mEn n)); rewrite ?in_setE //. 
@@ -1102,6 +1176,34 @@ Proof.
     exists n0=>// n /nhs [hsn sne]. apply: (gt_sup hsn sne _). 
     by rewrite distrC; exists x.
   rewrite setC_bigcap image_bigcup. apply: bigcup_norm_separable=> n _.
+  apply: totally_bounded_norm_separable => eps e0.
+  have [->|/set0P] := eqVneq (~` E_ n) set0. 
+    by exists set0; rewrite image_set0; split. 
+  have e20 : 0 < eps/2 by rewrite ltr_pdivlMr // mul0r.
+  have C := uniform_to_norm _ e20 (UEn n) => /C [n0 _ /(_ n0 (lexx n0)) f0fe].
+  have /choice [G PG] : forall x:X, exists y, image (~` E_ n) (f_ n0) x -> 
+    image (~` E_ n) f y /\ `|x - y| < eps/2. move=> x.
+    case: (boolP (x \in image (~` E_ n) (f_ n0))); rewrite ?in_setE ?notin_setE.
+    move=> [z Enz <-]. exists (f z)=> _; split=>//. exact: f0fe.
+    by move=> nrfn; exists 0 => /nrfn. 
+  exists (image (image (~`E_ n) (f_ n0)) G); 
+    split=>[|x [y /(PG y) [ifGy _ <-]] // | x [t Ent <-]]. apply: finite_image;
+      exact: (sub_finite_set (image_subset (f_ n0) (subsetT _))).
+  have [|] := (PG (f_ n0 t) _) => // ifG fn0G. exists (G (f_ n0 t)).
+    by exists (f_ n0 t). 
+  rewrite -ball_normE /= distrC; apply: (le_lt_trans (ler_distD (f_ n0 t) _ _)).
+  rewrite {1}distrC (splitr eps); apply: ltrD=>//; exact: f0fe.
+have /choice [g_ /all_and2 [Crg fgn]] : forall n, exists g, countable (range g) 
+  /\ (\forall t \ae mu, `|f t - g t| < n.+1%:R^-1) by move=> n; apply: exCe.
+apply: (@mmeas_cvg_ae g_ f).
+  move=> n. have /pcard_injP /= [h shgn] := Crg n.
+have Hs : forall n, (fun x => if (h (g_ n x) < n)%N then g_ n x else 0) \in sfun.
+move=> m; rewrite inE; apply/andP; split; rewrite inE /=.
+exists (fun n x => if (h (g_ n x) < n)%N then g_ n x else 0).
+      
+
+
+
 
 Abort.
 

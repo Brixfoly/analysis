@@ -290,6 +290,87 @@ Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
 
 End sfun_lmodType.
 
+<<<<<<< HEAD
+=======
+Section ring.
+Context d (aT : measurableType d) (rT : realType).
+
+Lemma sfun_subring_closed : subring_closed (@sfun d _ aT rT).
+Proof.
+by split=> [|f g|f g]; rewrite ?inE/= ?rpred1//;
+   move=> /andP[/= mf ff] /andP[/= mg fg]; rewrite !(rpredB, rpredM).
+Qed.
+
+HB.instance Definition _ := GRing.isSubringClosed.Build _ (@sfun d _ aT rT)
+  sfun_subring_closed.
+HB.instance Definition _ := [SubChoice_isSubComPzRing of {sfun aT >-> rT} by <:].
+
+Implicit Types (f g : {sfun aT >-> rT}).
+
+Import HBSimple.
+Lemma sfun1 : (1 : {sfun aT >-> rT}) =1 cst 1. Proof. by []. Qed.
+Lemma sfunM f g : f * g =1 f \* g. Proof. by []. Qed.
+Lemma sfunX f n : f ^+ n =1 (fun x => f x ^+ n).
+Proof. by move=> x; elim: n => [|n IHn]//; rewrite !exprS sfunM/= IHn. Qed.
+
+(* TODO *)
+HB.instance Definition _ f g := MeasurableFun.copy (f \* g) (f * g).
+Fail Check fun f g => f \+ g : {sfun aT >-> rT}.
+
+(* TODO: mv to `measurable_realfun.v`? *)
+HB.instance Definition _ (D : set aT) (mD : measurable D) :
+   @FImFun aT rT (mindic _ mD) := FImFun.on (mindic _ mD).
+Definition indic_sfun (D : set aT) (mD : measurable D) : {sfun aT >-> rT} :=
+  mindic rT mD.
+
+End ring.
+
+Arguments indic_sfun {d aT rT} _.
+
+Section mindic_mod_sfun.
+Context {d} {aT : measurableType d} {rT : realType} {nT : normedModType rT}.
+
+(* fun x =>  (\1_A x) *: z *)
+Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT) :=
+  fun x => if x \in D then z else 0.
+
+Lemma mindic_modE {A : set aT} (mA : d.-measurable A) (z: nT) :
+  mindic_mod mA z = *:%R^~ z \o \1_A.
+Proof.
+by apply/funext=>x; rewrite /mindic_mod/=indicE; 
+  case: ifP; [rewrite scale1r | rewrite scale0r].
+Qed.
+
+Lemma preimage_indic_mod {D} (mA : measurable D) (B : set nT) (z : nT) : 
+  (mindic_mod mA z) @^-1` B = if z  \in B then if 0  \in B then [set: aT] else D 
+  else if 0  \in B then ~` D else set0.
+Proof.
+rewrite mindic_modE comp_preimage preimage_indic. by do 4 (case: ifPn => [|]);
+  rewrite ?in_setE ?notin_setE //= ?scale0r ?scale1r.
+Qed.
+
+Lemma measurable_mindic_mod {D A : set aT} (mA : d.-measurable A) (z:nT) :
+measurable_fun D (mindic_mod mA z).
+Proof.
+rewrite /mindic_mod=> mD Y mY. rewrite preimage_indic_mod //.
+do 2 (case: ifP => _); apply: measurableI=>//. exact: measurableC.
+Qed.
+
+HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT nT 
+  (mindic_mod mD z) (@measurable_mindic_mod _ D mD z).
+
+Lemma mindic_mod_fimfun_subproof {A : set aT} (mA : d.-measurable A) (z:nT) : 
+@FiniteImage aT nT (mindic_mod mA z). Proof. by rewrite mindic_modE. Qed.
+
+HB.instance Definition _ A mA z := @mindic_mod_fimfun_subproof A mA z.
+
+(* TODO : can be casted as mfun and fimfun, but not sfun*)
+(* Definition mindic_mod_sfun A (mA : measurable A) z : {sfun aT >-> rT} :=
+  mindic_mod mA z. *)
+
+End mindic_mod_sfun.
+
+>>>>>>> 4c49634fa (moving forward with petti's thm)
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
   t < 0 -> f @^-1` [set t] = set0.
 Proof.
