@@ -1374,7 +1374,7 @@ Import HBSimple.
 Lemma sbintegralD : sbintegral m (f \+ g)%R = sbintegral m f + sbintegral m g.
 Proof.
 rewrite !sbintegralE; set F := f @` _; set G := g @` _; set FG := _ @` _.
-pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y].
-Search "fsbig". About fsbig_finite. About fsbig_supp. About fsbig_seq.
+pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y]. 
+About fsbig_finite. About fsbig_supp. About fsbig_seq.
 
 End sbintegralD.
