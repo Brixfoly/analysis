@@ -126,7 +126,7 @@ Lemma sub_sfun_fimfun : {subset sfun <= fimfun}. Proof. by move=> x /andP[]. Qed
 End sfun_pred.
 
 Section sfun.
-Context {d d'} {aT : measurableType d} {bT : sigmaRingType d'}.
+Context {d d'} {aT : sigmaRingType d} {bT : sigmaRingType d'}.
 Notation T := {sfun aT >-> bT}.
 Notation sfun := (@sfun _ _ aT bT).
 Section Sub.
