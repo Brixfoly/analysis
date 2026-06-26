@@ -307,6 +307,14 @@ by rewrite setDE setC_bigcap setI_bigcupr;
   apply: eq_bigcup; rewrite -?eqEsubset.
 Qed.
 
+Lemma preimageD {T} {Z : zmodType} (f g : T -> Z) (z : Z) : 
+(f \+ g) @^-1`[set z] = \bigcup_(a in range f) (f@^-1`[set a] `&` g@^-1`[set z-a]).
+Proof.
+rewrite/preimage eqEsubset; split=>[x /= fgz| x [a _ [/= <- -> ]]]. 
+  exists (f x)=>//; split=>//=. by rewrite -fgz addrC addKr.
+by rewrite subrKC.
+Qed.
+
 End set_lemmas.
 
 (* Will be moved to measurable_structure.v *)
@@ -977,6 +985,33 @@ case: mmf=> F [A [mA mA0 CnA]]. exists (x*:F); exists A; split=>//.
 apply: (subset_trans _ CnA). apply: subsetC=>y /=. exact: cvgZl_tmp.
 Qed.
 
+Lemma countim_mmeas (f : T -> X) (mf : forall z, measurable (f@^-1`[set z])):
+ countable (range f) -> mu_measurable f.
+Proof.
+move=> /countable_bijP [B] /card_esym/card_set_bijP /= [h] /[dup] 
+  /set_bij_inj ih /set_bij_surj; rewrite surjE=> rfh. 
+pose a n := mindic_mod (mf (h n)) (h n).
+(* TODO : simplify this when we have that mindic is in sfun *)
+have sfa : forall n, a n \in sfun. move=> n; apply/andP; split. 
+    exact: (valP (mindic_mod _ _ : {mfun T>->X})). 
+  exact: (valP (mindic_mod _ _ : {fimfun T>->X})).
+pose f_ n := \sum_(i<n | `[<B i>]) sfun_Sub (sfa i) : {sfun T>->X}.
+exists f_; exists set0; split=>//. apply:subsetCl. 
+rewrite setC0 -(preimage_range f). 
+apply: (subset_trans (preimage_subset rfh)).
+rewrite -bigcup_imset1 preimage_bigcup => t [n0 /asboolP Bn0/=fthn].
+apply/cvgrPdist_lt=> /= eps e0. exists n0.+1 => // n /= n0n.
+apply: (le_lt_trans _ e0); rewrite normrE subr_eq0 fthn /f_; apply/eqP. 
+rewrite sfun_sum /a /=; under eq_bigr do rewrite mindic_modE/= indicE.
+rewrite (bigD1_ord (Ordinal n0n)) //= mem_set //= scale1r.
+have indeq0 : forall i, 
+  `[<B (bump n0 i)>] -> t \in (f @^-1` [set h (bump n0 i)]) = 0%N :> nat.
+  rewrite /preimage /= => i Bi. apply/eqP; 
+  rewrite eqb0 notin_setE /= fthn => /ih. by rewrite !in_setE=>
+  /(_ (asboolW Bn0) (asboolW Bi)) /eqP /(negP (neq_bump n0 i)).
+under eq_bigr do rewrite indeq0 // scale0r. by rewrite big_const_idem /= addr0.
+Qed.
+
 Lemma sfun_norm_sep_val (f : {sfun T >-> X}) (D:set T) : 
 norm_separable_set (image D f).
 Proof.
@@ -1112,10 +1147,9 @@ Lemma hahn_banach_on_seq x : exists xs : {linear_continuous X -> R}, xs x = `|x|
 /\ forall y, `|xs y| <= `|y|.
 Proof.
 About hahn_banach_extension_normed.
-set P := fun z => `[<exists k, z = k*:x>].
+set P := fun z => `[<exists k, z = k*:x>]. 
 have := (@hahn_banach_extension_normed _ _ P _ _).
 Admitted.
-(* have := hahn_banach_extension_normed xss. *)
 
 Lemma ess_sep_lim_count  (f : T -> X) : (exists A, [/\ measurable A, mu A = 0, 
   measurable_fun (~`A) f & norm_separable_set (image (~`A) f)]) -> forall eps, 
@@ -1128,7 +1162,7 @@ have /choice [xs_ /all_and2 [xsx xsb]] : forall n,
     /\ forall y, `|xs y| <= `|y| by move=>n; exact:hahn_banach_on_seq.
 pose g_ n t := `|f t - x_ n|. pose E_ n := (~`A) `&` [set t | g_ n t < eps].
 have mE : forall n, measurable (E_ n) by move=>n;
-  apply: measurable_fun_dist=>//; exact: measurableC. 
+  apply: measurable_fun_dist=>//; exact: measurableC.
 exists (x_ \o (fun t => xget 0 [set n | seqDU E_ n t])); split.
 rewrite -(setvU (\bigcup_n E_ n)). apply/measurable_funU. 
         apply: measurableC; exact: bigcupT_measurable.
@@ -1152,8 +1186,35 @@ exists (~`\bigcup_n E_ n); split. apply: measurableC; exact: bigcupT_measurable.
   apply: subsetCl=> x nAx. rewrite surjE in cx. have [z [/cx [n _ <-]]]:= 
     dfx (f x) eps e0 (imageP f nAx). rewrite -ball_normE /= distrC => fxnxe.
   by exists n.
-rewrite setCS => x [n _ ] /=.
-  rewrite [X in X -> _] (_:_ = [set n0 | E_ n0 x] n) // => /(xgetI 0) /= [nAx].
+rewrite setCS seqDU_bigcup_eq => x [n _ ] /=.
+rewrite [X in X -> _] (_:_ = [set n0 | seqDU E_ n0 x] n) // => Enx /=.
+rewrite (xget_unique 0 Enx) //=. move=> m Emx.
+  have /trivIsetP/(_ m n I I) /= /contra_not trvE := (trivIset_seqDU E_).
+  by apply/eqP/negPn/negP; apply: trvE; apply/eqP/set0P; exists x. 
+by have [_ ] := subset_seqDU Enx.
+Qed.
+
+Lemma lim_count_mmeas (f : T -> X) : (forall eps, 0<eps -> 
+exists g: T->X, [/\ measurable_fun [set:T] g, countable (range g) & 
+\forall t \ae mu, `|f t - g t| < eps]) -> mu_measurable f.
+Proof.
+move=> CC.
+have /choice [g_ /all_and3 [mG Crg /choice [E_ /all_and3 [mE mE0 gfE]]]] : 
+forall n, exists g : T -> X, [/\ measurable_fun [set:T] g, countable (range g) & 
+  (\forall t \ae mu, `|f t - g t| < n.+1%:R^-1)]. by move=> n; apply: CC.
+apply: (@mmeas_cvg_ae g_ f) => [n|].
+  apply: countim_mmeas=>// z; rewrite -[X in measurable X](setTI).
+  apply: (mG n)=>//; exact : measurable1.
+exists (\bigcup_n E_ n); split. exact: bigcupT_measurable.
+  apply/negligibleP. exact: bigcupT_measurable. apply: negligible_bigcup=>k.
+  apply/negligibleP=>//; exact: mE0.
+apply:subsetCl; rewrite setC_bigcup/bigcap=> x /= nE.
+apply/cvgrPdistC_lt => /= eps e0. exists (truncn eps^-1).+1=>// n /= en.
+have /subsetCl /(_ x) /(_ (nE n I))/= fgn := gfE n.
+rewrite distrC; apply (lt_trans fgn). 
+have ne : (n.+1%:R^-1 : R) < (truncn eps^-1).+1%:R^-1 by
+rewrite invf_plt ?posrE // invrK ltr_nat. apply: (lt_trans ne).
+rewrite invf_plt ?posrE //; exact: truncnS_gt.
 Qed.
 
 (* Mix of lemma 11.37 in Infinite Dimensional Analysis : a Hitchhiker's guide
@@ -1162,50 +1223,158 @@ Lemma mmeas_meas_ess_sepP (f : T -> X) : mu_measurable f <-> exists A,
   [/\ measurable A, mu A = 0,  measurable_fun (~`A)
   f & norm_separable_set (image (~`A) f)].
 Proof.
-  split=>[/mmeas_almost_uniformP_invn [f_ /choice[E_ /all_and3 [mE mEn UEn]]]| 
-  /ess_sep_lim_count exCe].
-  exists (\bigcap_n E_ n); split. exact: bigcap_measurableType.
-      apply: measure0P_invn=>n. apply: (le_lt_trans 
-        (le_measure mu _ _ (bigcap_inf _)) (mEn n)); rewrite ?in_setE //. 
-      exact: bigcap_measurableType.
-    apply: (@measurable_fun_cv _ _ _ _ _ f_). move=> m. 
-      exact: (measurable_funS measurableT). rewrite setC_bigcap=> x [i _ nEix].
-    have nEin0 : ~`E_ i !=set0 by exists x.
-    apply/cvgrPdist_lt=> eps e0.
-    have /(uniform_cvg_has_sup0 nEin0) /(_ eps e0) [n0 _ nhs] := UEn i.
-    exists n0=>// n /nhs [hsn sne]. apply: (gt_sup hsn sne _). 
-    by rewrite distrC; exists x.
-  rewrite setC_bigcap image_bigcup. apply: bigcup_norm_separable=> n _.
-  apply: totally_bounded_norm_separable => eps e0.
-  have [->|/set0P] := eqVneq (~` E_ n) set0. 
-    by exists set0; rewrite image_set0; split. 
-  have e20 : 0 < eps/2 by rewrite ltr_pdivlMr // mul0r.
-  have C := uniform_to_norm _ e20 (UEn n) => /C [n0 _ /(_ n0 (lexx n0)) f0fe].
-  have /choice [G PG] : forall x:X, exists y, image (~` E_ n) (f_ n0) x -> 
-    image (~` E_ n) f y /\ `|x - y| < eps/2. move=> x.
-    case: (boolP (x \in image (~` E_ n) (f_ n0))); rewrite ?in_setE ?notin_setE.
-    move=> [z Enz <-]. exists (f z)=> _; split=>//. exact: f0fe.
-    by move=> nrfn; exists 0 => /nrfn. 
-  exists (image (image (~`E_ n) (f_ n0)) G); 
-    split=>[|x [y /(PG y) [ifGy _ <-]] // | x [t Ent <-]]. apply: finite_image;
-      exact: (sub_finite_set (image_subset (f_ n0) (subsetT _))).
-  have [|] := (PG (f_ n0 t) _) => // ifG fn0G. exists (G (f_ n0 t)).
-    by exists (f_ n0 t). 
-  rewrite -ball_normE /= distrC; apply: (le_lt_trans (ler_distD (f_ n0 t) _ _)).
-  rewrite {1}distrC (splitr eps); apply: ltrD=>//; exact: f0fe.
-have /choice [g_ /all_and2 [Crg fgn]] : forall n, exists g, countable (range g) 
-  /\ (\forall t \ae mu, `|f t - g t| < n.+1%:R^-1) by move=> n; apply: exCe.
-apply: (@mmeas_cvg_ae g_ f).
-  move=> n. have /pcard_injP /= [h shgn] := Crg n.
-have Hs : forall n, (fun x => if (h (g_ n x) < n)%N then g_ n x else 0) \in sfun.
-move=> m; rewrite inE; apply/andP; split; rewrite inE /=.
-exists (fun n x => if (h (g_ n x) < n)%N then g_ n x else 0).
-      
+split=>[/mmeas_almost_uniformP_invn [f_ /choice[E_ /all_and3 [mE mEn UEn]]]| 
+  /ess_sep_lim_count/lim_count_mmeas //].
+exists (\bigcap_n E_ n); split. exact: bigcap_measurableType.
+    apply: measure0P_invn=>n. apply: (le_lt_trans 
+      (le_measure mu _ _ (bigcap_inf _)) (mEn n)); rewrite ?in_setE //. 
+    exact: bigcap_measurableType.
+  apply: (@measurable_fun_cv _ _ _ _ _ f_). move=> m. 
+    exact: (measurable_funS measurableT). rewrite setC_bigcap=> x [i _ nEix].
+  have nEin0 : ~`E_ i !=set0 by exists x.
+  apply/cvgrPdist_lt=> eps e0.
+  have /(uniform_cvg_has_sup0 nEin0) /(_ eps e0) [n0 _ nhs] := UEn i.
+  exists n0=>// n /nhs [hsn sne]. apply: (gt_sup hsn sne _). 
+  by rewrite distrC; exists x.
+rewrite setC_bigcap image_bigcup. apply: bigcup_norm_separable=> n _.
+apply: totally_bounded_norm_separable => eps e0.
+have [->|/set0P] := eqVneq (~` E_ n) set0. 
+  by exists set0; rewrite image_set0; split. 
+have e20 : 0 < eps/2 by rewrite ltr_pdivlMr // mul0r.
+have C := uniform_to_norm _ e20 (UEn n) => /C [n0 _ /(_ n0 (lexx n0)) f0fe].
+have /choice [G PG] : forall x:X, exists y, image (~` E_ n) (f_ n0) x -> 
+  image (~` E_ n) f y /\ `|x - y| < eps/2. move=> x.
+  case: (boolP (x \in image (~` E_ n) (f_ n0))); rewrite ?in_setE ?notin_setE.
+  move=> [z Enz <-]. exists (f z)=> _; split=>//. exact: f0fe.
+  by move=> nrfn; exists 0 => /nrfn. 
+exists (image (image (~`E_ n) (f_ n0)) G); 
+  split=>[|x [y /(PG y) [ifGy _ <-]] // | x [t Ent <-]]. apply: finite_image;
+    exact: (sub_finite_set (image_subset (f_ n0) (subsetT _))).
+have [|] := (PG (f_ n0 t) _) => // ifG fn0G. exists (G (f_ n0 t)).
+  by exists (f_ n0 t). 
+rewrite -ball_normE /= distrC; apply: (le_lt_trans (ler_distD (f_ n0 t) _ _)).
+rewrite {1}distrC (splitr eps); apply: ltrD=>//; exact: f0fe.
+Qed.
 
-
-
-
-Abort.
-
+(* Corollary 3 of Vector Measures *)
+Lemma mmeas_lim_countmeasP (f : T -> X) :  mu_measurable f <-> 
+forall eps, 0<eps -> exists g: T->X, [/\ measurable_fun [set:T] g, 
+countable (range g) & \forall t \ae mu, `|f t - g t| < eps].
+Proof. by split=>[/mmeas_meas_ess_sepP/ess_sep_lim_count|/lim_count_mmeas]. Qed.
 
 End mu_measurable_function.
+
+
+Reserved Notation "\int [ mu ]_ ( i 'in' D ) F"
+  (at level 36, F at level 36, i, D at level 60,
+  format "'[' \int [ mu ]_ ( i  'in'  D ) '/  '  F ']'").
+Reserved Notation "\int [ mu ]_ i F"
+  (F at level 36, i at level 0,
+    right associativity, format "'[' \int [ mu ]_ i '/  '  F ']'").
+
+(** Definition of simple integrals: *)
+Section simple_fun_raw_integral.
+Context d (T : sigmaRingType d) (R : realType) (X : normedModType R) 
+  (mu : {finite_measure set T -> \bar R}) (f : T -> X).
+
+Definition sbintegral := \sum_(x \in [set: X]) fine (mu (f @^-1` [set x])) *: x.
+
+Lemma sbintegralET :
+  sbintegral = \sum_(x \in [set: X]) fine (mu (f @^-1` [set x])) *: x.
+Proof. by []. Qed.
+
+End simple_fun_raw_integral.
+
+Section sbintegral_lemmas.
+Context d (T : sigmaRingType d) (R : realType) (X : normedModType R).
+Variable mu : {finite_measure set T -> \bar R}.
+
+Lemma sbintegralE (f : T -> X) :
+  sbintegral mu f = \sum_(x \in range f) fine (mu (f @^-1` [set x])) *: x.
+Proof.
+rewrite (fsbig_widen (range f) setT)//= => x [_ Nfx] /=.
+by rewrite preimage10// measure0 scale0r.
+Qed.
+
+Lemma sbintegral0 : sbintegral mu (cst 0%R) = (0:X).
+Proof.
+rewrite sbintegralE fsbig1// => r _; rewrite preimage_cst.
+by case: ifPn => [/[!inE] <-|]; rewrite ?scaler0 // measure0 /= scale0r.
+Qed.
+
+Import HBSimple.
+
+Lemma sbintegral_indic_mod (A : set T) (z : X) : 
+  sbintegral mu (indic_mod A z) = fine (mu A) *: z.
+Proof.
+rewrite sbintegralE (fsbig_widen _ [set 0%R; z]) => //=.
+  - exact: image_indic_mod_sub.
+  - by move=> t [[] -> /= /preimage10->]; rewrite measure0 scale0r.
+have [->|/eqP] := eqVneq z 0;
+rewrite fsbigU//=; first by move=> t [->]/=; rewrite scaler0.
+rewrite !fsbig_set1 !scaler0 addr0//.
+move=> x /= [-> _]; by rewrite scaler0.
+rewrite !fsbig_set1 !preimage_indic_mod /= => z0. 
+rewrite ifN ?notin_setE//= ifT ?in_setE //= scaler0 add0r 
+  ifT ?in_setE //= ifN ?notin_setE //=. exact: nesym.
+Qed.
+
+End sbintegral_lemmas.
+
+Lemma eq_sbintegral d (T : sigmaRingType d) (R : realType) (X : normedModType R)
+    (mu : {finite_measure set T -> \bar R}) (g f : T -> X) :
+  f =1 g -> sbintegral mu f = sbintegral mu g.
+Proof. by move=> /funext->. Qed.
+Arguments eq_sbintegral {d T R X mu} g.
+
+Section sbintegralrZ.
+Context d (T : sigmaRingType d) (R : realType) (X : normedModType R).
+Variables (m : {finite_measure set T -> \bar R}) (r : R) (f : {sfun T >-> X}).
+
+Import HBSimple.
+
+(* Proof is a lot more complicated than it should have been *)
+Lemma sbintegralrZ : sbintegral m (r \*: f) = r *: sbintegral m f.
+Proof.
+have [->|r0] := eqVneq r 0.
+  by rewrite scale0r (eq_sbintegral (cst 0%R)) ?sbintegral0// => x /=; 
+  rewrite scale0r.
+have eqscaler : forall x y : X, (r *: x = r *: y) = (x=y).
+  move=> x y; rewrite propeqE; split=>[rxy|->//].
+  by rewrite -[LHS]scale1r -[RHS]scale1r -(divff r0) mulrC -!scalerA rxy.
+rewrite !sbintegralE scaler_sumr/= (reindex_fsbig ( *:%R r) (range f)) /=.
+rewrite [X in set_bij _ X] (_:_ = image (range f) ( *:%R r)).
+    rewrite image_comp; exact: eq_set.
+  split=>// x y _ _ rxy. by rewrite -eqscaler.
+have scale_preim : forall x, (r \*: f) @^-1` [set r *: x] = f @^-1` [set x].
+  rewrite /preimage => x/=; apply: eq_set=> t; exact:eqscaler.
+under eq_bigr do rewrite scale_preim scalerA mulrC -scalerA. congr (bigop.body).
+case: finite_supportP => [/(sub_infinite_set (@subIsetl _ (range f) _)) infr //
+  | Y Yrf rfnY0 Yrn0]. apply/eqP/fset_eqP => x; rewrite in_finite_support.
+  exact: (sub_finite_set ((@subIsetl _ (range f) _))).
+rewrite [X in _`&`X] (_:_ = (fun i : X => 
+  fine (m ((r \*: f) @^-1` [set r *: i])) *: (r *: i)) @^-1` [set~ 0]).
+  rewrite /preimage/=; apply: eq_set=> z/=; rewrite scalerA mulrC -scalerA propeqE.
+  apply: not_iff_compat. rewrite -{2}(scaler0 X r) -propeqE.
+  rewrite [[set t | r *: f t = r *: z]] (_:_ = [set t | f t = z]). 
+    apply:eq_set=>t; exact: eqscaler.
+  apply: Logic.eq_sym; exact:eqscaler.
+by rewrite -Yrn0 mem_setE.
+Qed.
+
+End sbintegralrZ.
+
+Section sbintegralD.
+Context d (T : measurableType d) (R : realType) (X : normedModType R).
+Variables (m : {finite_measure set T -> \bar R}).
+Variables (D : set T) (mD : measurable D) (f g : {sfun T >-> X}).
+
+Import HBSimple.
+
+Lemma sbintegralD : sbintegral m (f \+ g)%R = sbintegral m f + sbintegral m g.
+Proof.
+rewrite !sbintegralE; set F := f @` _; set G := g @` _; set FG := _ @` _.
+pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y].
+Search "fsbig". About fsbig_finite. About fsbig_supp. About fsbig_seq.
+
+End sbintegralD.

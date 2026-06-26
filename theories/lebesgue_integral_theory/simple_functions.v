@@ -120,7 +120,7 @@ Lemma sub_sfun_fimfun : {subset sfun <= fimfun}. Proof. by move=> x /andP[]. Qed
 End sfun_pred.
 
 Section sfun.
-Context {d d'} {aT : measurableType d} {bT : sigmaRingType d'}.
+Context {d d'} {aT : sigmaRingType d} {bT : sigmaRingType d'}.
 Notation T := {sfun aT >-> bT}.
 Notation sfun := (@sfun _ _ aT bT).
 Section Sub.
@@ -327,29 +327,55 @@ End ring.
 
 Arguments indic_sfun {d aT rT} _.
 
-Section mindic_mod_sfun.
-Context {d} {aT : measurableType d} {rT : realType} {nT : normedModType rT}.
+(* TODO : move it in another file *)
+Section indic_mod.
+Context {T : Type} {rT : pzRingType} {nT : lmodType rT}.
 
 (* fun x =>  (\1_A x) *: z *)
-Definition mindic_mod {D : set aT} (mD : d.-measurable D) (z: nT) :=
-  fun x => if x \in D then z else 0.
+Definition indic_mod (D : set T) (z : nT) x := if x \in D then z else 0.
 
-Lemma mindic_modE {A : set aT} (mA : d.-measurable A) (z: nT) :
-  mindic_mod mA z = *:%R^~ z \o \1_A.
+(* TODO : Maybe swap the 2 defs *)
+Lemma indic_modE (A : set T) (z: nT) :
+  indic_mod A z = *:%R^~ z \o \1_A.
 Proof.
-by apply/funext=>x; rewrite /mindic_mod/=indicE; 
+by apply/funext=>x; rewrite /indic_mod/=indicE; 
   case: ifP; [rewrite scale1r | rewrite scale0r].
 Qed.
 
-Lemma preimage_indic_mod {D} (mA : measurable D) (B : set nT) (z : nT) : 
-  (mindic_mod mA z) @^-1` B = if z  \in B then if 0  \in B then [set: aT] else D 
+Lemma preimage_indic_mod (D : set T) (B : set nT) (z : nT) : 
+  (indic_mod D z) @^-1` B = if z  \in B then if 0  \in B then [set: T] else D 
   else if 0  \in B then ~` D else set0.
 Proof.
-rewrite mindic_modE comp_preimage preimage_indic. by do 4 (case: ifPn => [|]);
+rewrite indic_modE comp_preimage preimage_indic. by do 4 (case: ifPn => [|]);
   rewrite ?in_setE ?notin_setE //= ?scale0r ?scale1r.
 Qed.
 
-Lemma measurable_mindic_mod {D A : set aT} (mA : d.-measurable A) (z:nT) :
+Lemma image_indic_mod_sub (D A : set T) (z : nT) : 
+  [set indic_mod D z x  | x in A] `<=` ([set 0; z] : set nT).
+Proof. 
+rewrite /indic_mod => x /= [t At <-]; case: ifPn=> _ //; by [right | left].
+Qed.
+
+Lemma fimfunE_mod (f : {fimfun T >-> nT}) x : 
+  f x = \sum_(y \in range f) indic_mod (f@^-1` [set y]) y x.
+Proof.
+rewrite (fsbigD1 (f x)) // indic_modE /= indicE mem_set //= 
+  scale1r fsbig1 ?addr0 //. move=> y [[t _ <-]/= /nesym fxt].
+by rewrite indic_modE /= indicE memNset ?scale0r.
+Qed.
+
+End indic_mod.
+
+Section mindic_mod_sfun.
+Context {d} {aT : measurableType d} {rT : realType} {nT : normedModType rT}.
+
+Definition mindic_mod {D : set aT} (mD : measurable D) (z: nT) := indic_mod D z.
+
+Lemma mindic_modE {A : set aT} (mA : d.-measurable A) (z: nT) :
+  mindic_mod mA z = *:%R^~ z \o \1_A.
+Proof. by rewrite /mindic_mod indic_modE. Qed.
+
+Lemma measurable_indic_mod {D A : set aT} (mA : d.-measurable A) (z:nT) :
 measurable_fun D (mindic_mod mA z).
 Proof.
 rewrite /mindic_mod=> mD Y mY. rewrite preimage_indic_mod //.
@@ -357,7 +383,7 @@ do 2 (case: ifP => _); apply: measurableI=>//. exact: measurableC.
 Qed.
 
 HB.instance Definition _ D mD z := @isMeasurableFun.Build _ _ aT nT 
-  (mindic_mod mD z) (@measurable_mindic_mod _ D mD z).
+  (mindic_mod mD z) (@measurable_indic_mod _ D mD z).
 
 Lemma mindic_mod_fimfun_subproof {A : set aT} (mA : d.-measurable A) (z:nT) : 
 @FiniteImage aT nT (mindic_mod mA z). Proof. by rewrite mindic_modE. Qed.
@@ -365,7 +391,7 @@ Lemma mindic_mod_fimfun_subproof {A : set aT} (mA : d.-measurable A) (z:nT) :
 HB.instance Definition _ A mA z := @mindic_mod_fimfun_subproof A mA z.
 
 (* TODO : can be casted as mfun and fimfun, but not sfun*)
-(* Definition mindic_mod_sfun A (mA : measurable A) z : {sfun aT >-> rT} :=
+(* Definition mindic_mod_sfun A (mA : measurable A) z : {sfun aT >-> nT} :=
   mindic_mod mA z. *)
 
 End mindic_mod_sfun.
