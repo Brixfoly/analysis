@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Renamed
+- in `functions.v`
+  + lemma `scalrfctE` -> `scalerfctE` (deprecating `scalrfctE`)
+
+### Changed
+- in `functions.v`
+  + lemma `fctE` (include `zerofctE` and `onefctE`)
+
+### Added
+- in `functions.v`:
+  + lemmas `zerofctE`, `onefctE`
+
 ### Added
 - in `borel_hierarchy.v`:
   + definition `borel_type`
