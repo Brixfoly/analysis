@@ -1354,9 +1354,9 @@ case: finite_supportP => [/(sub_infinite_set (@subIsetl _ (range f) _)) infr //
   exact: (sub_finite_set ((@subIsetl _ (range f) _))).
 rewrite [X in _`&`X] (_:_ = (fun i : X => 
   fine (m ((r \*: f) @^-1` [set r *: i])) *: (r *: i)) @^-1` [set~ 0]).
-  rewrite /preimage/=; apply: eq_set=> z/=; rewrite scalerA mulrC -scalerA propeqE.
-  apply: not_iff_compat. rewrite -{2}(scaler0 X r) -propeqE.
-  rewrite [[set t | r *: f t = r *: z]] (_:_ = [set t | f t = z]). 
+  rewrite/preimage; apply: eq_set=> z/=; rewrite scalerA mulrC -scalerA propeqE.
+  apply: not_iff_compat. rewrite -{2}(scaler0 X r) -propeqE 
+    [[set t | r *: f t = r *: z]] (_:_ = [set t | f t = z]). 
     apply:eq_set=>t; exact: eqscaler.
   apply: Logic.eq_sym; exact:eqscaler.
 by rewrite -Yrn0 mem_setE.
@@ -1374,7 +1374,8 @@ Import HBSimple.
 Lemma sbintegralD : sbintegral m (f \+ g)%R = sbintegral m f + sbintegral m g.
 Proof.
 rewrite !sbintegralE; set F := f @` _; set G := g @` _; set FG := _ @` _.
-pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y]. 
+pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y].
+rewrite !fsbig_finite //=.
 About fsbig_finite. About fsbig_supp. About fsbig_seq.
 
 End sbintegralD.
