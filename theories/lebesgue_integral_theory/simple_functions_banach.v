@@ -299,15 +299,13 @@ Qed.
 End simple_bounded.
 
 Section set_lemmas.
+Context {T:Type}.
 
-Lemma bigcapDr {T I} (F : I -> set T) [P : set I] (A : set T) : 
-\bigcup_(i in P)  (A `\` F i) = A `\` \bigcap_(i in P)  F i.
-Proof.
-by rewrite setDE setC_bigcap setI_bigcupr; 
-  apply: eq_bigcup; rewrite -?eqEsubset.
-Qed.
+Lemma setD_bigcapr {I : Type} (F : I -> set T) [P : set I] (A : set T) : 
+A `\` \bigcap_(i in P)  F i = \bigcup_(i in P)  (A `\` F i).
+Proof. by rewrite setDE setC_bigcap setI_bigcupr. Qed.
 
-Lemma preimageD {T} {Z : zmodType} (f g : T -> Z) (z : Z) : 
+Lemma preimageD {Z : zmodType} (f g : T -> Z) (z : Z) : 
 (f \+ g) @^-1`[set z] = \bigcup_(a in range f) (f@^-1`[set a] `&` g@^-1`[set z-a]).
 Proof.
 rewrite/preimage eqEsubset; split=>[x /= fgz| x [a _ [/= <- -> ]]]. 
@@ -327,63 +325,55 @@ Proof.
 Qed.
 
 Lemma sigma_algebra_gen {M : choiceType} {G : set (set M)} : G `<=`<<s G>>.
-Proof.
-  by rewrite /smallest=>A hA H [saH GH]; apply: GH.
-Qed.
+Proof. by rewrite /smallest=>A hA H [saH GH]; apply: GH. Qed.
 
 Lemma bigcup_cvg_mu {d} {M : measurableType d} {R : realType} 
-{mu : {measure set M -> \bar R}} (A : (set M)^nat) : (forall i:nat, measurable (A i)) ->
+{mu : {measure set M -> \bar R}} (A : (set M)^nat) 
+(mA : forall i, measurable (A i)) : 
 mu (\bigcup_(i<n) A i) @[n-->\oo] --> mu (\bigcup_n A n).
 Proof.
-  have nduA : nondecreasing_seq (fun n=>\bigcup_(i<n) A i).
-  move=> n m nm/=. apply/subsetPset=> a [i/= i_n ai].
-  exists i=>//=. rewrite -ltz_nat. rewrite -?ltz_nat -?lez_nat in i_n, nm.
-  apply: (lt_le_trans i_n nm). move=> ma. 
-  have mua: forall n, measurable (\bigcup_(i<n) A i). move=>n. exact: bigcup_measurable.
-  rewrite [\bigcup_n A n] (_:_ = \bigcup_n (\bigcup_(i<n) A i)). 
+rewrite [\bigcup_n A n] (_:_ = \bigcup_n (\bigcup_(i<n) A i)). 
   rewrite eqEsubset; split=> [a [n _ Ana]|a [n _ [k kn aka]]]. 
-  exists n.+1=>//; exists n=>//=. by exists k.
-  apply: (nondecreasing_cvg_mu mua _ nduA). exact: bigcup_measurable.
+    by exists n.+1=>//; exists n=>/=. by exists k.
+apply: nondecreasing_cvg_mu=>[i||n m nm]; try apply: bigcup_measurable=>k _//.
+  exact: bigcup_measurable.
+apply/subsetPset=> x [i/= i_n Aix]; exists i=>//=. exact: (ltn_leq_trans i_n).
 Qed.
 
 Lemma bigcap_cvg_mu {d} {M : measurableType d} {R : realType} 
-{mu : {finite_measure set M -> \bar R}} (A : (set M)^nat) : (forall i:nat, measurable (A i)) ->
+{mu : {finite_measure set M -> \bar R}} (A : (set M)^nat) 
+(mA : forall i, measurable (A i)) :
 mu (\bigcap_(i<n) A i) @[n-->\oo] --> mu (\bigcap_n A n).
 Proof.
-  have ndiA : nonincreasing_seq (fun n=>\bigcap_(i<n) A i).
-    rewrite /bigcap => n m nm/=. apply/subsetPset=> a/= Ia i i_n.
-    apply: Ia; rewrite -ltz_nat; rewrite -?ltz_nat -?lez_nat in nm, i_n.
-    apply: lt_le_trans i_n nm.
-  move=> ma. have mia: forall n, measurable (\bigcap_(i<n) A i). move=>n. 
-    exact: bigcap_measurableType.
-  rewrite [\bigcap_n A n] (_:_ = \bigcap_n (\bigcap_(i<n) A i)). 
-  rewrite eqEsubset/bigcap; split=> [a/=aia j _ i ij|a/= aIa i _]. exact: aia.
+rewrite [\bigcap_n A n] (_:_ = \bigcap_n (\bigcap_(i<n) A i)). 
+  rewrite eqEsubset/bigcap; split=> [a/=aia j _  i _|a/= aIa i _]. exact: aia.
   exact: (aIa i.+1).
-  apply: (nonincreasing_cvg_mu _ mia _ ndiA). rewrite/bigcap/=. 
-  under eq_set do under eq_forall do rewrite ltn0 [false -> _] 
-  (_:_ = True) ?propeqE//. rewrite [X in mu X] (_:_ = [set:M]) -?subTset=>//=.
-  apply: fin_num_fun_lty. exact: fin_num_measure.
-  exact: bigcap_measurable.
+apply: nonincreasing_cvg_mu. 
+apply: (le_lt_trans (le_measure mu _ _ (subsetT _)) 
+  (fin_num_fun_lty (fin_num_measure mu))); rewrite ?in_setE//. 
+      exact: bigcap_measurableType. move=>i; exact: bigcap_measurableType.
+  apply: bigcap_measurableType=> k _; exact: bigcap_measurableType.
+move=> n m nm; apply/subsetPset=> x bAx i/= i_n. 
+apply: (bAx i); exact: (ltn_leq_trans i_n nm).
 Qed.
 
 Lemma open_closed_measurable (t : topologicalType) : 
 (@open t).-sigma.-measurable = (@closed t).-sigma.-measurable.
 Proof.
-  rewrite eqEsubset; split; rewrite{1}/measurable/=. 
-  apply: (@sigma_algebra_subset _ (g_sigma_algebraType (@closed t)) (@open t))=> U oU.
+rewrite eqEsubset; split; rewrite{1}/measurable/=. 
+  apply: (@sigma_algebra_subset _ (g_sigma_algebraType (@closed t)) _)=> U oU.
   rewrite -(setCK U); apply: sigma_algebraC. 
   apply: sigma_algebra_gen=>//; exact: open_closedC.
-  apply: sigma_algebra_subset=> F cF; rewrite -(setCK F); apply:sigma_algebraC.
-  apply: sigma_algebra_gen=>//; exact: closed_openC.
+apply: sigma_algebra_subset=> F cF; rewrite -(setCK F); apply:sigma_algebraC.
+apply: sigma_algebra_gen=>//; exact: closed_openC.
 Qed.
 
 Lemma countable_bigcup_measurable {d} {T : sigmaRingType d} {U} {F : U -> set T}
 {P : set U} : countable P -> (forall i:U, P i -> measurable (F i)) -> 
 measurable (\bigcup_(i in P) F i).
 Proof.
-  move=>/[dup] cP /pfcard_geP=>[[-> _|/surjfunPex [f ->] mF]]. by rewrite bigcup0.
-  rewrite bigcup_image.
-  apply: bigcupT_measurable=>// i. exact: mF.
+move=>/[dup] cP /pfcard_geP=>[[-> _|/surjfunPex [f ->] mF]]. by rewrite bigcup0.
+rewrite bigcup_image; apply: bigcupT_measurable=>// i; exact: mF.
 Qed.
 
 End sigma_algebra_lemmas.
@@ -391,23 +381,22 @@ End sigma_algebra_lemmas.
 (* Some should be moved in topology_structure.v, some in metric_structure.v*)
 Section topology_lemmas.
 
-Lemma basisP {T : ptopologicalType} {B : set (set T)} : basis B <-> B `<=`open /\
-(forall U: set T, open U -> U = \bigcup_(V in [set W | B W /\ W `<=`U]) V).
+Lemma basisP {T : ptopologicalType} {B : set (set T)} : basis B <-> B `<=`open 
+/\ (forall U: set T, open U -> U = \bigcup_(V in [set W | B W /\ W `<=`U]) V).
 Proof.
-  split=> [[oB bB]|[Bo dec]]. split=> //U oU.
-    rewrite eqEsubset /bigcup; split=>[x Ux/=|x [A/= [BA AU] /AU //]].
-    have:= bB x. rewrite/cvg_to {2}/nbhs/filter_from/= => /(_ U)/=.
-    have nT: \near x, U x by apply: (open_in_nearW oU)=>[y|]; rewrite in_setE. 
-    rewrite nbhs_nearE !exists2E/= => /(_ nT). 
-    by under eq_exists=>x0 do rewrite -andA {1}(andC (x0 x) _) andA.
-  split=>// x. rewrite/cvg_to/=nbhsE/open_nbhs => P /= [U [/(dec U)->]].
-  rewrite/bigcup {2}/subset => /=[[A [BA AU] Ax] UP]. exists A=>//= t At.
-  apply: UP. by exists A.
+split=> [[oB bB]|[Bo dec]]. split=> //U oU.
+  rewrite eqEsubset /bigcup; split=>[x Ux/=|x [A/= [BA AU] /AU //]].
+  have:= bB x. rewrite/cvg_to {2}/nbhs/filter_from/= => /(_ U)/=.
+  have nT: \near x, U x by apply: (open_in_nearW oU)=>[y|]; rewrite in_setE. 
+  rewrite nbhs_nearE !exists2E/= => /(_ nT). 
+  by under eq_exists=>x0 do rewrite -andA {1}(andC (x0 x) _) andA.
+split=>// x. rewrite/cvg_to/=nbhsE/open_nbhs => P /= 
+  [U [/(dec U)->] [A [BA AU] Ax] UP]. exists A=>// t At; apply: UP. by exists A.
 Qed.
 
 Lemma basis_nonzero {T : ptopologicalType} {B : set (set T)} : basis B -> B!=set0.
 Proof.
-  move=> /basisP [Bo /(_ [set:T] openT) Tb]. apply/set0P/eqP => B0.
+move=> /basisP [Bo /(_ [set:T] openT) Tb]. apply/set0P/eqP => B0.
   move: B0 Tb ->. rewrite [X in _=X] (_:_ = set0).
   apply: eq_set=> x. apply: propF=> [[A/= [F//]]]. apply/eqP. exact: setT0.
 Qed.
@@ -416,21 +405,21 @@ Lemma countable_basis_to_seq {T : ptopologicalType} {B : set (set T)} :
 countable B -> basis B -> exists f : nat -> (set T), range f = B /\ 
 forall U : set T, open U -> U = \bigcup_(n in [set m| f m `<=`U]) (f n).
 Proof.
-  move=> /pfcard_geP. 
-  case=>/= [B0 /basis_nonzero/set0P/eqP/(_ B0)//| /surjfunPex [f ->] /basisP [Bo dec]].
-  exists f. split=>//. move=> U /(dec U) ->. rewrite/bigcup/=. apply:eq_set=>x/=.
-  rewrite !exists2E propeqE; split=>//=[[A [[[n _ <- fnU] fnx]]]| [n [fni fnx]]]. 
-    exists n. split=>//= y fny/=. exists (f n)=>//. split=>//. by exists n.
-  exists (f n); split=>//. split=>[|y /fni/= [V [_ VU /VU//]]]. by exists n.
+move=> /pfcard_geP /=. 
+case=> [B0 /basis_nonzero/set0P/eqP/(_ B0)//|/surjfunPex [f ->]/basisP[Bo dec]].
+exists f; split=>//. move=> U /(dec U) ->; apply:eq_set=>x/=.
+rewrite !exists2E propeqE; split=>//=[[A [[[n _ <- fnU] fnx]]]| [n [fni fnx]]]. 
+  exists n; split=>//= y fny/=. exists (f n)=>//. split=>//. by exists n.
+exists (f n); split=>//; split=>[|y /fni/= [V [_ VU /VU//]]]. by exists n.
 Qed.
 
 Lemma second_countable_seq {T : ptopologicalType} : @second_countable T -> 
 exists f : nat -> (set T), range f `<=` open /\ 
 forall U : set T, open U -> U = \bigcup_(n in [set m| f m `<=`U]) (f n).
 Proof.
-  rewrite /second_countable=>[[B cB bB]]. 
-  have[f [rfb dec]]:= countable_basis_to_seq cB bB. exists f; split=>//. 
-  rewrite rfb. by have[Bo _] := bB.
+rewrite /second_countable=>[[B cB bB]]; 
+have[f [rfb dec]]:= countable_basis_to_seq cB bB. exists f; split=>//. 
+by rewrite rfb; have[Bo _] := bB.
 Qed.
 
 Definition separable {T : ptopologicalType} := 
@@ -536,7 +525,8 @@ apply: le_ball bd; rewrite invf_ple ?posrE //. exact: (ltW (truncnS_gt r^-1)).
 Qed.
 
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
-  and realType for rational radii *)
+  and realType for rational radii. 
+  Not really used right now, and proof can be optimised a lot *)
 Lemma second_countable_ball {R : realType} {M : pseudoMetricNormedZmodType R} : 
 @second_countable M -> exists D : set M, countable D /\
 basis [set ball m k.+1%:R^-1 | m in D & k in [set:nat]].
