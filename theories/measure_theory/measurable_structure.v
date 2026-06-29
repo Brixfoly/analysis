@@ -1328,7 +1328,13 @@ Lemma measurable_g_measurableTypeE (T : choiceType) (G : set_system T) :
 Proof. exact: sigma_algebra_id. Qed.
 
 
+<<<<<<< HEAD
 Lemma sigma_algebra_preimage (aT rT : Type) (G : set_system rT)
+=======
+Section measurability.
+(* Bug here : it doesn't know what preimage_set_system is*)
+Lemma sigma_algebra_preimage (aT rT : Type) (G : set (set rT))
+>>>>>>> 633160938 (abort rebase)
     (D : set aT) (f : aT -> rT) :
   sigma_algebra setT G -> sigma_algebra D (preimage_set_system D f G).
 Proof.
