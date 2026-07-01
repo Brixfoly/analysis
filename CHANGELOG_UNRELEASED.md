@@ -50,6 +50,7 @@
 
 - in `measure_function.v`:
   + lemma `g_sigma_algebra_finite_measure_unique`
+  + lemmas `bigcap_cvg_mu`, `bigcup_cvg_mu`
 
 - new file `independence.v`:
   + definition `independent_events`
