@@ -1315,14 +1315,11 @@ Lemma measurable_g_measurableTypeE (T : choiceType) (G : set (set T)) :
   sigma_algebra setT G -> G.-sigma.-measurable = G.
 Proof. exact: sigma_algebra_id. Qed.
 
-(* Introducing the Borel sigma-algebra for topological spaces*)
-Section Topological_sigma_algebra.
+Section Borel_measurable.
 Variable T : topologicalType.
 
-Let G := @open T.
-
 Definition measurableTop : set (set T) :=
-  G.-sigma.-measurable.
+  open.-sigma.-measurable.
 
 Lemma measurable0T : measurableTop set0. Proof. exact: sigma_algebra0. Qed.
 Lemma measurableCT : forall A, measurableTop A -> measurableTop (~` A). 
@@ -1331,9 +1328,9 @@ Lemma measurable_bigcupT : forall F : (set T)^nat, (forall i, measurableTop (F i
 measurableTop (\bigcup_i (F i)). Proof. exact: sigma_algebra_bigcup. Qed.    
 
 Definition measurableTypeTop (* : : measurableType G.-sigma*) := 
-g_sigma_algebraType G.
+g_sigma_algebraType (@open T).
 
-End Topological_sigma_algebra.
+End Borel_measurable.
 
 Module HBTopMeas.
 

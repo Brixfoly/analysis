@@ -173,8 +173,113 @@ HB.instance Definition _ :=
 End itv_semiRingOfSets.
 
 Notation "R .-ocitv" := (ocitv_display R) : measure_display_scope.
-Notation "R .-ocitv.-measurable" := (measurable : set (set (ocitv_type R))) :
+Notation "R .-ocitv.-measurable" := (measurable : set_system (ocitv_type R)) :
   classical_set_scope.
+
+Module OcitvMeasurableOld.
+Section realType_sigma_algebra.
+Context {R : realType}.
+
+Definition measurableTypeR (R : realType) :=
+  g_sigma_algebraType (@ocitv R).
+
+Definition lebesgue_display : measure_display :=
+  (@ocitv R).-sigma.
+Definition measurableR : set (set R) :=
+  (@ocitv R).-sigma.-measurable.
+
+HB.instance Definition _ : Measurable lebesgue_display (measurableTypeR R) :=
+   Measurable.on (measurableTypeR R).
+(* Presumably it is safe to use NFI here because morally R is unique
+   and nothing else can be used here *)
+#[non_forgetful_inheritance]
+HB.instance Definition _ := Measurable.copy R (measurableTypeR R).
+
+End realType_sigma_algebra.
+End OcitvMeasurableOld.
+
+Section salgebra_R_ssets.
+Variable R : realType.
+
+Import OcitvMeasurableOld.
+
+Lemma measurable_set1 (r : R) : measurable [set r].
+Proof.
+rewrite set1_bigcap_oc; apply: bigcap_measurable => // k _.
+by apply: sub_sigma_algebra; exact/is_ocitv.
+Qed.
+#[local] Hint Resolve measurable_set1 : core.
+
+Lemma measurable_itv (i : interval R) : measurable [set` i].
+Proof.
+have moc (a b : R) : measurable `]a, b].
+  by apply: sub_sigma_algebra; apply: is_ocitv.
+have mopoo (x : R) : measurable `]x, +oo[.
+  by rewrite itv_bndy_bigcup_BRight; exact: bigcup_measurable.
+have mnooc (x : R) : measurable `]-oo, x].
+  by rewrite -setCitvr; exact/measurableC.
+have ooE (a b : R) : `]a, b[%classic = `]a, b] `\ b.
+  by rewrite setDitv1r.
+have moo (a b : R) : measurable `]a, b[.
+  by rewrite ooE; exact: measurableD.
+have mcc (a b : R) : measurable `[a, b].
+  case: (boolP (a <= b)) => ab; last by rewrite set_itv_ge.
+  by rewrite -setU_1itvob//; apply/measurableU.
+have mco (a b : R) : measurable `[a, b[.
+  case: (boolP (a < b)) => ab; last by rewrite set_itv_ge.
+  by rewrite -setU_1itvob//; apply/measurableU.
+have oooE (b : R) : `]-oo, b[%classic = `]-oo, b] `\ b.
+  by rewrite setDitv1r.
+case: i => [[[] a|[]] [[] b|[]]] => //; do ?by rewrite set_itv_ge.
+- by rewrite -setU_1itvob//; exact/measurableU.
+- by rewrite oooE; exact/measurableD.
+- by rewrite set_itvNyy.
+Qed.
+#[local] Hint Resolve measurable_itv : core.
+
+End salgebra_R_ssets.
+#[global]
+Hint Extern 0 (measurable [set _]) => solve [apply: measurable_set1] : core.
+#[global]
+Hint Extern 0 (measurable [set` _] ) => exact: measurable_itv : core.
+
+(* NB: new *)
+
+Section open.
+Context {R : realType}.
+
+Definition open_type : Type := R.
+
+HB.instance Definition _ := Pointed.on open_type.
+
+Let measurable : set_system R := @measurable _ (g_sigma_algebraType (@open R)).
+
+Let measurable0 : measurable set0. Proof. exact: measurable0. Qed.
+
+Let measurableC A : measurable A -> measurable (~` A).
+Proof. by move=> /measurableC. Qed.
+
+Let measurable_bigcup (F : (set R)^nat) : (forall i, measurable (F i)) ->
+  measurable (\bigcup_i (F i)).
+Proof. move=> mF; exact: bigcupT_measurable. Qed.
+
+HB.instance Definition _ :=
+  @isMeasurable.Build (sigma_display (@open R))
+    open_type measurable measurable0 measurableC measurable_bigcup.
+
+End open.
+
+Reserved Notation "R .-open" (at level 1, format "R .-open").
+Reserved Notation "R .-open.-measurable"
+ (at level 2, format "R .-open.-measurable").
+
+Notation "R .-open" := (sigma_display (@open R)) : measure_display_scope.
+Notation "R .-open.-measurable" := (measurable : set_system (@open_type R)) :
+  classical_set_scope.
+
+Module OpenMeasurable.
+Section realType_sigma_algebra.
+Context {R : realType}.
 
 Local Open Scope measure_display_scope.
 
@@ -508,21 +613,28 @@ HB.instance Definition _ (f : cumulative R R) :=
 End wlength_extension.
 Arguments lebesgue_stieltjes_measure {R}.
 
-Definition measurableTypeR (R : realType) :=
-  g_sigma_algebraType R.-ocitv.-measurable.
+Lemma eq_salg_measure [T : choiceType] [R : realType] (G H : set_system T) 
+  (mu : {measure set (g_sigma_algebraType G) -> \bar R}) : 
+  G.-sigma.-measurable = H.-sigma.-measurable -> 
+  exists mu' : {measure set (g_sigma_algebraType H) -> \bar R}, 
+    forall A, measurable A -> mu A = mu' A.
+Proof.
+move=> GH. set mue' := mu^*%mu : set (g_sigma_algebraType H) -> \bar R.   
 
-Section lebesgue_stieltjes_measure.
-Context {R : realType}.
-Variable f : cumulative R R.
-
-Lemma lebesgue_stieltjes_measure_unique
-    (mu : {measure set (measurableTypeR R) -> \bar R}) :
+Lemma lebesgue_stieltjes_measure_unique {R : realType}
+    (f : cumulative R R) (mu : {measure set R -> \bar R}) :
     (forall X, ocitv X -> lebesgue_stieltjes_measure f X = mu X) ->
   forall A, measurable A -> lebesgue_stieltjes_measure f A = mu A.
 Proof.
-move=> muE A mA; apply: measure_extension_unique => //=.
-  exact: wlength_sigma_finite.
-by move=> X mX; rewrite -muE// -measurable_mu_extE.
+have mu' : measure (g_sigma_algebraType R.-ocitv.-measurable) R. admit.
+have mue : forall A, R.-open.-measurable A -> mu A = mu' A. admit.
+move=> eqoc A moA. rewrite (mue A moA). apply: measure_extension_unique;
+    first by exact: wlength_sigma_finite. 
+  move=>/= X /[dup] ocX /(@sub_sigma_algebra _ [set:R]).
+  rewrite [<<s _>>] (_:_ = R.-ocitv.-measurable.-sigma.-measurable) // 
+  RGenOpenSets.measurableE=> mX. rewrite -mue// -eqoc//.
+  exact/esym/measurable_mu_extE.
+by rewrite RGenOpenSets.measurableE.
 Qed.
 
 End lebesgue_stieltjes_measure.
@@ -620,7 +732,8 @@ Proof.
   by rewrite posrE ltrBrDl addr0. have:= (truncnS_gt (1/(z-b))). rewrite div1r.
   by apply/ler_ltP. move=> btz. have:= lt_le_trans xbt btz. by apply/ler_ltP.
 
-  by apply: bigcapT_measurable=>k; rewrite /measurable/=/smallest=> T [saT oT]; apply: oT.
+  by apply: bigcapT_measurable=>k; rewrite /measurable/=/smallest=> T [saT oT]; 
+  apply: oT.
 Qed.
 
 Import HBTopMeas.
@@ -631,6 +744,11 @@ Proof.
   apply: sigma_algebra_subset open_octiv_measurable. 
   apply: sigma_algebra_subset; rewrite /measurable/= => I; 
   case=> [[a b] _]<-/=; exact : ocitv_measurableTop.
+Qed.
+
+Lemma measurableTopE : (@ocitv R).-sigma.-measurable = (@open R).-sigma.-measurable.
+Proof.
+  by rewrite -/measurableR -eq_measTop_measR.
 Qed.
 
 Lemma eq_meas_measR : measurable = measurableR.

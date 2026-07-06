@@ -344,7 +344,7 @@ HB.instance Definition _ (R : realType) :=
   SigmaFiniteMeasure.on (@lebesgue_measure R).
 
 Lemma lebesgue_measure_unique {R : realType}
-    (mu : {measure set (measurableTypeR R) -> \bar R}) :
+    (mu : {measure set R -> \bar R}) :
     (forall X, ocitv X -> lebesgue_measure X = mu X) ->
   forall A, measurable A -> lebesgue_measure A = mu A.
 Proof. exact: lebesgue_stieltjes_measure_unique. Qed.
