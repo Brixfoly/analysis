@@ -170,6 +170,19 @@
     * definition `zornS`
     * lemmas `zornS_ex`, `domain_extend`, `hahn_banach_witness`
   + theorems `hahn_banach_extension`, `hahn_banach_extension_normed`
+- in `normal_distribution.v`:
+  + lemma `normal_funN`
+  + lemma `normal_fun_sym`
+  + lemma `normal_fun0abs`
+  + lemma `normal_pdf_sym`
+  + lemma `normal_fun_center_new`
+  + lemma `normal_fun_shift`
+  + lemma `normal_pdf_uniq_ae`
+  + lemma `normal_prob_continuous`
+  + lemma `integral_normal_prob`
+  + lemma `measurable_normal_prob`
+  + lemma `emeasurable_bounded_integrable`
+  + lemmas `integrable_normal_probD1`, `normal_probD1`, `normal_probD2`, `normal_probD`
 
 - in `unstable.v`:
   + lemmas `divD_onem`
@@ -245,7 +258,18 @@
 - in `lebesgue_stieltjes_measure.v`:
   + definition `lebesgue_display`
 
+- in `realsum.v`:
+  + lemma `esum_summableP`
+
+- in `esum.v`:
+  + lemma `fsetsTE`
+- in `ftc.v`:
+  + lemma `ge0_integration_by_substitution_shift_itvy`,
+    `ge0_integration_by_substitution_shift_itvNy`
+
 ### Changed
+- in `functions.v`:
+  + lemmas `zerofctE`, `onefctE`
 
 - in `functions.v`:
   + lemmas `linfunP`, `linfun_eqP`
@@ -287,6 +311,11 @@
 
 - in `measurable_structure.v`:
   + lemmas `countable_bigcap_measurable`, `countable_bigcup_measurable`
+
+- in `realsum.v`:
+  + lemma `__admitted__psumB` proved and renamed to `psumB`
+- in `functions.v`:
+  + lemma `preimageD1`
 
 ### Changed
 
@@ -502,6 +531,18 @@
 - in `esum.v`:
   + lemma `esum_set1`
     generalized from `realType` to `sigmaRingType d'`, adding a display parameter `d'`;
+
+- in `ereal.v`:
+  + lemmas `ge0_mule_fsumr`, `ge0_mule_fsuml`
+
+- in `esum.v`:
+  + lemma `esum_set1`
+
+- in `ereal.v`:
+  + lemmas `ge0_mule_fsumr`, `ge0_mule_fsuml`
+
+- in `esum.v`:
+  + lemma `esum_set1`
 
 ### Deprecated
 

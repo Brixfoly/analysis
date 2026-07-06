@@ -19,6 +19,7 @@ Local Open Scope classical_set_scope.
 Local Open Scope ring_scope.
 Local Open Scope measure_display_scope.
 
+<<<<<<< HEAD
 Reserved Notation "{ 'nnfun' aT >-> T }"
   (at level 0, format "{ 'nnfun'  aT  >->  T }").
 Reserved Notation "[ 'nnfun' 'of' f ]"
@@ -357,27 +358,18 @@ move=> n m nm; apply/subsetPset=> x bAx i/= i_n.
 apply: (bAx i); exact: (ltn_leq_trans i_n nm).
 Qed.
 
+=======
+>>>>>>> 5bb3db569 (trying to rebase)
 Lemma open_closed_measurable (t : topologicalType) : 
 (@open t).-sigma.-measurable = (@closed t).-sigma.-measurable.
 Proof.
-rewrite eqEsubset; split; rewrite{1}/measurable/=. 
-  apply: (@sigma_algebra_subset _ (g_sigma_algebraType (@closed t)) _)=> U oU.
+rewrite eqEsubset; split; rewrite{1}/measurable/=.
+  apply: sigma_algebra_subl=> U oU.
   rewrite -(setCK U); apply: sigma_algebraC. 
-  apply: sigma_algebra_gen=>//; exact: open_closedC.
-apply: sigma_algebra_subset=> F cF; rewrite -(setCK F); apply:sigma_algebraC.
-apply: sigma_algebra_gen=>//; exact: closed_openC.
+  apply: sub_sigma_algebra=>//; exact: open_closedC.
+apply: sigma_algebra_subl=> F cF; rewrite -(setCK F); apply:sigma_algebraC.
+apply: sub_sigma_algebra=>//; exact: closed_openC.
 Qed.
-
-Lemma countable_bigcup_measurable {d} {T : sigmaRingType d} {U} {F : U -> set T}
-{P : set U} : countable P -> (forall i:U, P i -> measurable (F i)) -> 
-measurable (\bigcup_(i in P) F i).
-Proof.
-move=>/[dup] cP /pfcard_geP=>[[-> _|/surjfunPex [f ->] mF]]. by rewrite bigcup0.
-rewrite bigcup_image; apply: bigcupT_measurable=>// i; exact: mF.
-Qed.
-
-End sigma_algebra_lemmas.
-
 (* Some should be moved in topology_structure.v, some in metric_structure.v*)
 Section topology_lemmas.
 
@@ -401,34 +393,34 @@ move=> /basisP [Bo /(_ [set:T] openT) Tb]. apply/set0P/eqP => B0.
   apply: eq_set=> x. apply: propF=> [[A/= [F//]]]. apply/eqP. exact: setT0.
 Qed.
 
-Lemma countable_basis_to_seq {T : ptopologicalType} {B : set (set T)} : 
-countable B -> basis B -> exists f : nat -> (set T), range f = B /\ 
+Lemma countable_basis_to_seq {T : ptopologicalType} {B : set (set T)} :
+countable B -> basis B -> exists f : nat -> (set T), range f = B /\
 forall U : set T, open U -> U = \bigcup_(n in [set m| f m `<=`U]) (f n).
 Proof.
-move=> /pfcard_geP /=. 
+move=> /pfcard_geP /=.
 case=> [B0 /basis_nonzero/set0P/eqP/(_ B0)//|/surjfunPex [f ->]/basisP[Bo dec]].
 exists f; split=>//. move=> U /(dec U) ->; apply:eq_set=>x/=.
-rewrite !exists2E propeqE; split=>//=[[A [[[n _ <- fnU] fnx]]]| [n [fni fnx]]]. 
+rewrite !exists2E propeqE; split=>//=[[A [[[n _ <- fnU] fnx]]]| [n [fni fnx]]].
   exists n; split=>//= y fny/=. exists (f n)=>//. split=>//. by exists n.
 exists (f n); split=>//; split=>[|y /fni/= [V [_ VU /VU//]]]. by exists n.
 Qed.
 
-Lemma second_countable_seq {T : ptopologicalType} : @second_countable T -> 
-exists f : nat -> (set T), range f `<=` open /\ 
+Lemma second_countable_seq {T : ptopologicalType} : @second_countable T ->
+exists f : nat -> (set T), range f `<=` open /\
 forall U : set T, open U -> U = \bigcup_(n in [set m| f m `<=`U]) (f n).
 Proof.
-rewrite /second_countable=>[[B cB bB]]; 
-have[f [rfb dec]]:= countable_basis_to_seq cB bB. exists f; split=>//. 
+rewrite /second_countable=>[[B cB bB]];
+have[f [rfb dec]]:= countable_basis_to_seq cB bB. exists f; split=>//.
 by rewrite rfb; have[Bo _] := bB.
 Qed.
 
-Definition separable {T : ptopologicalType} := 
+Definition separable {T : ptopologicalType} :=
 exists D: set T, countable D /\ dense D.
 
-Lemma second_countable_separable {T : ptopologicalType} : 
+Lemma second_countable_separable {T : ptopologicalType} :
 @second_countable T -> @separable T.
 Proof.
-  move=> [B] /(sub_countable (card_le_setD B [set set0])). 
+  move=> [B] /(sub_countable (card_le_setD B [set set0])).
   rewrite/countable=> /pfcard_geP. case=> [|[f] /basisP [oB bB]].
   rewrite setD_eq0=> /subset_set1. case=> -> /basisP [oB bB];
   have:= (bB [set:T]) openT. rewrite [X in \bigcup_(_ in X) _] (_:_ = set0).
@@ -453,12 +445,13 @@ Qed.
 Lemma salgebra_second_countable {T : ptopologicalType} {B : set (set T)} : 
 countable B -> basis B -> open.-sigma.-measurable = B.-sigma.-measurable.
 Proof.
-  move=> cB bB; have [f [rfb dec]] := countable_basis_to_seq cB bB. 
-  rewrite eqEsubset -rfb=>/=; split; rewrite {1}/measurable/=. 
-  apply: (@sigma_algebra_subset _ (g_sigma_algebraType (range f)))=> U /(dec U)->.
-  apply: bigcup_measurable=>k/= _. by apply:sigma_algebra_gen.
-  apply: sigma_algebra_subset. rewrite rfb. have [Bo _] := bB.
-  exact: subset_trans Bo (sigma_algebra_gen).
+move=> cB bB; have [f [rfb dec]] := countable_basis_to_seq cB bB.
+rewrite eqEsubset -rfb=>/=; split; rewrite {1}/measurable/=.
+  apply: sigma_algebra_subl => U /(dec U)->.
+  rewrite bigcup_mkcond; apply: sigma_algebra_bigcup => i /=.
+  case: ifP=> _//. exact: sub_sigma_algebra. exact: sigma_algebra0.
+apply: sigma_algebra_subl. rewrite rfb. have [Bo _] := bB.
+  exact: (subset_trans Bo (@sub_sigma_algebra _ _ _)).
 Qed.
 
 Lemma cvg_uniform_fin_bigcup {U : choiceType} {V : uniformType} [f : U -> V] 
@@ -477,9 +470,22 @@ End topology_lemmas.
 
 Section norm_lemmas.
 
-Definition norm_separable_set {K : numDomainType} {M : pseudoMetricType K} 
-(A : set M) := exists D, [/\ countable D, D `<=` A & forall (x:M) (r : K), 
-0<r -> A x -> exists d, D d /\ ball d r x].
+(* Should be for metricType *)
+Definition norm_separable_set {K : numDomainType} 
+  {M : pseudoMetricType K} (A : set M) := exists D, 
+  [/\ countable D, D `<=` A & forall (x : M) (r : K), 
+0<r -> A x -> D `&` ball x r !=set0].
+
+Lemma norm_separableTP {K : numDomainType} {M : pseudoMetricNormedZmodType K} :
+  norm_separable_set [set:M] <-> @separable M.
+Proof.
+split=>[[D [cD DA dD]]|[D [cD DD]]]; exists D. split=>// A [x Ax oA]. 
+  have /nbhs_ballP/= : nbhs x A by exact/open_nbhs_nbhs.
+  rewrite /nbhs_ball/nbhs_ball_ => [[r /= /[dup] r0 /(dD x)/= /(_ I) 
+    [d [Dd bdrx]] bxrA]]. exists d; split=>//=; exact: bxrA.
+split=>//= x r r0 _. rewrite setIC; apply: (DD (ball x r)). 
+  exists x; exact: ballxx. exact: ball_open.
+Qed.
 
 Lemma bigcupT_norm_separable {K : numDomainType} {M : pseudoMetricType K}
 [A : (set M)^nat] : (forall n, norm_separable_set (A n)) -> 
@@ -521,7 +527,8 @@ move=> /totally_bounded_invnP/choice [F /all_and3 [fF FA AbF]].
   exists (\bigcup_n F n); split=>[||x r r0 /(AbF (truncn r^-1)) [d Fd bd]]. 
     apply: bigcup_countable=> // i _; exact: finite_set_countable. 
   exact: bigcup_sub. exists d; split. by exists (truncn r^-1).
-apply: le_ball bd; rewrite invf_ple ?posrE //. exact: (ltW (truncnS_gt r^-1)).
+apply: ball_sym; apply: le_ball bd. rewrite invf_ple ?posrE //; 
+exact: (ltW (truncnS_gt r^-1)).
 Qed.
 
 (* Needs pseudoMetricNormedZmodType to use ball_open lemma,
@@ -684,7 +691,7 @@ Qed.
 
 (*Cannot be generalized yet as it is for a different display from normr_continuous*)
 Lemma normr_measurable_gen {R : realType} {N : normedModType R} {A : set N} : 
-measurable_fun (A : set N) normr.
+measurable_fun A normr.
 Proof.
   move=> /[dup] mA.
   apply: (@measurability _ _ _ _ _ (@normr R N) _).
@@ -699,9 +706,9 @@ Proof.
     by rewrite lt_irreflexive. apply/andP; split=>//. rewrite (real_leNgt _ _)=>//.
     exact: num_real. rewrite /not in_itv/= in xb; apply/negP=>bx; apply: xb; exact/andP.
   apply: measurableI. 
-    apply: (@sigma_algebra_gen _ open) (nopen `]a,+oo[%classic (rray_open a)).
+    apply: (@sub_sigma_algebra _ open) (nopen `]a,+oo[%classic (rray_open a)).
     apply: measurableC.
-    exact: (@sigma_algebra_gen _ open) (nopen `]b,+oo[%classic (rray_open b)).
+    exact: (@sub_sigma_algebra _ open) (nopen `]b,+oo[%classic (rray_open b)).
 Qed.
 
 Lemma measurable_fun_dist {d} {A : measurableType d} {R : realType} 
@@ -720,27 +727,24 @@ move=> [Df [cDf _ DF]] mf mg mD r r0. rewrite [X in measurable X] (_:_ =
     rewrite /=in_itv=>/= [[/andP[fgq qr]] [q1 _ q1q]].
     pose eps := minr (q - `|f x - g x|) (r-q). pose k := truncn eps^-1.
     have eps0 : 0 < eps by rewrite lt_min !subr_gt0; apply/andP.
-    have [erq eqfg] : eps <= r-q /\ eps <= q - `|f x - g x|. 
-      rewrite !ge_min; split; apply/orP. by right. by left.
+    have [erq eqfg] : eps <= r-q /\ eps <= q - `|f x - g x| by
+      rewrite !ge_min; split; apply/orP; [right|left].
     exists q1=>//=. rewrite q1q/=.
     have ke : k.+1%:R^-1 < eps by rewrite invf_plt ?posrE//; 
       exact: truncnS_gt.
     have k0 : (0:R) < k.+1%:R^-1 by rewrite invr_gt0.
-    have [z [Dfz b1]]:= (DF (f x) _ k0 (imageP f Dx)).
+    have [z [Dfz]] := DF (f x) _ k0 (imageP f Dx); rewrite -ball_normE/=distrC.
     exists z=>//. exists k. rewrite -ltrBrDl. exact: (lt_le_trans ke erq).
-    split=>//; split=>//. rewrite -ball_normE/=. rewrite -ball_normE/= in b1.
-    apply: (le_lt_trans (ler_distD (f x) z (g x))).
-    have zfq : `|z - f x| < q - `|f x - g x| by apply: (lt_le_trans 
-      (lt_trans b1 ke) eqfg).
-    apply: (lt_le_trans (ltr_leD zfq (le_refl _))). 
-    by rewrite -addrA [X in _ + X]addrC subrr addr0.
-  split=>//. rewrite -ball_normE /= in bzkf, bzqg. 
-  apply: (le_lt_trans (ler_distD z _ _)). rewrite {1}distrC addrC. 
-  exact: (lt_trans (ltrD bzqg bzkf) qkr).
+    split=>//; split=>//. apply: (le_lt_trans (ler_distD (f x) z (g x))).
+    rewrite -(addrNK `|f x - g x| q). 
+    exact: (ltr_leD (lt_le_trans (lt_trans b ke) eqfg)).
+  split=>//; rewrite -ball_normE /= in bzkf, bzqg.
+  apply: (le_lt_trans (ler_distD z _ _) (lt_trans _ qkr)).
+    rewrite addrC (distrC (f x) z); exact: ltrD.
 apply: bigcupT_measurable_rat=> q. apply: countable_bigcup_measurable=>// z Dfz.
-apply: bigcup_measurable=>k /= qkr. apply: measurableI. apply: (mf mD).
-  apply: sigma_algebra_gen; exact: ball_open.
-apply: (mg mD). apply: sigma_algebra_gen; exact: ball_open.
+apply: bigcup_measurable=>k /= qkr.
+  apply: measurableI; [apply: (mf mD)|apply: (mg mD)];
+  apply: sub_sigma_algebra; exact: ball_open.
 Qed.
 
 (* Lemma 4.29 Infinite Dimensional Analysis A Hitchhikers Guide, 
@@ -781,7 +785,7 @@ Proof.
     exact: truncnS_gt.
   apply: bigcap_measurable=>// m _. apply: bigcup_measurable=>// n _. 
   apply: bigcap_measurable. exists n=>//=. rewrite /G=> k /= nk.
-  apply: (mhn k)=>//. apply: (@sigma_algebra_gen _ open).
+  apply: (mhn k)=>//. apply: (@sub_sigma_algebra _ open).
   rewrite [X in open X] (_:_ = \bigcup_(c in F) [set y | `|c-y| < m.+1%:R^-1]).
   apply eq_set=> x/=. rewrite exists2E; apply: eq_exists=>y/=. by rewrite in_setE.
   apply: bigcup_open=> f0 f0F. have df0c : continuous (normr \o(fun y=> f0-y)).
@@ -847,7 +851,7 @@ split=>[aucD|[E_ [nniE /all_and3 [mE0 mEn CuEn] eps e0]]].
   move=>n. split. apply: bigcap_measurableType=>//.
     apply: (le_lt_trans _ (mEn n)). apply: le_measure; rewrite ?in_setE//.
       apply: bigcap_measurableType=>//. apply: bigcap_inf=>/=; exact: ltnSn.
-  rewrite -bigcapDr; exact: cvg_uniform_fin_bigcup.
+  rewrite setD_bigcapr; exact: cvg_uniform_fin_bigcup.
 have [n0 _ /=/(_ n0 (le_refl n0))]:= cvgr0_norm_lt h h0 eps e0.
 rewrite (normr_idP (ltW (ph n0)))=> hne; exists (E_ n0); split=>//.
 exact: lt_trans.
@@ -1174,7 +1178,7 @@ exists (~`\bigcup_n E_ n); split. apply: measurableC; exact: bigcupT_measurable.
   apply: le_measure; rewrite ?in_setE //.
     apply: measurableC; exact: bigcupT_measurable.
   apply: subsetCl=> x nAx. rewrite surjE in cx. have [z [/cx [n _ <-]]]:= 
-    dfx (f x) eps e0 (imageP f nAx). rewrite -ball_normE /= distrC => fxnxe.
+    dfx (f x) eps e0 (imageP f nAx). rewrite -ball_normE => fxnxe.
   by exists n.
 rewrite setCS seqDU_bigcup_eq => x [n _ ] /=.
 rewrite [X in X -> _] (_:_ = [set n0 | seqDU E_ n0 x] n) // => Enx /=.
@@ -1367,5 +1371,6 @@ rewrite !sbintegralE; set F := f @` _; set G := g @` _; set FG := _ @` _.
 pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y].
 rewrite !fsbig_finite //=.
 About fsbig_finite. About fsbig_supp. About fsbig_seq.
+Abort.
 
 End sbintegralD.

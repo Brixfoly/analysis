@@ -531,14 +531,20 @@ HB.instance Definition _ : Measurable lebesgue_display (measurableTypeR R) :=
 #[non_forgetful_inheritance]
 HB.instance Definition _ := Measurable.copy R (measurableTypeR R).
 
-Lemma lebesgue_stieltjes_measure_unique
+Lemma lebesgue_stieltjes_measure_unique {R : realType}
     (f : cumulative R R) (mu : {measure set R -> \bar R}) :
     (forall X, ocitv X -> lebesgue_stieltjes_measure f X = mu X) ->
   forall A : set R, measurable A -> lebesgue_stieltjes_measure f A = mu A.
 Proof.
-move=> muE A mA; apply: measure_extension_unique => //=.
-  exact: wlength_sigma_finite.
-by move=> X mX; rewrite -muE// -measurable_mu_extE.
+have mu' : measure (g_sigma_algebraType R.-ocitv.-measurable) R. admit.
+have mue : forall A, R.-open.-measurable A -> mu A = mu' A. admit.
+move=> eqoc A moA. rewrite (mue A moA). apply: measure_extension_unique;
+    first by exact: wlength_sigma_finite. 
+  move=>/= X /[dup] ocX /(@sub_sigma_algebra _ [set:R]).
+  rewrite [<<s _>>] (_:_ = R.-ocitv.-measurable.-sigma.-measurable) // 
+  RGenOpenSets.measurableE=> mX. rewrite -mue// -eqoc//.
+  exact/esym/measurable_mu_extE.
+by rewrite RGenOpenSets.measurableE.
 Qed.
 
 End lebesgue_stieltjes_measure.

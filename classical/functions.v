@@ -2766,7 +2766,6 @@ Proof. by []. Qed.
 Definition fctE :=
   (cstE, compE, opprfctE, addrfctE, mulrfctE, scalerfctE, exprfctE,
    zerofctE, onefctE).
-<<<<<<< HEAD
 
 Lemma preimageD1 {T : Type} {Z : zmodType} (f g : T -> Z) (z : Z) :
   (f \+ g) @^-1`[set z] =
@@ -2776,8 +2775,6 @@ rewrite eqEsubset; split => [x <-|x [a _ /= [<- ->]]].
   by exists (f x) => /=; [exact/imageT|rewrite addrC addKr].
 by rewrite subrKC.
 Qed.
-=======
->>>>>>> 2d84556e8 (add zerofctE and onefctE; rename scalrfctE to scalerfctE (#1984))
 
 End function_space_lemmas.
 

@@ -573,9 +573,10 @@ Open Scope ereal_scope.
 Context {R : realType}.
 
 Local Notation mu := lebesgue_measure.
+Import OpenMeasurable.
 
 Lemma lebesgue_measureN (A : set R) : measurable A ->
-  pushforward mu (-%R : _ -> measurableTypeR R) A = mu A.
+  pushforward mu (-%R : _ -> R) A = mu A.
 Proof.
 move=> mA; apply/esym/lebesgue_measure_unique => //= _ [[a b]] _ <-.
 rewrite /pushforward opp_preimage_itvbndbnd/= !lebesgue_measure_itv/=.
