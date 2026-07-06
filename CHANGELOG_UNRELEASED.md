@@ -545,6 +545,18 @@
   + lemma `esum_set1`
     generalized from `realType` to `sigmaRingType d'`, adding a display parameter `d'`;
 
+- in `ereal.v`:
+  + lemmas `ge0_mule_fsumr`, `ge0_mule_fsuml`
+
+- in `esum.v`:
+  + lemma `esum_set1`
+
+- in `ereal.v`:
+  + lemmas `ge0_mule_fsumr`, `ge0_mule_fsuml`
+
+- in `esum.v`:
+  + lemma `esum_set1`
+
 ### Deprecated
 
 - file `charge.v` (use `measure.v` and/or `lebesgue_integral.v`)
