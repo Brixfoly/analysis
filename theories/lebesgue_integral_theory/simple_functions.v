@@ -91,6 +91,7 @@ HB.instance Definition topological_isMeasurable (T : topologicalType) :
     (@measurable0T T) (@measurableCT T) (@measurable_bigcupT T). *)
 
 Module HBSimple.
+Import MeasurableR.
 
 HB.structure Definition SimpleFun d d'
     (aT : sigmaRingType d) (bT : sigmaRingType d') :=
@@ -398,6 +399,7 @@ Section nnsfun_functions.
 Context d (T : measurableType d) (R : realType).
 
 Import HBNNSimple.
+Import MeasurableR.
 
 Lemma cst_nnfun_subproof (x : {nonneg R}) : forall t : T, 0 <= cst x%:num t.
 Proof. by move=> /=. Qed.
@@ -442,6 +444,7 @@ Context d (T : measurableType d) (R : realType).
 Variables f g : {nnsfun T >-> R}.
 
 Import HBNNSimple.
+Import MeasurableR.
 
 HB.instance Definition _ := MeasurableFun.on (f \+ g).
 Definition add_nnsfun : {nnsfun T >-> R} := f \+ g.
@@ -529,6 +532,7 @@ by rewrite fsbig_finite// -measure_fin_bigcup// -bigsetU_fset_set.
 Qed.
 
 Import HBNNSimple.
+Import MeasurableR.
 
 Lemma additive_nnsfunr (g f : {nnsfun T >-> R}) x :
   \sum_(i \in range g) m (f @^-1` [set x] `&` (g @^-1` [set i])) =
