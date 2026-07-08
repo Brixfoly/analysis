@@ -6,7 +6,6 @@ From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
 From mathcomp Require Import cardinality reals fsbigop ereal topology tvs.
 From mathcomp Require Import normedtype sequences real_interval esum measure.
 From mathcomp Require Import lebesgue_measure numfun realfun measurable_realfun.
-From mathcomp Require Import borel_hierarchy.
 
 (**md**************************************************************************)
 (* # Simple functions                                                         *)
@@ -29,9 +28,8 @@ From mathcomp Require Import borel_hierarchy.
 (*                                                                            *)
 (* Detailed contents:                                                         *)
 (* ````                                                                       *)
-(*         {sfun aT >-> bT} == type of simple functions                       *)
-(*                           They can form a ring or a module depending on    *)
-(*                            the structure of bT                             *)
+(*         {sfun T >-> R} == type of simple functions                         *)
+(*                           They form a (potentially zero) ring.             *)
 (*       {nnsfun T >-> R} == type of non-negative simple functions            *)
 (*          indic_sfun mD := mindic _ mD                                      *)
 (*             cst_sfun r == constant simple function                         *)
@@ -72,34 +70,26 @@ Import numFieldNormedType.Exports.
 Local Open Scope classical_set_scope.
 Local Open Scope ring_scope.
 
-Module HBSimple.
+Import MeasurableR.
 
 HB.structure Definition SimpleFun d d'
-    (aT : sigmaRingType d) (bT : sigmaRingType d') :=
-  {f of @isMeasurableFun d d' aT bT f & @FiniteImage aT bT f}.
+  (aT : sigmaRingType d) (rT : sigmaRingType d') :=
+  {f of @isMeasurableFun d d' aT rT f & @FiniteImage aT rT f}.
 
-End HBSimple.
-
-Notation "{ 'sfun' aT >-> T }" :=
-  (@HBSimple.SimpleFun.type _ _ aT T) : form_scope.
+Notation "{ 'sfun' aT >-> T }" := (@SimpleFun.type _ _ aT T) : form_scope.
 Notation "[ 'sfun' 'of' f ]" := [the {sfun _ >-> _} of f] : form_scope.
 
-Module HBNNSimple.
-Import HBSimple.
 
 HB.structure Definition NonNegSimpleFun
     d (aT : sigmaRingType d) (rT : realType) :=
-  {f of @SimpleFun d _ _ _ f & @NonNegFun aT rT f}.
+  {f of @SimpleFun d _ aT rT f & @NonNegFun aT rT f}.
 
-End HBNNSimple.
-
-Notation "{ 'nnsfun' aT >-> T }" :=
-  (@HBNNSimple.NonNegSimpleFun.type _ aT%type T) : form_scope.
+Notation "{ 'nnsfun' aT >-> T }" := (@NonNegSimpleFun.type _ aT%type T) : form_scope.
 Notation "[ 'nnsfun' 'of' f ]" := [the {nnsfun _ >-> _} of f] : form_scope.
 
 Section sfun_pred.
-Context {d d'} {aT : sigmaRingType d} {bT : sigmaRingType d'}.
-Definition sfun : {pred _ -> _} := [predI @mfun _ _ aT bT & fimfun].
+Context {d d'} {aT : sigmaRingType d} {rT : sigmaRingType d'}.
+Definition sfun : {pred _ -> _} := [predI @mfun _ _ aT rT & fimfun].
 Definition sfun_key : pred_key sfun. Proof. exact. Qed.
 Canonical sfun_keyed := KeyedPred sfun_key.
 Lemma sub_sfun_mfun : {subset sfun <= mfun}. Proof. by move=> x /andP[]. Qed.
@@ -107,18 +97,17 @@ Lemma sub_sfun_fimfun : {subset sfun <= fimfun}. Proof. by move=> x /andP[]. Qed
 End sfun_pred.
 
 Section sfun.
-Context {d d'} {aT : measurableType d} {bT : sigmaRingType d'}.
-Notation T := {sfun aT >-> bT}.
-Notation sfun := (@sfun _ _ aT bT).
+Context {d d'} {aT : measurableType d} {rT : measurableType d'}.
+Notation T := {sfun aT >-> rT}.
+Notation sfun := (@sfun _ _ aT rT).
 Section Sub.
-Context (f : aT -> bT) (fP : f \in sfun).
+Context (f : aT -> rT) (fP : f \in sfun).
 Definition sfun_Sub1_subproof :=
-  @isMeasurableFun.Build d d' aT bT f (set_mem (sub_sfun_mfun fP)).
+  @isMeasurableFun.Build d d' aT rT f (set_mem (sub_sfun_mfun fP)).
 #[local] HB.instance Definition _ := sfun_Sub1_subproof.
 Definition sfun_Sub2_subproof :=
-  @FiniteImage.Build aT bT f (set_mem (sub_sfun_fimfun fP)).
+  @FiniteImage.Build aT rT f (set_mem (sub_sfun_fimfun fP)).
 
-Import HBSimple.
 
 #[local] HB.instance Definition _ := sfun_Sub2_subproof.
 Definition sfun_Sub := [sfun of f].
@@ -133,22 +122,21 @@ have -> : Pf2 = set_mem (sub_sfun_fimfun Pf) by [].
 exact: Ksub.
 Qed.
 
-Import HBSimple.
 
 Lemma sfun_valP f (Pf : f \in sfun) : sfun_Sub Pf = f :> (_ -> _).
 Proof. by []. Qed.
 
 HB.instance Definition _ := isSub.Build _ _ T sfun_rect sfun_valP.
 
-Lemma sfuneqP (f g : {sfun aT >-> bT}) : f = g <-> f =1 g.
+Lemma sfuneqP (f g : {sfun aT >-> rT}) : f = g <-> f =1 g.
 Proof. by split=> [->//|fg]; apply/val_inj/funext. Qed.
 
-HB.instance Definition _ := [Choice of {sfun aT >-> bT} by <:].
+HB.instance Definition _ := [Choice of {sfun aT >-> rT} by <:].
 
 (* NB: already in cardinality.v *)
-HB.instance Definition _ x : @FImFun aT bT (cst x) := FImFun.on (cst x).
+HB.instance Definition _ x : @FImFun aT rT (cst x) := FImFun.on (cst x).
 
-Definition cst_sfun x : {sfun aT >-> bT} := cst x.
+Definition cst_sfun x : {sfun aT >-> rT} := cst x.
 
 Lemma cst_sfunE x : @cst_sfun x =1 cst x. Proof. by []. Qed.
 
@@ -182,29 +170,13 @@ HB.instance Definition _ := [SubChoice_isSubComPzRing of {sfun aT >-> rT} by <:]
 
 Implicit Types (f g : {sfun aT >-> rT}).
 
-Import HBSimple.
-
-Lemma sfun0 : (0 : {sfun aT >-> rT}) =1 cst 0. Proof. by []. Qed.
 Lemma sfun1 : (1 : {sfun aT >-> rT}) =1 cst 1. Proof. by []. Qed.
-Lemma sfunN f : - f =1 \- f. Proof. by []. Qed.
-Lemma sfunD f g : f + g =1 f \+ g. Proof. by []. Qed.
-Lemma sfunB f g : f - g =1 f \- g. Proof. by []. Qed.
 Lemma sfunM f g : f * g =1 f \* g. Proof. by []. Qed.
-Lemma sfun_sum I r (P : {pred I}) (f : I -> {sfun aT >-> rT}) (x : aT) :
-  (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
-Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
-Lemma sfun_prod I r (P : {pred I}) (f : I -> {sfun aT >-> rT}) (x : aT) :
-  (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
-Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
 Lemma sfunX f n : f ^+ n =1 (fun x => f x ^+ n).
 Proof. by move=> x; elim: n => [|n IHn]//; rewrite !exprS sfunM/= IHn. Qed.
 
-HB.instance Definition _ f g := MeasurableFun.copy (f \+ g) (f + g).
-HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
-HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
 HB.instance Definition _ f g := MeasurableFun.copy (f \* g) (f * g).
 
-Import HBSimple.
 
 (* TODO: mv to `measurable_realfun.v`? *)
 HB.instance Definition _ (D : set aT) (mD : measurable D) :
@@ -212,19 +184,15 @@ HB.instance Definition _ (D : set aT) (mD : measurable D) :
 Definition indic_sfun (D : set aT) (mD : measurable D) : {sfun aT >-> rT} :=
   mindic rT mD.
 
-HB.instance Definition _ k f := MeasurableFun.copy (k \o* f) (f * cst_sfun k).
-Definition scale_sfun k f : {sfun aT >-> rT} := k \o* f.
-
 End ring.
+
 Arguments indic_sfun {d aT rT} _.
 
 Section sfun_lmodType.
-Context d (aT : measurableType d) (R : realType).
-Import HBSimple.
+Context d (aT : measurableType d) (R : realType) (N : normedModType R).
 
-Lemma sfun_op (U V W : normedModType R)
-    (f : {sfun aT >-> U}) (g : {sfun aT >-> V})
-    (h : U * V -> W) :
+Lemma mem_sfun_comp_pair (U V W : normedModType R) (f : {sfun aT >-> U})
+    (g : {sfun aT >-> V}) (h : U * V -> W) :
   (fun x => h (f x, g x)) \in @sfun _ _ aT W.
 Proof.
 rewrite inE; apply/andP; split; rewrite inE/=.
@@ -233,40 +201,105 @@ rewrite inE; apply/andP; split; rewrite inE/=.
       \bigcup_(a in range f) (\bigcup_(b in range g)
         ((f @^-1` [set a] `&` g @^-1` [set b]) `&` [set _ | Y (h (a, b))]))).
     apply/seteqP; split=> [x/= Yfg|x [a _] [b _] [[/= <- <-]]//].
-    by exists (f x); [exists x|exists (g x); [exists x|split]].
+    by exists (f x); [exists x|exists (g x); [exists x|]].
   apply: fin_bigcup_measurable; first exact: fimfunP.
   move=> a _; apply: fin_bigcup_measurable; first exact: fimfunP.
-  move=> b _; apply: measurableI; last first.
-    have [Yhab|Yhab] := pselect (Y (h (a, b))).
-      by rewrite (_ : [set _ | _] = setT);
-          [apply/seteqP; split|exact: measurableT].
-    rewrite (_ : [set _ | _] = set0); last exact: measurable0.
-    by apply/seteqP; split.
-  apply: measurableI.
-    exact: (measurable_funPTI f (measurable1 a)).
-  exact: (measurable_funPTI g (measurable1 b)).
-apply: (sub_finite_set (B := h @` (range f `*` range g))).
+  move=> b _; apply: measurableI.
+    exact: measurableI.
+  have [Yhab|Yhab] := pselect (Y (h (a, b))).
+    by rewrite (_ : [set _ | _] = setT);
+        [apply/seteqP; split|exact: measurableT].
+  rewrite (_ : [set _ | _] = set0); last exact: measurable0.
+  by apply/seteqP; split.
+apply: (@sub_finite_set _ _ (h @` (range f `*` range g))).
   by move=> _ [x _ <-]/=; exists (f x, g x) => //; split; exists x.
-by apply: finite_image; apply: finite_setX; exact: fimfunP.
+exact/finite_image/finite_setX/fimfunP.
 Qed.
 
-Lemma sfun_submod_closed (V : normedModType R) :
-  submod_closed (@sfun _ _ aT V).
+Lemma sfun_submod_closed :
+  submod_closed (@sfun _ _ aT N).
 Proof.
-split=> [|k f g sf sg]; first exact: (valP (cst_sfun (0 : V))).
-exact: (sfun_op (sfun_Sub sf) (sfun_Sub sg) (fun t => k *: t.1 + t.2)).
+split=> [|k f g sf sg]; first exact: (valP (cst_sfun (0 : N))).
+exact: (mem_sfun_comp_pair (sfun_Sub sf) (sfun_Sub sg) (fun t => k *: t.1 + t.2)).
 Qed.
 
-HB.instance Definition _ (V : normedModType R) :=
-  GRing.isSubmodClosed.Build _ _ (@sfun _ _ aT V)
-    (sfun_submod_closed V).
-HB.instance Definition _ (V : normedModType R) :=
-  [SubChoice_isSubLmodule of {sfun aT >-> V} by <:].
+HB.instance Definition _ :=
+  GRing.isSubmodClosed.Build _ _ (@sfun _ _ aT N)
+    sfun_submod_closed.
+HB.instance Definition _ :=
+  [SubChoice_isSubLmodule of {sfun aT >-> N} by <:].
 
-Lemma sfun0r : (0 : {sfun aT >-> R}) =1 cst 0.
-Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
+Implicit Types (f g : {sfun aT >-> N} : lmodType _).
+
+Lemma sfun0 : (0 : {sfun aT >-> N} : lmodType _) =1 cst 0. Proof. by []. Qed.
+Lemma sfunN f : - f =1 \- f. Proof. by []. Qed.
+Lemma sfunD f g : f + g =1 f \+ g. Proof. by []. Qed.
+Lemma sfunB f g : f - g =1 f \- g. Proof. by []. Qed.
+Lemma sfunZ k f : k *: f =1 k \*: f. Proof. by []. Qed.
+Lemma sfun_sum I r (P : {pred I}) (f : I -> {sfun aT >-> N} : lmodType _) (x : aT) :
+  (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
+Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
+Lemma sfun_prod I r (P : {pred I}) (f : I -> {sfun aT >-> N} : lmodType _) (x : aT) :
+  (\sum_(i <- r | P i) f i) x = \sum_(i <- r | P i) f i x.
+Proof. by elim/big_rec2: _ => //= i y ? Pi <-. Qed.
+
+HB.instance Definition _ f g := MeasurableFun.copy (f \+ g) (f + g).
+HB.instance Definition _ f g := MeasurableFun.copy (\- f) (- f).
+HB.instance Definition _ f g := MeasurableFun.copy (f \- g) (f - g).
+HB.instance Definition _ k f := MeasurableFun.copy (k \*: f) (k *: f).
 
 End sfun_lmodType.
+
+(* This could be moved elsewhere *)
+Section indic_lmod.
+Context {T : Type} {K : pzRingType} {L : lmodType K}.
+
+Definition indic_lmod (A : set T) (z : L) := ( *:%R^~ z) \o \1_A.
+
+Lemma indic_lmodE A z : indic_lmod A z = (fun x => if x \in A then z else 0).
+Proof.
+by apply/funext=> x; rewrite/indic_lmod/= indicE;
+case: ifPn=> _ /=; rewrite ?scale0r ?scale1r.
+Qed.
+
+Lemma preimage_indic_mod A (B : set L) (z : L) :
+  (indic_lmod A z) @^-1` B = if z  \in B then if 0  \in B then [set: T] else A
+  else if 0  \in B then ~` A else set0.
+Proof.
+rewrite comp_preimage preimage_indic. by do 4 (case: ifPn => [|]);
+  rewrite ?in_setE ?notin_setE //= ?scale0r ?scale1r.
+Qed.
+
+Lemma indic_lmod_fimfun_subproof (A : set T) (z : L) :
+@FiniteImage T L (indic_lmod A z). Proof. by []. Qed.
+
+HB.instance Definition _ A z := @indic_lmod_fimfun_subproof A z.
+
+End indic_lmod.
+
+Section mindic_lmod.
+Context d {aT : measurableType d} {rT : realType} {nT : normedModType rT}.
+
+Definition mindic_lmod (A : set aT) (mA : measurable A) :=
+  @indic_lmod aT rT nT A.
+
+Lemma measurable_indic_lmod {D} (A : set aT) (mA : d.-measurable A) (z:nT) :
+measurable_fun D (mindic_lmod mA z).
+Proof.
+move=> mD Y mY; rewrite preimage_indic_mod //.
+do 2 (case: ifP => _); apply: measurableI=>//; exact: measurableC.
+Qed.
+
+HB.instance Definition _ A mA z := @isMeasurableFun.Build _ _ aT nT
+  (mindic_lmod mA z) (@measurable_indic_lmod [set: aT] A mA z).
+
+HB.instance Definition _ (D : set aT) (mD : measurable D) (z : nT) :
+   @FImFun aT nT (mindic_lmod mD z) := FImFun.on (mindic_lmod mD z).
+
+Definition mindic_lmod_sfun (D : set aT) (mD : measurable D) (z : nT) :
+  {sfun aT >-> nT} := mindic_lmod mD z.
+
+End mindic_lmod.
 
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
   t < 0 -> f @^-1` [set t] = set0.
@@ -282,22 +315,10 @@ move=> x0; apply/seteqP.
 by split=> [z/= <-|z/= ->]; rewrite [x * _]mulrC (mulfK, divfK).
 Qed.
 
-Lemma preimage_add T (R : numDomainType) (f g : T -> R) z :
-  (f \+ g) @^-1` [set z] = \bigcup_(a in f @` setT)
-    ((f @^-1` [set a]) `&` (g @^-1` [set z - a])).
-Proof.
-apply/seteqP; split=> [x /= fgz|x [_ /= [y _ <-]] [fxfy gzf]]; last first.
-  by rewrite gzf -fxfy addrC subrK.
-exists (z - g x); first by exists x; rewrite // -fgz addrK.
-by split; rewrite 1?subKr // -fgz addrK.
-Qed.
-
 Section simple_bounded.
-Context d (T : sigmaRingType d) (R : realType).
+Context d (T : sigmaRingType d) (R : realType) (N : normedModType R).
 
-Import HBSimple.
-
-Lemma simple_bounded (f : {sfun T >-> R}) : bounded_fun f.
+Lemma simple_bounded (f : {sfun T >-> N}) : bounded_fun f.
 Proof.
 have /finite_seqP[r fr] := fimfunP f.
 exists (fine (\big[maxe/-oo%E]_(i <- r) `|i|%:E)).
@@ -315,7 +336,6 @@ End simple_bounded.
 Section nnsfun_functions.
 Context d (T : measurableType d) (R : realType).
 
-Import HBNNSimple.
 
 Lemma cst_nnfun_subproof (x : {nonneg R}) : forall t : T, 0 <= cst x%:num t.
 Proof. by move=> /=. Qed.
@@ -359,7 +379,6 @@ Section nnsfun_bin.
 Context d (T : measurableType d) (R : realType).
 Variables f g : {nnsfun T >-> R}.
 
-Import HBNNSimple.
 
 HB.instance Definition _ := MeasurableFun.on (f \+ g).
 Definition add_nnsfun : {nnsfun T >-> R} := f \+ g.
@@ -386,7 +405,6 @@ Definition proj_nnsfun d (T : measurableType d) (R : realType)
   mul_nnsfun f (indic_nnsfun R mA).
 
 Section mrestrict.
-Import HBNNSimple.
 
 Lemma mrestrict d (T : measurableType d) (R : realType) (f : {nnsfun T >-> R})
   A (mA : measurable A) : f \_ A = proj_nnsfun f mA.
@@ -403,7 +421,6 @@ Variable f : {nnsfun T >-> R}^nat.
 
 Definition sum_nnsfun n := \big[add_nnsfun/nnsfun0]_(i < n) f i.
 
-Import HBNNSimple.
 
 Lemma sum_nnsfunE n t : sum_nnsfun n t = \sum_(i < n) (f i t).
 Proof. by rewrite /sum_nnsfun; elim/big_ind2 : _ => [|x g y h <- <-|]. Qed.
@@ -420,7 +437,6 @@ Local Open Scope ereal_scope.
 Context d (T : measurableType d) (R : realType).
 Variable f : {nnsfun T >-> R}.
 
-Import HBNNSimple.
 
 Lemma nnsfun_cover : \big[setU/set0]_(i \in range f) (f @^-1` [set i]) = setT.
 Proof. by rewrite fsbig_setU//= -subTset => x _; exists (f x). Qed.
@@ -446,7 +462,6 @@ move=> Afin Fm Ft.
 by rewrite fsbig_finite// -measure_fin_bigcup// -bigsetU_fset_set.
 Qed.
 
-Import HBNNSimple.
 
 Lemma additive_nnsfunr (g f : {nnsfun T >-> R}) x :
   \sum_(i \in range g) m (f @^-1` [set x] `&` (g @^-1` [set i])) =
@@ -491,7 +506,6 @@ by move=> xA; rewrite (@mulef_ge0 _ _ (mu \o _))//= => /xA ->; rewrite measure0.
 Qed.
 Global Arguments mulemu_ge0 {d T R mu x} A.
 
-Import HBNNSimple.
 
 Lemma nnsfun_mulemu_ge0 d (T : sigmaRingType d) (R : realType)
     (mu : {measure set T -> \bar R}) (f : {nnsfun T >-> R}) x :

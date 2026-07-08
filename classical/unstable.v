@@ -1,7 +1,7 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
 From mathcomp Require Import all_ssreflect_compat finmap ssralg ssrnum ssrint.
-From mathcomp Require Import vector archimedean interval.
+From mathcomp Require Import vector archimedean interval matrix.
 
 (**md**************************************************************************)
 (* # MathComp extra                                                           *)
@@ -16,6 +16,12 @@ From mathcomp Require Import vector archimedean interval.
 (* ```                                                                        *)
 (*                 swap x := (x.2, x.1)                                       *)
 (*           map_pair f x := (f x.1, f x.2)                                   *)
+(*    nondecreasing_fun f == the function f is non-decreasing                 *)
+(*    nonincreasing_fun f == the function f is non-increasing                 *)
+(*       increasing_fun f == the function f is (strictly) increasing          *)
+(*       decreasing_fun f == the function f is (strictly) decreasing          *)
+(*    nondecreasing_seq u == the sequence u is non-decreasing                 *)
+(*    nonincreasing_seq u == the sequence u is non-increasing                 *)
 (*          monotonic A f := {in A &, {homo f : x y / x <= y}} \/             *)
 (*                           {in A &, {homo f : x y /~ x <= y}}               *)
 (*   strict_monotonic A f := {in A &, {homo f : x y / x < y}} \/              *)
@@ -46,6 +52,11 @@ Unset Printing Implicit Defensive.
 
 Import Order.TTheory GRing.Theory Num.Theory.
 Local Open Scope ring_scope.
+
+Lemma sub_row_mx {V : zmodType} m n1 n2 (A1 : 'M[V]_(m, n1)) (A2 : 'M[V]_(m, n2))
+    (B1 : 'M[V]_(m, n1)) (B2 : 'M[V]_(m, n2)) :
+  row_mx A1 A2 - row_mx B1 B2 = row_mx (A1 - B1) (A2 - B2).
+Proof. by rewrite opp_row_mx add_row_mx. Qed.
 
 Section IntervalNumDomain.
 Variable R : numDomainType.
@@ -196,6 +207,19 @@ exists n.+1; rewrite nm2/= -addn1.
 rewrite -[X in (_ <= X)%N]prednK ?expn_gt0// -[X in (_ <= X)%N]addn1 leq_add2r.
 by rewrite (leq_trans h2)// -subn1 leq_subRL ?expn_gt0// add1n ltn_exp2l.
 Qed.
+
+Notation "'nondecreasing_fun' f" := ({homo f : n m / (n <= m)%O >-> (n <= m)%O})
+  (at level 10).
+Notation "'nonincreasing_fun' f" := ({homo f : n m / (n <= m)%O >-> (n >= m)%O})
+  (at level 10).
+Notation "'increasing_fun' f" := ({mono f : n m / (n <= m)%O >-> (n <= m)%O})
+  (at level 10).
+Notation "'decreasing_fun' f" := ({mono f : n m / (n <= m)%O >-> (n >= m)%O})
+  (at level 10).
+Notation "'nondecreasing_seq' f" := ({homo f : n m / (n <= m)%nat >-> (n <= m)%O})
+  (at level 10).
+Notation "'nonincreasing_seq' f" := ({homo f : n m / (n <= m)%nat >-> (n >= m)%O})
+  (at level 10).
 
 Definition monotonic d (T : porderType d) d' (T' : porderType d')
     (pT : predType T) (A : pT) (f : T -> T') :=

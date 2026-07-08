@@ -647,7 +647,8 @@ HB.instance Definition _ (f : {oinvfun A >-> B}) := Fun.on (oapp f).
 HB.instance Definition _ (f : {injfun A >-> B}) := Fun.on (oapp f).
 HB.instance Definition _ (f : {surjfun A >-> B}) := Fun.on (oapp f).
 HB.instance Definition _ (f : {bij A >-> B}) := Fun.on (oapp f).
-HB.instance Definition _ (f : {splitbij A >-> B}) := Fun.on (oapp f).
+(*HB.instance Definition _ (f : {splitbij A >-> B}) := Fun.on (oapp f).*)
+(* generates: Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default] *)
 
 End OApply.
 
@@ -2740,9 +2741,15 @@ Lemma mulrfctE (T : Type) (K : pzRingType) (f g : T -> K) :
   f * g = (fun x => f x * g x).
 Proof. by []. Qed.
 
-Lemma scalrfctE (T : Type) (K : pzRingType) (L : lmodType K)
+Lemma scalerfctE (T : Type) (K : pzRingType) (L : lmodType K)
     k (f : T -> L) :
   k *: f = (fun x : T => k *: f x).
+Proof. by []. Qed.
+
+Lemma zerofctE (T : Type) (K : nmodType) x : (0 : T -> K) x = 0.
+Proof. by []. Qed.
+
+Lemma onefctE (T : Type) (K : pzRingType) x : (1 : T -> K) x = 1.
 Proof. by []. Qed.
 
 Lemma cstE (T T': Type) (x : T) : cst x = fun _: T' => x.
@@ -2757,9 +2764,22 @@ Lemma compE (T1 T2 T3 : Type) (f : T1 -> T2) (g : T2 -> T3) :
 Proof. by []. Qed.
 
 Definition fctE :=
-  (cstE, compE, opprfctE, addrfctE, mulrfctE, scalrfctE, exprfctE).
+  (cstE, compE, opprfctE, addrfctE, mulrfctE, scalerfctE, exprfctE,
+   zerofctE, onefctE).
+
+Lemma preimageD1 {T : Type} {Z : zmodType} (f g : T -> Z) (z : Z) :
+  (f \+ g) @^-1`[set z] =
+  \bigcup_(a in range f) (f @^-1` [set a] `&` g @^-1` [set z - a]).
+Proof.
+rewrite eqEsubset; split => [x <-|x [a _ /= [<- ->]]].
+  by exists (f x) => /=; [exact/imageT|rewrite addrC addKr].
+by rewrite subrKC.
+Qed.
 
 End function_space_lemmas.
+
+#[deprecated(since="mathcomp-analysis 1.17.0", use=scalerfctE)]
+Notation scalrfctE := scalerfctE.
 
 Lemma inv_funK T (R : unitRingType) (f : T -> R) : (f\^-1\^-1)%R = f.
 Proof. by apply/funeqP => x; rewrite /inv_fun/= GRing.invrK. Qed.

@@ -52,11 +52,18 @@ Qed.
 
 End bernoulli_pmf.
 
-Lemma measurable_bernoulli_pmf {R : realType} D n :
+Section bernoulli_pmf.
+Context {R : realType}.
+
+Import MeasurableR.
+
+Lemma measurable_bernoulli_pmf D n :
   measurable_fun D (@bernoulli_pmf R ^~ n).
 Proof.
 by apply/measurable_funTS/measurable_fun_if => //=; exact: measurable_funB.
 Qed.
+
+End bernoulli_pmf.
 
 Definition bernoulli_prob {R : realFieldType} (p : R) : set bool -> \bar R :=
   fun A => if 0 <= p <= 1 then
@@ -136,7 +143,7 @@ apply/funext => U; rewrite /bernoulli_prob; case: ifPn => [p01|]; last first.
 rewrite measure_addE/= /mscale/=.
 have := @subsetT _ U; rewrite setT_bool => UT.
 have [->|->|->|->] /= := subset_set2 UT.
-- rewrite -esum_fset//=; first by move=> b; rewrite lee_fin bernoulli_pmf_ge0.
+- rewrite -esum_fset//=.
   by rewrite esum_set0 2!measure0 2!mule0 adde0.
 - rewrite -esum_fset//=; first by move=> b; rewrite lee_fin bernoulli_pmf_ge0.
   rewrite esum_set1/= ?lee_fin// 2!diracE mem_set//= memNset//= mule0 adde0.
@@ -181,14 +188,16 @@ Qed.
 End integral_bernoulli.
 
 Section measurable_bernoulli.
+Context {R : realType}.
 Local Open Scope ring_scope.
-Variable R : realType.
 Implicit Type p : R.
+
+Import MeasurableR.
 
 Lemma measurable_bernoulli_prob :
   measurable_fun setT (bernoulli_prob : R -> pprobability bool R).
 Proof.
-apply: (measurability (@pset _ _ _ : set (set (pprobability _ R)))) => //.
+apply: (measurability (@pset _ _ _ : set_system (pprobability _ R))) => //.
 move=> _ -[_ [r r01] [Ys mYs <-]] <-; apply: emeasurable_fun_infty_o => //=.
 apply: measurable_fun_ifT => //=.
   by apply: measurable_and => //; exact: measurable_fun_ler.

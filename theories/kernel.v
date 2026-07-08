@@ -655,10 +655,10 @@ Qed.
 End measurable_fun_xsection_finite_kernel.
 
 Section measurable_fun_integral_finite_sfinite.
-Context d d' (X : measurableType d) (Y : measurableType d') (R : realType).
-Variable k : X * Y -> \bar R.
+Context {d d'} {X : measurableType d} {Y : measurableType d'} {R : realType}
+  (k : X * Y -> \bar R).
 
-Import HBNNSimple.
+Import MeasurableR.
 
 Lemma measurable_fun_xsection_integral
     (l : X -> {measure set Y -> \bar R})
@@ -755,13 +755,15 @@ Arguments measurable_fun_integral_finite_kernel {_ _ _ _ _} k l.
 Arguments measurable_fun_integral_sfinite_kernel {_ _ _ _ _} k l.
 
 Section kdirac.
-Context d d' (X : measurableType d) (Y : measurableType d') (R : realType).
-Variable f : X -> Y.
+Context {d d'} {X : measurableType d} {Y : measurableType d'} {R : realType}
+ (f : X -> Y).
 
 Definition kdirac (mf : measurable_fun [set: X] f) (x : X) :
   {measure set Y -> \bar R} := dirac (f x).
 
 Hypothesis mf : measurable_fun [set: X] f.
+
+Import MeasurableR.
 
 Let measurable_fun_kdirac U : measurable U ->
   measurable_fun [set: X] (kdirac mf ^~ U).
@@ -879,11 +881,13 @@ HB.instance Definition _ t :=
 End fkadd.
 
 Section knormalize.
-Context d d' (X : measurableType d) (Y : measurableType d') (R : realType).
-Variable f : R.-ker X ~> Y.
+Context {d d'} {X : measurableType d} {Y : measurableType d'} {R : realType}
+ (f : R.-ker X ~> Y).
 
 Definition knormalize (P : probability Y R) : X -> {measure set Y -> \bar R} :=
   fun x => mnormalize (f x) P.
+
+Import MeasurableR.
 
 Let measurable_knormalize (P : probability Y R) U :
   measurable U -> measurable_fun [set: X] (knormalize P ^~ U).
@@ -926,11 +930,13 @@ HB.instance Definition _ (P : probability Y R):=
 
 End knormalize.
 
+Import MeasurableR.
+
 Lemma measurable_fun_mnormalize d d' (X : measurableType d)
     (Y : pmeasurableType d') (R : realType) (k : R.-ker X ~> Y) :
   measurable_fun [set: X] (fun x => mnormalize (k x) point : pprobability Y R).
 Proof.
-apply: (measurability (@pset _ _ _ : set (set (pprobability Y R)))) => //.
+apply: (measurability (@pset _ _ _ : set_system (pprobability Y R))) => //.
 move=> _ -[_ [r r01] [Ys mYs <-]] <-.
 rewrite /mnormalize /mset /preimage/=.
 apply: emeasurable_fun_infty_o => //.
@@ -1106,7 +1112,6 @@ HB.export KCOMP_SFINITE_KERNEL.
 
 Section measurable_fun_preimage_integral.
 Context d d' (X : measurableType d) (Y : measurableType d') (R : realType).
-Import HBNNSimple.
 Variables (k : Y -> \bar R)
   (k_ : ({nnsfun Y >-> R}) ^nat)
   (ndk_ : nondecreasing_seq (k_ : (Y -> R)^nat))
@@ -1153,7 +1158,6 @@ End measurable_fun_preimage_integral.
 
 Section measurable_fun_integral_kernel.
 
-Import HBNNSimple.
 
 Lemma measurable_fun_integral_kernel
     d d' (X : measurableType d) (Y : measurableType d') (R : realType)
@@ -1184,7 +1188,6 @@ rewrite integral_indic//= /kcomp.
 by apply: eq_integral => y _; rewrite integral_indic.
 Qed.
 
-Import HBNNSimple.
 
 Let integral_kcomp_nnsfun x (f : {nnsfun Z >-> R}) :
   \int[kcomp l k x]_z (f z)%:E = \int[l x]_y (\int[k (x, y)]_z (f z)%:E).
@@ -1366,7 +1369,6 @@ split => //.
   + by split => //; rewrite kfcompkindic.
 Qed.
 
-Import HBNNSimple.
 
 (* [Lemma 14.20, Klenke 2014]  *)
 Lemma measurable_kfcomp : measurable_fun [set: T1 * T2] f ->
