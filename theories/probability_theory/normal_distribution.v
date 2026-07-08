@@ -57,6 +57,11 @@ Implicit Types m s x : R.
 
 Definition normal_fun m s x := expR (- (x - m) ^+ 2 / (s ^+ 2 *+ 2)).
 
+<<<<<<< HEAD
+=======
+Import MeasurableR.
+
+>>>>>>> df9c28577 (merge with measurableTypeNormed)
 Lemma measurable_normal_fun m s : measurable_fun [set: R] (normal_fun m s).
 Proof.
 apply: measurableT_comp => //=; apply: measurable_funM => //=.
@@ -107,6 +112,11 @@ Proof. by rewrite mulr_ge0 ?normal_peak_ge0 ?expR_ge0. Qed.
 Lemma normal_pdf0_gt0 m s x : s != 0 -> 0 < normal_pdf0 m s x.
 Proof. by move=> s0; rewrite mulr_gt0 ?expR_gt0// normal_peak_gt0. Qed.
 
+<<<<<<< HEAD
+=======
+Import MeasurableR.
+
+>>>>>>> df9c28577 (merge with measurableTypeNormed)
 Lemma measurable_normal_pdf0 m s : measurable_fun setT (normal_pdf0 m s).
 Proof. by apply: measurable_funM => //=; exact: measurable_normal_fun. Qed.
 
@@ -169,6 +179,11 @@ Lemma normal_pdf_sym m s x : s != 0 ->
   normal_pdf m s x = normal_pdf x s m.
 Proof. by move=> s0; rewrite !normal_pdfE// normal_fun_sym. Qed.
 
+<<<<<<< HEAD
+=======
+Import MeasurableR.
+
+>>>>>>> df9c28577 (merge with measurableTypeNormed)
 Lemma measurable_normal_pdf m s : measurable_fun setT (normal_pdf m s).
 Proof.
 rewrite /normal_pdf; have [_|s0] := eqVneq s 0; first exact: measurable_indic.
@@ -192,8 +207,15 @@ Qed.
 
 End normal_density.
 
-Definition normal_prob {R : realType} (m : R) (s : R) : set _ -> \bar R :=
+Section normal_prob_def.
+
+Import MeasurableR.
+Context {R : realType}.
+
+Definition normal_prob (m : R) (s : R) : set _ -> \bar R :=
   fun V => (\int[lebesgue_measure]_(x in V) (normal_pdf m s x)%:E)%E.
+
+End normal_prob_def.
 
 Section normal_probability.
 Variables (R : realType) (m sigma : R).
@@ -216,6 +238,8 @@ Proof.
 apply/funext => x; rewrite /F derive1E deriveM// deriveD// derive_cst scaler0.
 by rewrite add0r derive_id derive_cst addr0 scaler1.
 Qed.
+
+Import MeasurableR.
 
 Let integral_gaussFF' : sigma != 0 ->
   (\int[mu]_x ((((gauss_fun \o F) *
@@ -371,6 +395,10 @@ Hypothesis s0 : s != 0.
 Implicit Types a e x : R.
 
 Import NormalPdf0.
+<<<<<<< HEAD
+=======
+Import MeasurableR.
+>>>>>>> df9c28577 (merge with measurableTypeNormed)
 
 Let g' a e x : R := if x \in (ball a e : set R^o) then
   normal_peak s else normal_pdf0 e s `|x - a|.
@@ -580,6 +608,10 @@ Section normal_prob_lemmas.
 Context {R : realType}.
 Local Notation mu := lebesgue_measure.
 Local Open Scope ereal_scope.
+<<<<<<< HEAD
+=======
+Import MeasurableR.
+>>>>>>> df9c28577 (merge with measurableTypeNormed)
 
 Lemma integral_normal_prob (m s : R) f U : measurable U ->
   (normal_prob m s).-integrable U f ->
@@ -643,6 +675,10 @@ Context {R : realType}.
 Local Notation mu := lebesgue_measure.
 
 Import NormalPdf0.
+<<<<<<< HEAD
+=======
+Import MeasurableR.
+>>>>>>> df9c28577 (merge with measurableTypeNormed)
 
 Lemma integrable_normal_probD1 (m1 m2 s1 s2 : R) V : measurable V ->
   (normal_prob m1 s1).-integrable [set: R] (fun x => normal_prob (m2 + x) s2 V).
