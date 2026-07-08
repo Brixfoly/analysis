@@ -333,7 +333,26 @@ Detailed contents:
 <span class="vernacular">Section</span><span class="id"> sfun_pred</span>.<br/>
 <span class="vernacular">Context</span><span class="id"> {</span><span id="sfun_pred.d" class="id"><a name="sfun_pred.d" class="">d</a></span><span class="id">}</span><span class="id"> {</span><span id="sfun_pred.aT" class="id"><a name="sfun_pred.aT" class="">aT</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.measure_theory.measurable_structure.html#SigmaRing.Exports.sigmaRingType">sigmaRingType</a></span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#d:11">d</a></span><span class="id">}</span><span class="id"> {</span><span id="sfun_pred.rT" class="id"><a name="sfun_pred.rT" class="">rT</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.reals.reals.html#Real.Exports.realType">realType</a></span><span class="id">}</span>.<br/>
 <span class="vernacular">Definition</span><span class="id"> </span><span id="sfun" class="id"><div name="sfun" class=" tooltip">sfun<span class='tooltip-area'></span></div></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#64f8873130736b599801d4930af00e74">{pred</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#64f8873130736b599801d4930af00e74"> </a></span>_<span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id">_</span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#64f8873130736b599801d4930af00e74">}</a></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#974a48c83c527c4d69902f6dad4644e3">[predI</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#974a48c83c527c4d69902f6dad4644e3"> </a></span><span class="id">@</span><span class="id"><a href="mathcomp.analysis.measure_theory.measurable_function.html#mfun">mfun</a></span><span class="id"> _</span><span class="id"> _</span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#sfun_pred.aT">aT</a></span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#sfun_pred.rT">rT</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#974a48c83c527c4d69902f6dad4644e3"> &amp;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#974a48c83c527c4d69902f6dad4644e3"> </a></span><span class="id"><a href="mathcomp.classical.cardinality.html#fimfun">fimfun</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#974a48c83c527c4d69902f6dad4644e3">]</a></span>.<br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="sfun_key" class="id"><div name="sfun_key" class=" tooltip">sfun_key<span class='tooltip-area'></span></div></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#pred_key">pred_key</a></span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#sfun">sfun</a></span><br/>
+<span class="vernacular">Definition</span><span class="id"> </span><span id="sfun_key" class="id"><div name="sfun_key" class=" tooltip">sfun_key<span class='tooltip-area'><p>integrable_unlock_subterm :
+unlockable
+  (fun (d : measure_display) (T : measurableType d) 
+     (R : realType) (mu : set T -> \bar R) (D : set T)
+     (f : T ->
+          constructive_ereal_extended__canonical__measurable_structure_SigmaRing
+            R) =>
+   `[< measurable_fun (T:=T)
+         (U:=constructive_ereal_extended__canonical__measurable_structure_SigmaRing
+               R)
+         D f /\
+       (\int[mu]_(x in D) `|f x| < +oo)%E >])
+
+integrable_unlock_subterm is not universe polymorphic
+integrable_unlock_subterm is transparent
+Expands to: Constant
+            mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable.integrable_unlock_subterm
+Declared in
+library mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable, line 45, characters 0-172
+</p></span></div></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.ssr.ssrbool.html#pred_key">pred_key</a></span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#sfun">sfun</a></span><br/>
 <details>
 <summary class="toggleproof">Proof.</summary>
 <div class="proofscript">
@@ -423,7 +442,7 @@ library mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable, line 45,
 <span class="vernacular">Import</span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#HBSimple">HBSimple</a></span>.<br/>
 <br/>
 <span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class="">#[local]</a></span></span></span><span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class=""> HB</a></span></span></span>.<span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class="">instance</a></span></span></span><span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class=""> Definition</a></span></span></span><span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class=""> _</a></span></span></span><span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class=""> :=</a></span></span></span><span id="simple_functions_f__canonical__HBSimple_SimpleFun" class="id"><span id="simple_functions_f__canonical__cardinality_FImFun" class="id"><span id="HB_unnamed_factory_3" class="id"><a name="simple_functions_f__canonical__HBSimple_SimpleFun" class=""> sfun_Sub2_subproof</a></span></span></span>.<br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="sfun_Sub" class="id"><div name="sfun_Sub" class=" tooltip">sfun_Sub<span class='tooltip-area'><p>integrable_unlock_subterm :
+<span class="vernacular">Definition</span><span class="id"> </span><span id="sfun_Sub" class="id"><div name="sfun_Sub" class=" tooltip">sfun_Sub<span class='tooltip-area'><p>integrable_unlockable :
 unlockable
   (fun (d : measure_display) (T : measurableType d) 
      (R : realType) (mu : set T -> \bar R) (D : set T)
@@ -436,12 +455,12 @@ unlockable
          D f /\
        (\int[mu]_(x in D) `|f x| < +oo)%E >])
 
-integrable_unlock_subterm is not universe polymorphic
-integrable_unlock_subterm is transparent
+integrable_unlockable is not universe polymorphic
+integrable_unlockable is transparent
 Expands to: Constant
-            mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable.integrable_unlock_subterm
+            mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable.integrable_unlockable
 Declared in
-library mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable, line 45, characters 0-172
+library mathcomp.analysis.lebesgue_integral_theory.lebesgue_integrable, line 48, characters 10-31
 </p></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#95f15b800d1a38adf40aa1237c2b1b7a">[sfun</a></span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#95f15b800d1a38adf40aa1237c2b1b7a"> of</a></span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#95f15b800d1a38adf40aa1237c2b1b7a"> </a></span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#sfun.Sub.f">f</a></span><span class="id"><a href="mathcomp.analysis.lebesgue_integral_theory.simple_functions.html#95f15b800d1a38adf40aa1237c2b1b7a">]</a></span>.<br/>
 <span class="vernacular">End</span><span class="id"> Sub</span>.<br/>
 <br/>
