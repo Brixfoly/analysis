@@ -327,7 +327,15 @@ view manually to an assumption (as in, move_viewP my_view some_assumption).
 <span class="id"> split;</span><span class="id"> destruct</span><span class="id"> 1;</span><span class="id"> split;</span><span class="id"> assumption</span>. Defined.</div></details>
 <span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.equivT_LR" class="id"><div name="Internals.equivT_LR" class=" tooltip">equivT_LR<span class='tooltip-area'></span></div></span><span class="id"> {</span><span id="S:32" class="id"><a name="S:32" class="">S</a></span><span class="id"> </span><span id="T:33" class="id"><a name="T:33" class="">T</a></span><span class="id">}</span> (<span id="eq:34" class="id"><a name="eq:34" class="">eq</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.equivT">equivT</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:32">S</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:33">T</a></span>)<span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:32">S</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#T:33">T</a></span><span class="id"> :=</span><br/>
 &nbsp;&nbsp;<span class="id">let:</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.EquivT">EquivT</a></span><span class="id"> S_T</span><span class="id"> _</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#eq:34">eq</a></span><span class="gallina-kwd"> in</span><span class="id"> S_T</span>.<br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.equivT_RL" class="id"><div name="Internals.equivT_RL" class=" tooltip">equivT_RL<span class='tooltip-area'></span></div></span><span class="id"> {</span><span id="S:36" class="id"><a name="S:36" class="">S</a></span><span class="id"> </span><span id="T:37" class="id"><a name="T:37" class="">T</a></span><span class="id">}</span> (<span id="eq:38" class="id"><a name="eq:38" class="">eq</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.equivT">equivT</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:36">S</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:37">T</a></span>)<span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:37">T</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#S:36">S</a></span><span class="id"> :=</span><br/>
+<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.equivT_RL" class="id"><div name="Internals.equivT_RL" class=" tooltip">equivT_RL<span class='tooltip-area'><p>pi_irrational.a : forall {R : realType}, nat -> R
+
+pi_irrational.a is not universe polymorphic
+Arguments pi_irrational.a {R} na%_nat_scope
+pi_irrational.a is transparent
+Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.a
+Declared in
+library mathcomp.analysis.pi_irrational, line 49, characters 11-12
+</p></span></div></span><span class="id"> {</span><span id="S:36" class="id"><a name="S:36" class="">S</a></span><span class="id"> </span><span id="T:37" class="id"><a name="T:37" class="">T</a></span><span class="id">}</span> (<span id="eq:38" class="id"><a name="eq:38" class="">eq</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.equivT">equivT</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:36">S</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:37">T</a></span>)<span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:37">T</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#S:36">S</a></span><span class="id"> :=</span><br/>
 &nbsp;&nbsp;<span class="id">let:</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.EquivT">EquivT</a></span><span class="id"> _</span><span class="id"> T_S</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#eq:38">eq</a></span><span class="gallina-kwd"> in</span><span class="id"> T_S</span>.<br/>
 <br/>
 <span class="vernacular">Hint</span><span class="id"> View</span><span class="gallina-kwd"> for</span><span class="id"> move/</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.equivT_LR">equivT_LR</a></span><span class="id">|2</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.equivT_RL">equivT_RL</a></span><span class="id">|2</span>.<br/>
@@ -365,18 +373,7 @@ This implementation has two important limitations:
 &nbsp;&nbsp;<span class="id">ForallSort</span><span class="id"> {</span><span id="Internals.forall_sort" class="id"><a name="Internals.forall_sort" class="">forall_sort</a></span><span class="id"> :&gt;</span><span class="id"> Type;</span><span class="id"> _</span><span class="id"> :</span> (<span class="id"><a href="mathcomp.classical.contra.html#A:40">A</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#forall_sort:42">forall_sort</a></span>)<span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#forall_sort:42">forall_sort</a></span><span class="id">}</span>.<br/>
 <br/>
 <span class="vernacular">Notation</span><span class="id"> </span><span id="Internals.mkForallSort" class="id"><a name="Internals.mkForallSort" class="">mkForallSort</a></span><span class="id"> A</span><span class="id"> S</span><span class="id"> :=</span> (<span class="id">@</span><span class="id"><a href="mathcomp.classical.contra.html#Internals.ForallSort">ForallSort</a></span><span class="id"> A</span><span class="id"> S</span> (<span class="gallina-kwd">fun</span><span class="id"> </span><span id="T:43" class="id"><a name="T:43" class="">T</a></span><span class="id"> =&gt;</span><span class="gallina-kwd"> forall</span><span class="id"> </span><span id="x:44" class="id"><a name="x:44" class="">x</a></span><span class="id">,</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:43">T</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#x:44">x</a></span>)).<br/>
-<span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.TypeForall" class="id"><div name="Internals.TypeForall" class=" tooltip">TypeForall<span class='tooltip-area'><p>pi_irrational.a : forall {R : realType}, nat -> R
-
-pi_irrational.a is not universe polymorphic
-Arguments pi_irrational.a {R} na%_nat_scope
-pi_irrational.a is transparent
-Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.a
-Declared in
-library mathcomp.analysis.pi_irrational, line 49, characters 11-12
-</p></span></div></span> (<span id="S:45" class="id"><a name="S:45" class="">S</a></span><span class="id"> :=</span><span class="gallina-kwd"> Type</span>) (<span id="A:46" class="id"><a name="A:46" class="">A</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:45">S</a></span>)<span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.mkForallSort">mkForallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:46">A</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:45">S</a></span>.<br/>
-<span class="vernacular">Canonical</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.TypeForall">TypeForall</a></span>.<br/>
-<br/>
-<span class="vernacular">Canonical</span><span class="id"> </span><span id="Internals.PropForall" class="id"><div name="Internals.PropForall" class=" tooltip">PropForall<span class='tooltip-area'><p>pi_irrational.b : forall {R : realType}, nat -> R
+<span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.TypeForall" class="id"><div name="Internals.TypeForall" class=" tooltip">TypeForall<span class='tooltip-area'><p>pi_irrational.b : forall {R : realType}, nat -> R
 
 pi_irrational.b is not universe polymorphic
 Arguments pi_irrational.b {R} nb%_nat_scope
@@ -384,9 +381,10 @@ pi_irrational.b is transparent
 Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.b
 Declared in
 library mathcomp.analysis.pi_irrational, line 51, characters 11-12
-</p></span></div></span><span class="id"> </span><span id="A:47" class="id"><a name="A:47" class="">A</a></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.mkForallSort">mkForallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:47">A</a></span><span class="gallina-kwd"> Prop</span>.<br/>
+</p></span></div></span> (<span id="S:45" class="id"><a name="S:45" class="">S</a></span><span class="id"> :=</span><span class="gallina-kwd"> Type</span>) (<span id="A:46" class="id"><a name="A:46" class="">A</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:45">S</a></span>)<span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.mkForallSort">mkForallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:46">A</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:45">S</a></span>.<br/>
+<span class="vernacular">Canonical</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.TypeForall">TypeForall</a></span>.<br/>
 <br/>
-<span class="vernacular">Canonical</span><span class="id"> </span><span id="Internals.SetForall" class="id"><div name="Internals.SetForall" class=" tooltip">SetForall<span class='tooltip-area'><p>pi_irrational.f : forall {R : realType}, nat -> nat -> nat -> {poly R}
+<span class="vernacular">Canonical</span><span class="id"> </span><span id="Internals.PropForall" class="id"><div name="Internals.PropForall" class=" tooltip">PropForall<span class='tooltip-area'><p>pi_irrational.f : forall {R : realType}, nat -> nat -> nat -> {poly R}
 
 pi_irrational.f is not universe polymorphic
 Arguments pi_irrational.f {R} (na nb n)%_nat_scope
@@ -394,9 +392,9 @@ pi_irrational.f is transparent
 Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.f
 Declared in
 library mathcomp.analysis.pi_irrational, line 53, characters 11-12
-</p></span></div></span> (<span id="A:48" class="id"><a name="A:48" class="">A</a></span><span class="id"> :</span><span class="gallina-kwd"> Set</span>)<span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.mkForallSort">mkForallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:48">A</a></span><span class="gallina-kwd"> Set</span>.<br/>
+</p></span></div></span><span class="id"> </span><span id="A:47" class="id"><a name="A:47" class="">A</a></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.mkForallSort">mkForallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:47">A</a></span><span class="gallina-kwd"> Prop</span>.<br/>
 <br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.Forall" class="id"><div name="Internals.Forall" class=" tooltip">Forall<span class='tooltip-area'><p>pi_irrational.F : forall {R : realType}, nat -> nat -> nat -> {poly R}
+<span class="vernacular">Canonical</span><span class="id"> </span><span id="Internals.SetForall" class="id"><div name="Internals.SetForall" class=" tooltip">SetForall<span class='tooltip-area'><p>pi_irrational.F : forall {R : realType}, nat -> nat -> nat -> {poly R}
 
 pi_irrational.F is not universe polymorphic
 Arguments pi_irrational.F {R} (na nb n)%_nat_scope
@@ -404,6 +402,16 @@ pi_irrational.F is transparent
 Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.F
 Declared in
 library mathcomp.analysis.pi_irrational, line 55, characters 11-12
+</p></span></div></span> (<span id="A:48" class="id"><a name="A:48" class="">A</a></span><span class="id"> :</span><span class="gallina-kwd"> Set</span>)<span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.mkForallSort">mkForallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:48">A</a></span><span class="gallina-kwd"> Set</span>.<br/>
+<br/>
+<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.Forall" class="id"><div name="Internals.Forall" class=" tooltip">Forall<span class='tooltip-area'><p>pi_irrational.pirat : forall {R : realType}, nat -> nat -> R
+
+pi_irrational.pirat is not universe polymorphic
+Arguments pi_irrational.pirat {R} (na nb)%_nat_scope
+pi_irrational.pirat is transparent
+Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.pirat
+Declared in
+library mathcomp.analysis.pi_irrational, line 110, characters 11-16
 </p></span></div></span><span class="id"> {</span><span id="A:49" class="id"><a name="A:49" class="">A</a></span><span class="id">}</span><span class="id"> {</span><span id="S:50" class="id"><a name="S:50" class="">S</a></span><span class="id"> :</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.forallSort">forallSort</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#A:49">A</a></span><span class="id">}</span><span class="id"> :=</span><br/>
 &nbsp;&nbsp;<span class="id">let:</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.ForallSort">ForallSort</a></span><span class="id"> _</span><span class="id"> F</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#S:50">S</a></span><span class="gallina-kwd"> return</span> (<span class="id"><a href="mathcomp.classical.contra.html#A:49">A</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#S:51">S</a></span>)<span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> -&gt;</a></span><span class="id"><a href="https://rocq-prover.org/corelib/Corelib.Init.Logic.html#::type_scope:x_'-&gt;'_x"> </a></span><span class="id"><a href="mathcomp.classical.contra.html#S:51">S</a></span><span class="gallina-kwd"> in</span><span class="id"> F</span>.<br/>
 <br/>
@@ -425,16 +433,7 @@ polymorphism cannot instantiate Type with Prop.
 </div>
 <br/>
 <span class="vernacular">Structure</span><span class="id"> </span><span id="Internals.wrappedProp" class="id"><a name="Internals.wrappedProp" class="">wrappedProp</a></span><span class="id"> :=</span><span class="id"> WrapProp</span><span class="id"> {</span><span id="Internals.unwrap_Prop" class="id"><a name="Internals.unwrap_Prop" class="">unwrap_Prop</a></span><span class="id"> :&gt;</span><span class="id"> Prop}</span>.<br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.wrap4Prop" class="id"><div name="Internals.wrap4Prop" class=" tooltip">wrap4Prop<span class='tooltip-area'><p>pi_irrational.pirat : forall {R : realType}, nat -> nat -> R
-
-pi_irrational.pirat is not universe polymorphic
-Arguments pi_irrational.pirat {R} (na nb)%_nat_scope
-pi_irrational.pirat is transparent
-Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.pirat
-Declared in
-library mathcomp.analysis.pi_irrational, line 110, characters 11-16
-</p></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.WrapProp">WrapProp</a></span>.<br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.wrap3Prop" class="id"><div name="Internals.wrap3Prop" class=" tooltip">wrap3Prop<span class='tooltip-area'><p>pi_irrational.intfsin : forall {R : realType}, nat -> nat -> nat -> R
+<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.wrap4Prop" class="id"><div name="Internals.wrap4Prop" class=" tooltip">wrap4Prop<span class='tooltip-area'><p>pi_irrational.intfsin : forall {R : realType}, nat -> nat -> nat -> R
 
 pi_irrational.intfsin is not universe polymorphic
 Arguments pi_irrational.intfsin {R} (na nb n)%_nat_scope
@@ -442,9 +441,8 @@ pi_irrational.intfsin is transparent
 Expands to: Constant mathcomp.analysis.pi_irrational.pi_irrational.intfsin
 Declared in
 library mathcomp.analysis.pi_irrational, line 213, characters 11-18
-</p></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap4Prop">wrap4Prop</a></span>.<br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.wrap2Prop" class="id"><div name="Internals.wrap2Prop" class=" tooltip">wrap2Prop<span class='tooltip-area'></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap3Prop">wrap3Prop</a></span>.<br/>
-<span class="vernacular">Canonical</span><span class="id"> </span><span id="Internals.wrap1Prop" class="id"><div name="Internals.wrap1Prop" class=" tooltip">wrap1Prop<span class='tooltip-area'><p>pi_irrational.Unnamed_thm :
+</p></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.WrapProp">WrapProp</a></span>.<br/>
+<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.wrap3Prop" class="id"><div name="Internals.wrap3Prop" class=" tooltip">wrap3Prop<span class='tooltip-area'><p>pi_irrational.Unnamed_thm :
 forall {R : realType} [p : {poly R}] [c : R],
 filter.cvg_to
   (filter.nbhs (filter.fmap [eta horner p] (filter.nbhs (c^'+)%classic)))
@@ -467,33 +465,35 @@ Expands to: Constant
             mathcomp.analysis.pi_irrational.pi_irrational.Unnamed_thm
 Declared in
 library mathcomp.analysis.pi_irrational, line 223, characters 0-59
-</p></span></div></span><span class="id"> </span><span id="P:57" class="id"><a name="P:57" class="">P</a></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap2Prop">wrap2Prop</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#P:57">P</a></span>.<br/>
+</p></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap4Prop">wrap4Prop</a></span>.<br/>
+<span class="vernacular">Definition</span><span class="id"> </span><span id="Internals.wrap2Prop" class="id"><div name="Internals.wrap2Prop" class=" tooltip">wrap2Prop<span class='tooltip-area'><p>pi_irrational.Unnamed_thm :
+forall {R : realType} [p : {poly R}] [c : R],
+filter.cvg_to
+  (filter.nbhs (filter.fmap [eta horner p] (filter.nbhs (c^'+)%classic)))
+  (filter.nbhs p.[c]%R)
+
+pi_irrational.Unnamed_thm is not universe polymorphic
+Expanded type for implicit arguments
+pi_irrational.Unnamed_thm :
+forall {R : realType} [p : {poly R}] [c : R] [t : set R],
+filter.nbhs p.[c]%R t ->
+exists2 i : R,
+  [set e | (0 < e)%R]%classic i &
+  (ball_ [eta normr] c i
+   `<=` (fun t0 : R =>
+         (fun u : R => is_true (c < u)%R) t0 -> ([eta horner p] @^-1` t) t0))%classic
+
+Arguments pi_irrational.Unnamed_thm {R} [p c]%_ring_scope [t] _
+pi_irrational.Unnamed_thm is opaque
+Expands to: Constant
+            mathcomp.analysis.pi_irrational.pi_irrational.Unnamed_thm
+Declared in
+library mathcomp.analysis.pi_irrational, line 223, characters 0-59
+</p></span></div></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap3Prop">wrap3Prop</a></span>.<br/>
+<span class="vernacular">Canonical</span><span class="id"> </span><span id="Internals.wrap1Prop" class="id"><div name="Internals.wrap1Prop" class=" tooltip">wrap1Prop<span class='tooltip-area'></span></div></span><span class="id"> </span><span id="P:57" class="id"><a name="P:57" class="">P</a></span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap2Prop">wrap2Prop</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#P:57">P</a></span>.<br/>
 <br/>
 <span class="id">Polymorphic</span><span class="vernacular"> Structure</span><span class="id"> </span><span id="Internals.wrappedType" class="id"><a name="Internals.wrappedType" class="">wrappedType</a></span><span class="id">@{i}</span><span class="id"> :=</span><span class="id"> WrapType</span><span class="id"> {</span><span id="Internals.unwrap_Type" class="id"><a name="Internals.unwrap_Type" class="">unwrap_Type</a></span><span class="id"> :&gt;</span><span class="id"> Type@{i}}</span>.<br/>
-<span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.wrap4Type" class="id"><div name="Internals.wrap4Type" class=" tooltip">wrap4Type<span class='tooltip-area'><p>pi_irrational.Unnamed_thm :
-forall {R : realType} [p : {poly R}] [c : R],
-filter.cvg_to
-  (filter.nbhs (filter.fmap [eta horner p] (filter.nbhs (c^'+)%classic)))
-  (filter.nbhs p.[c]%R)
-
-pi_irrational.Unnamed_thm is not universe polymorphic
-Expanded type for implicit arguments
-pi_irrational.Unnamed_thm :
-forall {R : realType} [p : {poly R}] [c : R] [t : set R],
-filter.nbhs p.[c]%R t ->
-exists2 i : R,
-  [set e | (0 < e)%R]%classic i &
-  (ball_ [eta normr] c i
-   `<=` (fun t0 : R =>
-         (fun u : R => is_true (c < u)%R) t0 -> ([eta horner p] @^-1` t) t0))%classic
-
-Arguments pi_irrational.Unnamed_thm {R} [p c]%_ring_scope [t] _
-pi_irrational.Unnamed_thm is opaque
-Expands to: Constant
-            mathcomp.analysis.pi_irrational.pi_irrational.Unnamed_thm
-Declared in
-library mathcomp.analysis.pi_irrational, line 223, characters 0-59
-</p></span></div></span><span class="id">@{i}</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.WrapType">WrapType</a></span><span class="id">@{i}</span>.<br/>
+<span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.wrap4Type" class="id"><div name="Internals.wrap4Type" class=" tooltip">wrap4Type<span class='tooltip-area'></span></div></span><span class="id">@{i}</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.WrapType">WrapType</a></span><span class="id">@{i}</span>.<br/>
 <span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.wrap3Type" class="id"><div name="Internals.wrap3Type" class=" tooltip">wrap3Type<span class='tooltip-area'></span></div></span><span class="id">@{i}</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap4Type">wrap4Type</a></span><span class="id">@{i}</span>.<br/>
 <span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.wrap2Type" class="id"><div name="Internals.wrap2Type" class=" tooltip">wrap2Type<span class='tooltip-area'></span></div></span><span class="id">@{i}</span><span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap3Type">wrap3Type</a></span><span class="id">@{i}</span>.<br/>
 <span class="id">Polymorphic</span><span class="vernacular"> Definition</span><span class="id"> </span><span id="Internals.wrap1Type" class="id"><div name="Internals.wrap1Type" class=" tooltip">wrap1Type<span class='tooltip-area'></span></div></span><span class="id">@{i}</span> (<span id="T:60" class="id"><a name="T:60" class="">T</a></span><span class="id"> :</span><span class="id"> Type@{i}</span>)<span class="id"> :=</span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#Internals.wrap2Type">wrap2Type</a></span><span class="id"> </span><span class="id"><a href="mathcomp.classical.contra.html#T:60">T</a></span>.<br/>
