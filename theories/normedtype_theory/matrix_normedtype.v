@@ -1,8 +1,10 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat finmap ssralg ssrnum matrix.
+From mathcomp Require Import boot order finmap ssralg ssrnum matrix.
 From mathcomp Require Import interval interval_inference.
-From mathcomp Require Import boolp classical_sets reals topology.
+#[warning="-warn-library-file-internal-analysis"]
+From mathcomp Require Import unstable.
+From mathcomp Require Import boolp contra classical_sets reals topology.
 From mathcomp Require Import prodnormedzmodule tvs pseudometric_normed_Zmodule.
 From mathcomp Require Import normed_module.
 
@@ -217,7 +219,31 @@ Qed.
 HB.instance Definition _ :=
   NormedZmod_PseudoMetric_eq.Build K 'M[K]_(m, n) mx_norm_ball.
 
+HB.instance Definition _ := isPseudoMetricNormedZmodule.Build _ 'M[K]_(m, n).
+
 End matrix_pseudoMetricNormedZmod.
+
+Section within_continuous_coord.
+Context {T : topologicalType} {R : realFieldType} {n : nat}.
+Import numFieldNormedType.Exports.
+
+Lemma within_continuous_coord A (f : T -> 'rV[R]_n) :
+  {within A, continuous f} <->
+  forall i, {within A, continuous (fun x => f x ord0 i)}.
+Proof.
+split=> [Af i|Af].
+- apply: (within_continuous_comp _ f (fun M => M ord0 i)) => //= x _.
+  exact: coord_continuous.
+- apply/subspace_continuousP => /= x Ax; apply/cvgrPdist_le => /= e e0.
+  rewrite near_withinE; near=> t => At.
+  rewrite /Num.norm/= mx_normrE (bigmax_le _ (ltW e0))//= => -[i j] _ /=.
+  rewrite {i}(ord1 i) !mxE.
+  move: j At; near: t; apply: filter_forall => /= j.
+  have /subspace_continuousP/(_ x Ax)/cvgr_dist_le/(_ _ e0) := Af j.
+  by rewrite near_withinE.
+Unshelve. all: by end_near. Qed.
+
+End within_continuous_coord.
 
 Lemma bounded_closed_compact (R : realType) n (A : set 'rV[R]_n) :
   bounded_set A -> closed A -> compact A.
@@ -276,4 +302,38 @@ split => [cf x|cf i j v].
   rewrite [in leRHS]/Num.norm/= mx_normrE/=.
   apply: le_trans (le_bigmax _ _ (i, j)).
   by rewrite !mxE.
+Unshelve. all: by end_near. Qed.
+
+Section norm_row_mx.
+Context {K : realDomainType} {m n1 n2 : nat}.
+Implicit Types (M : 'M[K]_(m, n1)) (N : 'M[K]_(m, n2)).
+
+Lemma norm_row_mx M N : `|row_mx M N| = Num.max `|M| `|N|.
+Proof.
+rewrite /Num.norm/= !mx_normrE.
+rewrite -!(pair_bigA_idem _ (fun i j => `|_ i j|))/= ?maxxx//.
+rewrite -big_split_idem/= ?maxxx//; apply: eq_bigr => i _.
+rewrite big_split_ord_idem/= ?maxxx//.
+   by move=> a; rewrite maxC.
+by congr maxr; apply: eq_bigr => j _; [rewrite row_mxEl|rewrite row_mxEr].
+Qed.
+
+Lemma norm_row_mx0r M : `|row_mx M (0 : 'M_(m, n2))| = `|M|.
+Proof. by rewrite norm_row_mx normr0; exact/max_idPl. Qed.
+
+Lemma norm_row_mx0l N : `|row_mx (0 : 'M_(m, n1)) N| = `|N|.
+Proof. by rewrite norm_row_mx normr0; exact/max_idPr. Qed.
+
+End norm_row_mx.
+
+Lemma cvg_row_mx {T : realFieldType} {F : set_system T} {n1 n2 : nat}
+    (G : 'rV[T]_n1) (H : 'rV[T]_n2) : Filter F ->
+  forall (f : T -> 'rV[T]_n1) (g : T -> 'rV[T]_n2),
+  f x @[x --> F] --> G -> g x @[x --> F] --> H ->
+  row_mx (f x) (g x) @[x --> F] --> row_mx G H.
+Proof.
+move=> FF M N cvgM cvgN; apply/cvgrPdist_le => /= e e0; near=> t.
+rewrite sub_row_mx norm_row_mx ge_max; apply/andP; split.
+- by near: t; move/cvgrPdist_le : cvgM => /(_ _ e0).
+- by near: t; move/cvgrPdist_le : cvgN => /(_ _ e0).
 Unshelve. all: by end_near. Qed.

@@ -1,5 +1,5 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum finmap.
+From mathcomp Require Import boot order ssralg ssrnum finmap.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
 From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
@@ -41,7 +41,7 @@ Section set_of_fset_in_a_set.
 Variable (T : choiceType).
 Implicit Type S : set T.
 
-Definition fsets S : set (set T) := [set F | finite_set F /\ F `<=` S].
+Definition fsets S : set_system T := [set F | finite_set F /\ F `<=` S].
 
 Lemma fsets_set0 S : fsets S set0. Proof. by split. Qed.
 
@@ -877,7 +877,7 @@ suff: ((fun n => C_ n - (A - B)) @ \oo --> (0 : R^o))%R.
   rewrite [X in  X - _]summable_nneseries_lim//; first exact/summable_funepos.
   rewrite [X in _ - X]summable_nneseries_lim//; first exact/summable_funeneg.
   rewrite -EFinB; apply/cvg_lim => //; apply/fine_cvgP; split; last first.
-    by apply: (@cvg_sub0 _ _ _ _ _ _ (cst (A - B)%R) _ CAB) => //; exact: cvg_cst.
+    exact: (@cvg_sub0 _ _ _ _ _ _ (cst (A - B)%R) _ CAB).
   apply: nearW => n; rewrite fin_num_abs; apply: le_lt_trans Pf => /=.
   by rewrite -nneseries_esum// (le_trans (lee_abs_sum _ _ _))// nneseries_lim_ge.
 have : ((fun x => A_ x - B_ x) @ \oo --> A - B)%R.

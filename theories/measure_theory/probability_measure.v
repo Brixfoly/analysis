@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra.
+From mathcomp Require Import boot order algebra.
 From mathcomp Require Import boolp classical_sets functions cardinality reals.
 From mathcomp Require Import interval_inference ereal topology normedtype.
 From mathcomp Require Import measurable_structure measure_function dirac_measure.
@@ -211,7 +211,7 @@ move=> mU r1; apply/seteqP; split => // x/= _.
 by rewrite /mset/= (le_lt_trans (probability_le1 _ _)).
 Qed.
 
-Definition pset : set (set (probability T R)) :=
+Definition pset : set_system (probability T R) :=
   [set mset U r | r in `[0%R,1%R] & U in measurable].
 
 Definition pprobability : measurableType pset.-sigma :=

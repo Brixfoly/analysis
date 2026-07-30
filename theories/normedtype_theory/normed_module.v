@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat finmap ssralg ssrnum ssrint.
+From mathcomp Require Import boot order finmap ssralg ssrnum ssrint.
 From mathcomp Require Import archimedean rat interval zmodp vector.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import mathcomp_extra unstable.
@@ -243,8 +243,9 @@ HB.instance Definition _ := GRing.ComNzAlgebra.copy R R^o.
 HB.instance Definition _ := Vector.copy R R^o.
 #[export, non_forgetful_inheritance]
 HB.instance Definition _ := NormedModule.copy R R^o.
-#[export, non_forgetful_inheritance]
-HB.instance Definition _ := Num.RealField.on R.
+(*#[export, non_forgetful_inheritance]
+HB.instance Definition _ := Num.RealField.on R.*)
+(* generates Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default] *)
 End realFieldType.
 
 Section numClosedFieldType.
@@ -267,8 +268,9 @@ HB.instance Definition _ := GRing.ComNzAlgebra.copy R R^o.
 HB.instance Definition _ := Vector.copy R R^o.
 #[export, non_forgetful_inheritance]
 HB.instance Definition _ := NormedModule.copy R R^o.
-#[export, non_forgetful_inheritance]
-HB.instance Definition _ := Num.NumField.on R.
+(*#[export, non_forgetful_inheritance]
+HB.instance Definition _ := Num.NumField.on R.*)
+(* generates Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default] *)
 End numFieldType.
 
 Module Exports. Export numFieldTopology.Exports. HB.reexport. End Exports.
@@ -391,13 +393,15 @@ HB.instance Definition _ := isPointed.Build M 0.
 
 HB.instance Definition _ := NormedZmod_PseudoMetric_eq.Build R M erefl.
 
+HB.instance Definition _ := isPseudoMetricNormedZmodule.Build R M.
+
 HB.instance Definition _ :=
   PseudoMetricNormedZmod_Lmodule_isNormedModule.Build R M normrZ.
 
 HB.end.
 
 Definition subLmodule_isSubNormedmodule (R : realFieldType)
-    (V : normedModType R) (S : pred V) (U : Type) : Type := U.
+  (V : normedModType R) (S : pred V) (U : Type) : Type := U.
 
 Section SubLmodule_isSubNormedmodule.
 Context (R : realFieldType) (V : normedModType R) (S : pred V)
@@ -522,12 +526,12 @@ Arguments scale_continuous _ _ : clear implicits.
 
 Lemma scaler_continuous k : continuous (fun x : V => k *: x).
 Proof.
-by move=> x; apply: (cvg_comp2 (cvg_cst _) cvg_id (scale_continuous _ _ (_, _))).
+by move=> x; exact: (cvg_comp2 _ cvg_id (scale_continuous _ _ (_, _))).
 Qed.
 
 Lemma scalel_continuous (x : V) : continuous (fun k : K => k *: x).
 Proof.
-by move=> k; apply: (cvg_comp2 cvg_id (cvg_cst _) (scale_continuous _ _ (_, _))).
+by move=> k; apply: (cvg_comp2 cvg_id _ (scale_continuous _ _ (_, _))).
 Qed.
 
 End NormedModule_numFieldType.
@@ -605,13 +609,13 @@ Lemma is_cvgZ s f : cvg (s @ F) ->
 Proof. by have := cvgP _ (cvgZ _ _); apply. Qed.
 
 Lemma cvgZr_tmp s k a : s @ F --> k -> s x *: a @[x --> F] --> k *: a.
-Proof. by move=> ?; apply: cvgZ => //; exact: cvg_cst. Qed.
+Proof. by move=> ?; exact: cvgZ. Qed.
 
 Lemma is_cvgZr_tmp s a : cvg (s @ F) -> cvg ((fun x => s x *: a) @ F).
 Proof. by have := cvgP _ (cvgZr_tmp  _); apply. Qed.
 
 Lemma cvgZl_tmp k f a : f @ F --> a -> k \*: f @ F --> k *: a.
-Proof. by apply: cvgZ => //; exact: cvg_cst. Qed.
+Proof. exact: cvgZ. Qed.
 
 Lemma is_cvgZl_tmp k f : cvg (f @ F) -> cvg (k *: f  @ F).
 Proof. by have := cvgP _ (cvgZl_tmp  _); apply. Qed.
@@ -623,6 +627,12 @@ by under [_ \*: _]funext => x /= do rewrite scalerK//; apply: cvgP.
 Qed.
 
 End cvg_composition_normed.
+
+Lemma within_continuousZ (T : topologicalType) (A : set T) (K : numFieldType)
+    (V : normedModType K) (k : K) (f : T -> V) :
+  {within A, continuous f} -> {within A, continuous k *: f}.
+Proof. by move=> cf x; apply: cvgZl_tmp; exact: cf. Qed.
+
 #[deprecated(since="mathcomp-analysis 1.12.0", note="renamed to `cvgZr_tmp`")]
 Notation cvgZl := cvgZr_tmp (only parsing).
 #[deprecated(since="mathcomp-analysis 1.12.0", note="renamed to `is_cvgZr_tmp`")]
@@ -696,6 +706,24 @@ Notation is_cvgMl := is_cvgMr_tmp (only parsing).
 Notation is_cvgMlE := is_cvgMrE_tmp (only parsing).
 #[deprecated(since="mathcomp-analysis 1.12.0", note="renamed to `is_cvgMlE_tmp`")]
 Notation is_cvgMrE := is_cvgMlE_tmp (only parsing).
+
+Section within_continuous_lemmas.
+Context {T : topologicalType} {K : numFieldType} (A : set T).
+Implicit Types f g : T -> K.
+
+Lemma within_continuousM f g : {within A, continuous f} ->
+  {within A, continuous g} -> {within A, continuous f * g}.
+Proof. by move=> cf cg x; apply: cvgM; [exact: cf | exact: cg]. Qed.
+
+Lemma within_continuousMl (c : K) f :
+  {within A, continuous f} -> {within A, continuous cst c * f}.
+Proof. by move=> cf x; apply: cvgMl_tmp; exact: cf. Qed.
+
+Lemma within_continuousMr (c : K) f :
+  {within A, continuous f} -> {within A, continuous f * cst c}.
+Proof. by move=> cf x; apply: cvgMr_tmp; exact: cf. Qed.
+
+End within_continuous_lemmas.
 
 Section limit_composition_normed.
 Context {K : numFieldType} {V : normedModType K} {T : Type}.
@@ -924,7 +952,7 @@ move=> kfin; split.
   move=> /cvgeD-/(_ (cst k) _ isT (cvg_cst _)).
   by rewrite add0e; under eq_fun => x do rewrite subeK//.
 move: k kfin => [k _ fk| |]//; rewrite -(@subee _ k%:E)//.
-by apply: cvgeB => //; exact: cvg_cst.
+exact: cvgeB.
 Qed.
 
 Lemma abse_continuous : continuous (@abse R).
@@ -964,7 +992,7 @@ move=> [s||]/=.
 - rewrite -EFinM; apply: cvg_EFin => /=.
     by apply/nbhs_EFin; near do rewrite fin_numM//.
   move=> P /= Prs; apply/nbhs_EFin=> //=.
-  by apply: near_fun => //=; apply: continuousM => //=; apply: cvg_cst.
+  by apply: near_fun => //=; apply: continuousM => //=; exact: cst_continuous.
 - rewrite gt0_muley ?lte_fin// => A [u [realu uA]].
   exists (r^-1 * u)%R; split; first by rewrite realM// realV realE ltW.
   by move=> x rux; apply: uA; move: rux; rewrite EFinM lte_pdivrMl.
@@ -1115,8 +1143,8 @@ Lemma continuous_min (f g : T -> R^o) x :
 Proof.
 move=> ctsf ctsg.
 under [_ \min _]eq_fun => ? do rewrite minr_absE.
-apply: cvgM; [|exact: cvg_cst]; apply: cvgD; first exact: cvgD.
-by apply: cvgN; apply: cvg_norm; apply: cvgB.
+apply: cvgM => //; apply: cvgD; first exact: cvgD.
+by apply: cvgN; apply: cvg_norm; exact: cvgB.
 Qed.
 
 Lemma continuous_max (f g : T -> R^o) x :
@@ -1125,8 +1153,8 @@ Lemma continuous_max (f g : T -> R^o) x :
 Proof.
 move=> ctsf ctsg.
 under [_ \max _]eq_fun => ? do rewrite maxr_absE.
-apply: cvgM; [|exact: cvg_cst]; apply: cvgD; first exact: cvgD.
-by apply: cvg_norm; apply: cvgB.
+apply: cvgM => //; apply: cvgD; first exact: cvgD.
+by apply: cvg_norm; exact: cvgB.
 Qed.
 
 End max_cts.
@@ -1581,7 +1609,7 @@ Qed.
 Lemma RhullT : Rhull setT = `]-oo, +oo[%R :> interval R.
 Proof. by rewrite /Rhull -set_itvNyy asboolF// asboolF. Qed.
 
-Lemma RhullK : {in (@is_interval _ : set (set R)), cancel Rhull pred_set}.
+Lemma RhullK : {in (@is_interval _ : set_system R), cancel Rhull pred_set}.
 Proof. by move=> X /asboolP iX; exact/esym/is_intervalP. Qed.
 
 Lemma set_itv_setT (i : interval R) : [set` i] = setT -> i = `]-oo, +oo[.
@@ -1751,40 +1779,6 @@ HB.instance Definition _ :=
   prod_norm_scale.
 
 End prod_NormedModule.
-
-HB.instance Definition _ (R : numFieldType) (U V' : normedModType R) :=
-  isNormedModule.Build _ (U * V')%type.
-
-Section prod_NormedModule_lemmas.
-Context {T : Type} {K : numDomainType} {U V : normedModType K}.
-
-Lemma fcvgr2dist_ltP {F : set_system U} {G : set_system V}
-  {FF : Filter F} {FG : Filter G} (y : U) (z : V) :
-  (F, G) --> (y, z) <->
-  forall eps, 0 < eps ->
-   \forall y' \near F & z' \near G, `| (y, z) - (y', z') | < eps.
-Proof. exact: fcvgrPdist_lt. Qed.
-
-Lemma cvgr2dist_ltP {I J} {F : set_system I} {G : set_system J}
-  {FF : Filter F} {FG : Filter G} (f : I -> U) (g : J -> V) (y : U) (z : V) :
-  (f @ F, g @ G) --> (y, z) <->
-  forall eps, 0 < eps ->
-   \forall i \near F & j \near G, `| (y, z) - (f i, g j) | < eps.
-Proof.
-rewrite fcvgr2dist_ltP; split=> + e e0 => /(_ e e0);
-  by rewrite !near_simpl// => ?; rewrite !near_simpl.
-Qed.
-
-Lemma cvgr2dist_lt {I J} {F : set_system I} {G : set_system J}
-  {FF : Filter F} {FG : Filter G} (f : I -> U) (g : J -> V) (y : U) (z : V) :
-  (f @ F, g @ G) --> (y, z) ->
-  forall eps, 0 < eps ->
-   \forall i \near F & j \near G, `| (y, z) - (f i, g j) | < eps.
-Proof. by rewrite cvgr2dist_ltP. Qed.
-
-End prod_NormedModule_lemmas.
-Arguments cvgr2dist_ltP {_ _ _ _ _ F G FF FG}.
-Arguments cvgr2dist_lt {_ _ _ _ _ F G FF FG}.
 
 (* Local properties in R *)
 
@@ -2677,6 +2671,9 @@ HB.instance Definition _ (V : vectType R) :=
 
 HB.instance Definition _ (V : vectType R) :=
   NormedZmod_PseudoMetric_eq.Build R (max_space V) erefl.
+
+HB.instance Definition _ (V : vectType R) :=
+  isPseudoMetricNormedZmodule.Build _ (max_space V).
 
 HB.instance Definition _ (V : vectType R) :=
   PseudoMetricNormedZmod_Lmodule_isNormedModule.Build R (max_space V)

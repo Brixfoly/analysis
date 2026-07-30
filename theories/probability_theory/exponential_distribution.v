@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import archimedean finmap interval_inference.
 From mathcomp Require Import boolp classical_sets functions cardinality fsbigop.
 From mathcomp Require Import reals ereal topology normedtype sequences derive.
@@ -55,6 +55,8 @@ apply: continuous_comp; last exact: continuous_expR.
 by apply: continuousM => //; apply: (@continuousN _ R^o); exact: cst_continuous.
 Qed.
 
+Import MeasurableR.
+
 Lemma measurable_exponential_pdf : measurable_fun [set: R] exponential_pdf.
 Proof.
 apply/measurable_restrict => //; apply: measurable_funTS.
@@ -89,14 +91,16 @@ Unshelve. end_near. Qed.
 
 End exponential_pdf.
 
-Definition exponential_prob {R : realType} (rate : R) :=
-  fun V => (\int[lebesgue_measure]_(x in V) (exponential_pdf rate x)%:E)%E.
-
 Section exponential_prob.
 Context {R : realType}.
 Local Open Scope ring_scope.
 Notation mu := lebesgue_measure.
 Variable rate : R.
+
+Import MeasurableR.
+
+Definition exponential_prob (rate : R) :=
+  fun V => (\int[lebesgue_measure]_(x in V) (exponential_pdf rate x)%:E)%E.
 
 Lemma derive1_exponential_pdf :
   {in `]0, +oo[%R, (fun x => - expR (- rate * x))^`()%classic

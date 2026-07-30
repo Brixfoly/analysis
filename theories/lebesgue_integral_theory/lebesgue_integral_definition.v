@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import interval_inference finmap.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -128,6 +128,7 @@ Variables m1 m2 : {measure set T -> \bar R}.
 Hypothesis m12 : forall S, measurable S -> m1 S <= m2 S.
 
 Import HBNNSimple.
+Import MeasurableR.
 
 Lemma le_measure_sintegral (f : {nnsfun T >-> R}) :
   sintegral m1 f <= sintegral m2 f.
@@ -164,13 +165,14 @@ Variables (m : {measure set T -> \bar R}).
 Variables (D : set T) (mD : measurable D) (f g : {nnsfun T >-> R}).
 
 Import HBNNSimple.
+Import MeasurableR.
 
 Lemma sintegralD : sintegral m (f \+ g)%R = sintegral m f + sintegral m g.
 Proof.
 rewrite !sintegralE; set F := f @` _; set G := g @` _; set FG := _ @` _.
 pose pf x := f @^-1` [set x]; pose pg y := g @^-1` [set y].
 transitivity (\sum_(z \in FG) z%:E * \sum_(a \in F) m (pf a `&` pg (z - a)%R)).
-  apply: eq_fsbigr => z _; rewrite preimage_add -fsbig_setU// measure_fsbig//.
+  apply: eq_fsbigr => z _; rewrite preimageD1 -fsbig_setU// measure_fsbig//.
     by move=> x Fx; exact: measurableI.
   exact/trivIset_setIr/trivIset_preimage1.
 under eq_fsbigr do rewrite ge0_mule_fsumr//; rewrite exchange_fsbig//=.
@@ -244,6 +246,8 @@ Proof.
 move=> n m nm; rewrite /fleg; apply/subsetPset => x /= cfg.
 by move: cfg => /le_trans; apply; exact: nd_g.
 Qed.
+
+Import MeasurableR.
 
 Let mfleg c n : measurable (fleg c n).
 Proof.
@@ -338,7 +342,7 @@ apply: cvgeZl => //=; rewrite [X in _ --> X](_ : _ =
     mu (\bigcup_n (f @^-1` [set r] `&` fleg c n))).
   by rewrite -setI_bigcupr bigcup_fleg// setIT.
 have ? k i : measurable (f @^-1` [set k] `&` fleg c i) by exact: measurableI.
-apply: nondecreasing_cvg_mu; [by []|exact: bigcupT_measurable|].
+apply: nondecreasing_cvg_measure; [by []|exact: bigcupT_measurable|].
 move=> n m nm; apply/subsetPset; apply: setIS.
 by move/(nd_fleg c) : nm => /subsetPset.
 Unshelve. all: by end_near. Qed.
@@ -508,8 +512,8 @@ End integral_indic.
 
 Section domain_change.
 Local Open Scope ereal_scope.
-Context d (T : measurableType d) (R : realType).
-Variable mu : {measure set T -> \bar R}.
+Context {d} {T : measurableType d} {R : realType}
+  (mu : {measure set T -> \bar R}).
 
 Lemma integral_mkcond D f : \int[mu]_(x in D) f x = \int[mu]_x (f \_ D) x.
 Proof. by rewrite /integral patch_setT. Qed.

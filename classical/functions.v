@@ -1,5 +1,5 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
-From mathcomp Require Import all_ssreflect_compat finmap ssralg ssrnum ssrint rat.
+From mathcomp Require Import boot order finmap ssralg ssrnum ssrint rat.
 From HB Require Import structures.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -647,7 +647,8 @@ HB.instance Definition _ (f : {oinvfun A >-> B}) := Fun.on (oapp f).
 HB.instance Definition _ (f : {injfun A >-> B}) := Fun.on (oapp f).
 HB.instance Definition _ (f : {surjfun A >-> B}) := Fun.on (oapp f).
 HB.instance Definition _ (f : {bij A >-> B}) := Fun.on (oapp f).
-HB.instance Definition _ (f : {splitbij A >-> B}) := Fun.on (oapp f).
+(*HB.instance Definition _ (f : {splitbij A >-> B}) := Fun.on (oapp f).*)
+(* generates: Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default] *)
 
 End OApply.
 
@@ -2765,6 +2766,15 @@ Proof. by []. Qed.
 Definition fctE :=
   (cstE, compE, opprfctE, addrfctE, mulrfctE, scalerfctE, exprfctE,
    zerofctE, onefctE).
+
+Lemma preimageD1 {T : Type} {Z : zmodType} (f g : T -> Z) (z : Z) :
+  (f \+ g) @^-1`[set z] =
+  \bigcup_(a in range f) (f @^-1` [set a] `&` g @^-1` [set z - a]).
+Proof.
+rewrite eqEsubset; split => [x <-|x [a _ /= [<- ->]]].
+  by exists (f x) => /=; [exact/imageT|rewrite addrC addKr].
+by rewrite subrKC.
+Qed.
 
 End function_space_lemmas.
 

@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2020 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat fingroup ssralg poly ssrnum.
+From mathcomp Require Import boot order fingroup ssralg poly ssrnum.
 From mathcomp Require Import all_classical.
 From mathcomp Require Import interval_inference.
 
@@ -21,13 +21,16 @@ Import Order.TTheory GRing.Theory Num.Theory.
 
 Section Linear1.
 Context (R : pzRingType) (U : lmodType R) (V : zmodType) (s : R -> V -> V).
-HB.instance Definition _ := gen_eqMixin {linear U -> V | s}.
-HB.instance Definition _ := gen_choiceMixin {linear U -> V | s}.
+(*HB.instance Definition _ := gen_eqMixin {linear U -> V | s}.*)
+(*Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default]*)
+(*HB.instance Definition _ := gen_choiceMixin {linear U -> V | s}.*)
+(*Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default]*)
 End Linear1.
 Section Linear2.
 Context (R : pzRingType) (U : lmodType R) (V : zmodType) (s : GRing.Scale.law R V).
-HB.instance Definition _ :=
-  isPointed.Build {linear U -> V | GRing.Scale.Law.sort s} \0.
+(*HB.instance Definition _ :=
+  isPointed.Build {linear U -> V | GRing.Scale.Law.sort s} \0.*)
+(*Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default]*)
 End Linear2.
 
 Module ProdNormedZmodule.

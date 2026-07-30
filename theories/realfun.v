@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat finmap ssralg ssrnum ssrint.
+From mathcomp Require Import boot order finmap ssralg ssrnum ssrint.
 From mathcomp Require Import archimedean interval interval_inference.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -500,7 +500,7 @@ have [lpoo|lpoo] := eqVneq l +oo.
   by move=> m /= nm; rewrite (le_trans (ltW Mun))// ndf// ltW.
 have [fnoo|fnoo] := pselect (f = cst -oo).
   rewrite /l (_ : S = [set -oo]); last first.
-    by rewrite ereal_sup1 fnoo; exact: cvg_cst.
+    by rewrite ereal_sup1 fnoo.
   apply/seteqP; split => [_ [n _] <- /[!fnoo]//|_ ->].
   by rewrite /S fnoo; exists 0%R.
 have [/ereal_sup_ninfty lnoo|lnoo] := eqVneq l -oo.
@@ -1872,25 +1872,6 @@ apply/continuous_subspaceT=> r.
 exact/differentiable_continuous/derivable1_diffP.
 Qed.
 
-Global Instance is_derive1_comp (f g : R -> R) (x a b : R) :
-  is_derive (g x) 1 f a -> is_derive x 1 g b ->
-  is_derive x 1 (f \o g) (a * b).
-Proof.
-move=> [fgxv <-{a}] [gv <-{b}]; apply: (@DeriveDef _ _ _ _ _ (f \o g)).
-  apply/derivable1_diffP/differentiable_comp; first exact/derivable1_diffP.
-  by move/derivable1_diffP in fgxv.
-by rewrite -derive1E (derive1_comp gv fgxv) 2!derive1E.
-Qed.
-
-Lemma is_deriveV (f : R -> R) (x t v : R) :
-  f x != 0 -> is_derive x v f t ->
-  is_derive x v (fun y => (f y)^-1) (- (f x) ^- 2 *: t).
-Proof.
-move=> fxNZ Df.
-constructor; first by apply: derivableV => //; case: Df.
-by rewrite deriveV //; case: Df => _ ->.
-Qed.
-
 Lemma is_derive_inverse (f g : R -> R) l x :
   {near x, cancel f g}  ->
   {near x, continuous f}  ->
@@ -1949,9 +1930,6 @@ Proof.  by move=> x0; exact/ex_derive/is_derive1_sqrt. Qed.
 Lemma derive_sqrt {K : realType} (r : K) : 0 < r ->
   'D_1 Num.sqrt r = (2 * Num.sqrt r)^-1.
 Proof. by move=> r0; exact/derive_val/is_derive1_sqrt. Qed.
-
-#[global] Hint Extern 0 (is_derive _ _ (fun _ => (_ _)^-1) _) =>
-  (eapply is_deriveV; first by []) : typeclass_instances.
 
 Section total_variation_realFieldType.
 Context {R : realFieldType}.
@@ -2305,8 +2283,8 @@ have bx : - b <= - x by rewrite lerNl opprK.
 have xa : - x < - a by rewrite ltrNl opprK.
 have ? : - x <= - a by exact: ltW.
 have ? : Filter (nbhs (-x)^'+) by exact: at_right_proper_filter.
-have -> : fine (TV (-x) (-a) (f \o -%R)) =
-    fine (TV (-b) (-a) (f \o -%R)) - fine (TV (-b) (-x) (f \o -%R)).
+have -> : fine (TV (- x) (- a) (f \o -%R)) =
+    fine (TV (- b) (- a) (f \o -%R)) - fine (TV (- b) (- x) (f \o -%R)).
   apply/eqP; rewrite -subr_eq opprK addrC.
   rewrite -fineD.
     by apply/bounded_variationP => //; exact: bounded_variationl bvNf.
@@ -2315,10 +2293,10 @@ have -> : fine (TV (-x) (-a) (f \o -%R)) =
 suff /near_eq_cvg/cvg_trans : {near (- x)^'+,
     (fun t => fine (TV (- b) (- a) (f \o -%R)) - fine (TV (- b) t (f \o -%R))) =1
     (fine \o (TV a)^~ f) \o -%R}.
-  apply; apply: cvgB; first exact: cvg_cst.
+  apply; apply: cvgB => //.
   apply: (total_variation_right_continuous _ _ _ bvNf).
-  - by rewrite lerNl opprK //.
-  - by rewrite ltrNl opprK //.
+  - by rewrite lerNl opprK.
+  - by rewrite ltrNl opprK.
   by apply/cvg_at_leftNP; rewrite /= opprK.
 apply: filter_app (nbhs_right_lt xa).
 apply: (filter_app _ _ (nbhs_right_ge _)).
@@ -2654,7 +2632,7 @@ have hder x : x \in `]a, b[%R -> derivable h x 1.
   by apply: derivableM => //; exact: (@ex_derive _ _ _ _ _ _ _ (gdg xab)).
 have ch : {within `[a, b], continuous h}.
   rewrite continuous_subspace_in => x xab.
-  by apply: cvgB; [exact: cf|apply: cvgM; [exact: cvg_cst|exact: cg]].
+  by apply: cvgB; [exact: cf|apply: cvgM => //; exact: cg].
 have /(Rolle ab hder ch)[x xab derh] : h a = h b.
   rewrite /h; apply/eqP; rewrite -subr_eq0 opprD addrACA -opprD subr_eq0.
   by rewrite -mulrBr -mulrNN -mulNr 2!opprB divfK// differentiable_subr_neq0.
@@ -2745,7 +2723,7 @@ have f0g0 y : a < y -> y < b ->
     (f0 x - f0 y) / (g0 x - g0 y) @[x --> a^'+] --> f0 y / g0 y.
   move=> ay yb; rewrite -[X in _ --> X]opprK -mulrN -invrN -mulNr.
   apply: cvgM.
-    rewrite -[X in _ --> X]add0r; apply: cvgB; last exact: cvg_cst.
+    rewrite -[X in _ --> X]add0r; apply: cvgB => //.
     apply: cvg_trans fa0; apply: near_eq_cvg; near=> z.
     by rewrite /f0 gt_eqF.
   apply: cvgV.
@@ -2758,7 +2736,7 @@ have f0g0 y : a < y -> y < b ->
     rewrite mulf_eq0// orbC gt_eqF ?subr_gt0//= => /eqP; apply/eqP.
     apply: cdg.
     by move: c0 c0ay; apply: subset_itvSoo; rewrite bnd_simp// ltW.
-  rewrite -[X in _ --> X]add0r; apply: cvgB; last exact: cvg_cst.
+  rewrite -[X in _ --> X]add0r; apply: cvgB => //.
   apply: cvg_trans ga0; apply: near_eq_cvg; near=> z.
   by rewrite /g0 gt_eqF.
 have lfg_ub q : l < q ->
@@ -2905,13 +2883,12 @@ Unshelve. all: by end_near. Qed.
 End lhopital_at_left.
 
 Section lhopital.
-Context {R : realType}.
-Variables (f df g dg : R -> R) (a b c : R) (l : R).
-Hypothesis cab : c \in `]a, b[.
-Hypotheses (fdf : forall x, x \in `]a, b[ `\ c -> is_derive x 1 f (df x))
-           (gdg : forall x, x \in `]a, b[ `\ c -> is_derive x 1 g (dg x)).
-Hypotheses (fa0 : f x @[x --> c] --> 0) (ga0 : g x @[x --> c] --> 0)
-           (cdg : forall x, x \in `]a, b[ `\ c -> dg x != 0).
+Context {R : realType} (f df g dg : R -> R) (a b c : R) (l : R).
+Hypotheses (cab : c \in `]a, b[)
+  (fdf : forall x, x \in `]a, b[ `\ c -> is_derive x 1 f (df x))
+  (gdg : forall x, x \in `]a, b[ `\ c -> is_derive x 1 g (dg x))
+  (fa0 : f x @[x --> c] --> 0) (ga0 : g x @[x --> c] --> 0)
+  (cdg : forall x, x \in `]a, b[ `\ c -> dg x != 0).
 
 Lemma lhopital :
   df x / dg x @[x --> c] --> l -> f x / g x @[x --> c^'] --> l.

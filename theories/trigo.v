@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrint ssrnum matrix.
+From mathcomp Require Import boot order ssralg ssrint ssrnum matrix.
 From mathcomp Require Import interval rat.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -1117,7 +1117,7 @@ Canonical oneDsqr_inum x : {itv R & `[1, +oo[} := @ItvReal R (oneDsqr x)
 Lemma oneDsqrV_le1 x : (oneDsqr\^-1) x <= 1. Proof. by rewrite invf_le1. Qed.
 
 Lemma continuous_oneDsqr : continuous oneDsqr.
-Proof. by move=> x; apply: cvgD; [exact: cvg_cst|exact: exprn_continuous]. Qed.
+Proof. by move=> x; apply: cvgD => //; exact: exprn_continuous. Qed.
 
 Lemma continuous_oneDsqrV : continuous (oneDsqr\^-1).
 Proof. by move=> x; apply: cvgV => //; exact: continuous_oneDsqr. Qed.
@@ -1127,7 +1127,7 @@ End oneDsqr.
 Hint Extern 0 (is_true (1 <= oneDsqr _)) => solve [apply: oneDsqr_ge1] : core.
 
 Section Atan.
-Variable R : realType.
+Context {R : realType}.
 Implicit Type x : R.
 
 (* Did not see how to use ITV like in the other *)
@@ -1289,6 +1289,8 @@ rewrite /Rintegral (@continuous_FTC2 _ _ atan)//.
 - by move=> x x01; rewrite derive1_atan// mul1r.
 - by rewrite atan0 sube0.
 Qed.
+
+Import MeasurableR.
 
 Lemma integral0y_oneDsqr :
   (\int[mu]_(x in `[0%R, +oo[) (oneDsqr x)^-1%:E = (pi / 2)%:E)%E.

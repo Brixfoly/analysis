@@ -1,5 +1,5 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
-From mathcomp Require Import all_ssreflect_compat algebra.
+From mathcomp Require Import boot order algebra.
 From mathcomp Require Import boolp classical_sets functions cardinality.
 From mathcomp Require Import reals topology normedtype sequences.
 From mathcomp Require Import measure lebesgue_measure measurable_realfun.
@@ -46,6 +46,8 @@ Lemma closed_Fsigma S : closed S -> Fsigma S.
 Proof. by exists (fun=> S)=> //; rewrite bigcup_const. Qed.
 
 End Gdelta_Fsigma.
+
+Import MeasurableR.
 
 Lemma Gdelta_measurable {R : realType} (S : set R) : Gdelta S -> measurable S.
 Proof.

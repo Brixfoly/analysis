@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra finmap.
+From mathcomp Require Import boot order algebra finmap.
 From mathcomp Require Import boolp classical_sets functions cardinality reals.
 From mathcomp Require Import interval_inference ereal topology normedtype.
 From mathcomp Require Import sequences measurable_structure measure_function.
@@ -65,9 +65,8 @@ have [cvg_u|dvg_u] := pselect (cvg (nseries u @ \oo)).
       rewrite [X in _ `|` X](_ : _ = set0) ?setU0// bigcup0// => i [_ /negP].
       by rewrite -leqNgt => /Nu/eqP/[!cardfs_eq0]/eqP/fset_set_set0 ->.
     by rewrite /counting /= asboolT ?sumFE// -bigcup_mkord; exact: bigcup_finite.
-  rewrite -(cvg_shiftn N)/=.
-  rewrite (_ : (fun n => _) = (fun=> \sum_(i < N) counting (F i))); last first.
-    exact: cvg_cst.
+  set l := (X in _ --> X); rewrite -(cvg_shiftn N)/= -[X in _ --> X]/(nbhs l).
+  rewrite [X in X @ _](_ : _ = cst l)//.
   apply/funext => n; rewrite /index_iota subn0 (addnC n) iotaD big_cat/=.
   rewrite [X in _ + X](_ : _ = 0) ?adde0; last first.
     by rewrite -{1}(subn0 N) big_mkord.

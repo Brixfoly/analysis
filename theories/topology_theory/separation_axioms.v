@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra finmap.
+From mathcomp Require Import boot order algebra finmap.
 From mathcomp Require Import boolp classical_sets functions wochoice.
 From mathcomp Require Import cardinality fsbigop.
 From mathcomp Require Import set_interval filter reals interval_inference.
@@ -404,15 +404,14 @@ Lemma lim_near_cst {U} {F} {FF : ProperFilter F} (l : T) (f : U -> T) :
    (\forall x \near F, f x = l) -> lim (f @ F) = l.
 Proof. by move=> /cvg_near_cst/cvg_lim. Qed.
 
-Lemma lim_cst {U} {F} {FF : ProperFilter F} (k : T) :
-   lim ((fun _ : U => k) @ F) = k.
-Proof. by apply: cvg_lim; apply: cvg_cst. Qed.
+Lemma lim_cst {U} {F} {FF : ProperFilter F} (k : T) : lim (@cst U _ k @ F) = k.
+Proof. exact: cvg_lim. Qed.
 
 Lemma cvgi_lim {U} {F} {FF : ProperFilter F} (f : U -> T -> Prop) (l : T) :
   F (fun x : U => is_subset1 (f x)) ->
   f `@ F --> l -> lim (f `@ F) = l.
 Proof.
-move=> f_prop fl; apply: get_unique => // l' fl'; exact: cvgi_unique _ fl' fl.
+by move=> f_prop fl; apply: get_unique =>// l' fl'; exact: cvgi_unique _ fl' fl.
 Qed.
 
 End hausdorff_ptopologicalType.

@@ -1,9 +1,9 @@
 (* mathcomp analysis (c) 2017 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrint ssrnum interval.
+From mathcomp Require Import boot order ssralg ssrint ssrnum interval.
 From mathcomp Require Import rat finmap.
-From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
-From mathcomp Require Import cardinality reals topology.
+From mathcomp Require Import mathcomp_extra unstable boolp classical_sets.
+From mathcomp Require Import functions cardinality reals topology.
 
 (**md**************************************************************************)
 (* # The Cantor Space and Applications                                        *)
@@ -397,7 +397,7 @@ Context (t0 t1 : T).
 Hypothesis T2e : t0 != t1.
 
 Let ent_balls' (E : set (T * T)) :
-  exists M : set (set T), entourage E -> [/\
+  exists M : set_system T, entourage E -> [/\
     finite_set M,
     forall A, M A -> exists a, A a /\
       A `<=` closure (xsection (split_ent E) a),

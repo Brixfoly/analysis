@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg matrix finmap ssrnum.
+From mathcomp Require Import boot order ssralg matrix finmap ssrnum.
 From mathcomp Require Import ssrint rat interval.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -1699,7 +1699,7 @@ Qed.
 End rectangle.
 
 Definition preimage_set_system {aT rT : Type} (D : set aT) (f : aT -> rT)
-    (G : set_system rT) : set (set aT) :=
+    (G : set_system rT) : set_system aT :=
   [set D `&` f @^-1` B | B in G].
 
 Lemma preimage_set_system0 {aT rT : Type} (D : set aT) (f : aT -> rT) :
@@ -1720,7 +1720,7 @@ apply/seteqP; split=> [_ [B FB] <-|_ [_ [C FC <-] <-]].
 by exists C => //; rewrite setTI comp_preimage.
 Qed.
 
-Lemma preimage_set_system_id {aT : Type} (D : set aT) (F : set (set aT)) :
+Lemma preimage_set_system_id {aT : Type} (D : set aT) (F : set_system aT) :
   preimage_set_system D idfun F = setI D @` F.
 Proof. by []. Qed.
 
@@ -1730,7 +1730,7 @@ Lemma preimage_set_systemS {T1 T2} (A B : set_system T2) (f : T1 -> T2) :
 Proof. by move=> AB _ [C ? <-]; exists C => //; exact: AB. Qed.
 
 Definition image_set_system (aT rT : Type) (D : set aT) (f : aT -> rT)
-    (G : set (set aT)) : set (set rT) :=
+    (G : set_system aT) : set_system rT :=
   [set B : set rT | G (D `&` f @^-1` B)].
 
 Section cross.
@@ -1746,15 +1746,15 @@ End cross.
 Definition cross12 {T1 T2 : Type} := @cross (T1 * T2)%type T1 T2 fst snd.
 Notation "A `x` B" := (cross12 A B) : classical_set_scope.
 
-Lemma subKimage {T T'} {P : set (set T')} (f : T -> T') (g : T' -> T) :
+Lemma subKimage {T T'} {P : set_system T'} (f : T -> T') (g : T' -> T) :
   cancel f g -> [set A | P (f @` A)] `<=` [set g @` A | A in P].
 Proof. by move=> ? A; exists (f @` A); rewrite ?image_comp ?eq_image_id/=. Qed.
 
-Lemma subimageK T T' (P : set (set T')) (f : T -> T') (g : T' -> T) :
+Lemma subimageK T T' (P : set_system T') (f : T -> T') (g : T' -> T) :
   cancel g f -> [set g @` A | A in P] `<=` [set A | P (f @` A)].
 Proof. by move=> gK _ [B /= ? <-]; rewrite image_comp eq_image_id/=. Qed.
 
-Lemma eq_imageK {T T'} {P : set (set T')} (f : T -> T') (g : T' -> T) :
+Lemma eq_imageK {T T'} {P : set_system T'} (f : T -> T') (g : T' -> T) :
     cancel f g -> cancel g f ->
   [set g @` A | A in P] = [set A | P (f @` A)].
 Proof.
@@ -2115,9 +2115,18 @@ Lemma setC_bigsetI U (s : seq T) (f : T -> set U) (P : pred T) :
   \big[setU/set0]_(t <- s | P t) ~` f t.
 Proof. by elim/big_rec2: _ => [|i X Y Pi <-]; rewrite ?setCT ?setCI. Qed.
 
+#[deprecated(since="mathcomp-analysis 1.17.0", note="use `setD_bigcupr` instead")]
 Lemma bigcupDr (F : I -> set T) (P : set I) (A : set T) : P !=set0 ->
   \bigcap_(i in P) (A `\` F i) = A `\` \bigcup_(i in P) F i.
 Proof. by move=> PN0; rewrite setDE setC_bigcup -bigcapIr. Qed.
+
+Lemma setD_bigcupr (F : I -> set T) (P : set I) (A : set T) : P !=set0 ->
+  A `\` \bigcup_(i in P) F i = \bigcap_(i in P) (A `\` F i).
+Proof. by move=> PN0; rewrite setDE setC_bigcup -bigcapIr. Qed.
+
+Lemma setD_bigcapr (F : I -> set T) [P : set I] (A : set T) :
+  A `\` \bigcap_(i in P)  F i = \bigcup_(i in P)  (A `\` F i).
+Proof. by rewrite setDE setC_bigcap setI_bigcupr. Qed.
 
 Lemma setD_bigcupl (F : I -> set T) (P : set I) (A : set T) :
   \bigcup_(i in P) F i `\` A = \bigcup_(i in P) (F i `\` A).
@@ -2332,6 +2341,17 @@ Lemma bigcup_mkord n F : \bigcup_(i < n) F i = \big[setU/set0]_(i < n) F i.
 Proof.
 rewrite -(big_mkord xpredT F) -bigcup_seq.
 by apply: eq_bigcupl; split=> i; rewrite /= mem_index_iota leq0n.
+Qed.
+
+Lemma bigcup_bigsetU F :
+  \bigcup_k \big[setU/set0]_(i < k.+1) F i =
+  \bigcup_k \big[setU/set0]_(i < k) F i.
+Proof.
+transitivity (\bigcup_(k in S @` setT) \big[setU/set0]_(i < k) F i).
+  by rewrite bigcup_image.
+rewrite [RHS](bigcup_setD1 0%N)// big_ord0 set0U; apply: eq_bigcupl.
+split=> [x [? _ <-//]|x [_ x0]]/=; exists x.-1 => //; rewrite prednK// lt0n.
+exact/eqP.
 Qed.
 
 Lemma bigcup_bigsetU_bigcup F :
@@ -3000,10 +3020,10 @@ Qed.
 End Zorn.
 
 Section Zorn_subset.
-Variables (T : Type) (P : set (set T)).
+Variables (T : Type) (P : set_system T).
 
 Lemma Zorn_bigcup :
-    (forall F : set (set T), F `<=` P -> total_on F subset ->
+    (forall F : set_system T, F `<=` P -> total_on F subset ->
       P (\bigcup_(X in F) X)) ->
   exists A, P A /\ forall B, A `<` B -> ~ P B.
 Proof.
@@ -3040,7 +3060,7 @@ Variables (B : I -> set T) (D : set I).
 
 Let P := fun X => X `<=` D /\ trivIset X B.
 
-Let maxP (A : set (set I)) :
+Let maxP (A : set_system I) :
   A `<=` P -> total_on A (fun x y => x `<=` y) -> P (\bigcup_(x in A) x).
 Proof.
 move=> AP h; split; first by apply: bigcup_sub => E /AP [].
@@ -3214,30 +3234,28 @@ rewrite -Order.TotalTheory.ltNge => kn.
 by rewrite (Order.POrderTheory.le_trans _ (Am _ Ak)).
 Qed.
 
-Definition meets T (F G : set (set T)) :=
+Definition meets T (F G : set_system T) :=
   forall A B, F A -> G B -> A `&` B !=set0.
 
 Notation "F `#` G" := (meets F G) : classical_set_scope.
 
 Section meets.
 
-Lemma meetsC T (F G : set (set T)) : F `#` G = G `#` F.
+Lemma meetsC T (F G : set_system T) : F `#` G = G `#` F.
 Proof.
 gen have sFG : F G / F `#` G -> G `#` F.
   by move=> FG B A => /FG; rewrite setIC; apply.
 by rewrite propeqE; split; apply: sFG.
 Qed.
 
-Lemma sub_meets T (F F' G G' : set (set T)) :
+Lemma sub_meets T (F F' G G' : set_system T) :
   F `<=` F' -> G `<=` G' -> F' `#` G' -> F `#` G.
 Proof. by move=> sF sG FG A B /sF FA /sG GB; apply: (FG A B). Qed.
 
-Lemma meetsSr T (F G G' : set (set T)) :
-  G `<=` G' -> F `#` G' -> F `#` G.
+Lemma meetsSr T (F G G' : set_system T) : G `<=` G' -> F `#` G' -> F `#` G.
 Proof. exact: sub_meets. Qed.
 
-Lemma meetsSl T (G F F' : set (set T)) :
-  F `<=` F' -> F' `#` G -> F `#` G.
+Lemma meetsSl T (G F F' : set_system T) : F `<=` F' -> F' `#` G -> F `#` G.
 Proof. by move=> /sub_meets; apply. Qed.
 
 End meets.

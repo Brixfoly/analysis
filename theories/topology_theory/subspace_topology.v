@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra all_classical.
+From mathcomp Require Import boot order algebra all_classical.
 From mathcomp Require Import topology_structure uniform_structure compact.
 From mathcomp Require Import pseudometric_structure connected initial_topology.
 From mathcomp Require Import product_topology.
@@ -373,6 +373,9 @@ move=> ctsf; rewrite continuous_subspace_in => ? ?.
 exact: continuous_in_subspaceT.
 Qed.
 
+Lemma cst_within_continuous {U} A u : {within A, continuous (@cst T U u)}.
+Proof. by apply: continuous_subspaceT; exact: cst_continuous. Qed.
+
 Lemma continuous_open_subspace {U} A (f : T -> U) :
   open A -> {within A, continuous f} = {in A, continuous f}.
 Proof.
@@ -707,8 +710,9 @@ move=> x; apply: continuous_comp; last exact: continuous_fun.
 exact/subspaceT_continuous/continuous_fun.
 Qed.
 
-HB.instance Definition _ :=
-  @isContinuous.Build (subspace A) Z (g \o f) continuous_comp_subproof.
+(*HB.instance Definition _ :=
+  @isContinuous.Build (subspace A) Z (g \o f) continuous_comp_subproof.*)
+(* generates Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default] *)
 
 End continuous_fun_comp.
 

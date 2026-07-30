@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import interval_inference finmap archimedean.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -67,6 +67,8 @@ Context {R : realType}.
 Notation mu := (@lebesgue_measure R).
 Local Open Scope ereal_scope.
 Implicit Types (f : R -> R) (a : itv_bound R).
+
+Import MeasurableR.
 
 Let FTC0 f a : mu.-integrable setT (EFin \o f) ->
   let F x := (\int[mu]_(t in [set` Interval a (BRight x)]) f t)%R in
@@ -328,9 +330,10 @@ End FTC.
 #[deprecated(since="mathcomp-analysis 1.17.0", note="renamed to `integrable_locally_restrict`")]
 Notation integrable_locally := integrable_locally_restrict (only parsing).
 
+Import MeasurableR.
+
 Definition parameterized_integral {R : realType}
-    (mu : {measure set (measurableTypeR R) -> \bar R})
-    a x (f : R -> R) : R :=
+    (mu : {measure set R -> \bar R}) a x (f : R -> R) : R :=
   (\int[mu]_(t in `[a, x]) f t)%R.
 
 Section parameterized_integral_continuous.
@@ -519,10 +522,12 @@ Let within_continuous_restrict f a b : (a < b)%R ->
 Proof.
 move=> ab + x xab; move=> /(_ x).
 rewrite {1}/continuous_at => xf.
-rewrite /prop_for /continuous_at  patchE.
+rewrite /prop_for /continuous_at patchE.
 rewrite mem_set ?mulr1 /=; first exact: subset_itv_oo_cc.
 exact: cvg_patch.
 Qed.
+
+Import MeasurableR.
 
 Corollary continuous_FTC2 f F a b : (a < b)%R ->
   {within `[a, b], continuous f} ->
@@ -772,6 +777,8 @@ Notation mu := lebesgue_measure.
 Local Open Scope ereal_scope.
 Implicit Types (F G f g : R -> R) (a b : R).
 
+Import MeasurableR.
+
 Lemma integration_by_parts F G f g a b : (a < b)%R ->
     {within `[a, b], continuous f} ->
     derivable_oo_LRcontinuous F a b ->
@@ -823,6 +830,8 @@ Section Rintegration_by_parts.
 Context {R : realType}.
 Notation mu := lebesgue_measure.
 Implicit Types (F G f g : R -> R) (a b : R).
+
+Import MeasurableR.
 
 Lemma Rintegration_by_parts F G f g a b :
     (a < b)%R ->
@@ -1030,6 +1039,8 @@ Context {R : realType}.
 Notation mu := lebesgue_measure.
 Implicit Types (F G f : R -> R) (a b : R).
 
+Import MeasurableR.
+
 Lemma integration_by_substitution_decreasing F G a b : (a <= b)%R ->
   {in `[a, b] &, {homo F : x y /~ (x < y)%R}} ->
   {in `]a, b[, continuous F^`()} ->
@@ -1170,11 +1181,11 @@ Lemma integration_by_substitution_oppr G a b : (a <= b)%R ->
 Proof.
 move=> ab cG; have Dopp: (@GRing.opp R)^`() = cst (-1)%R.
   by apply/funext => z; rewrite derive1E derive_val.
-rewrite (@integration_by_substitution_decreasing -%R)//.
+rewrite (@integration_by_substitution_decreasing -%R _ _ _ ab _ _ _ _ _ cG).
 - by move=> ? ? _ _; rewrite ltrN2.
-- by rewrite Dopp => ? _; exact: cvg_cst.
-- by rewrite Dopp; apply: is_cvgN; exact: is_cvg_cst.
-- by rewrite Dopp; apply: is_cvgN; exact: is_cvg_cst.
+- by rewrite Dopp//; apply: in1W; exact: cst_continuous.
+- by rewrite Dopp.
+- by rewrite Dopp.
 - split => //.
   + by rewrite -at_leftN; exact: cvg_at_left_filter.
   + by rewrite -at_rightN; exact: cvg_at_right_filter.
@@ -1357,7 +1368,7 @@ transitivity (limn (fun n =>
   rewrite -integral_bigsetU_EFin/=.
   - by move=> k; apply: measurableD => //; exact: bigsetU_measurable.
   - exact: iota_uniq.
-  - exact: (@sub_trivIset _ _ _ [set: nat]).
+  - exact: (@sub_trivIset _ _ _ setT).
   - apply/measurable_EFinP.
     apply: (measurable_funS (measurable_itv `]a, (a + n.+1%:R)%R[)).
       rewrite big_mkord -bigsetU_seqDU.
@@ -1415,19 +1426,17 @@ Proof.
 move=> /continuous_within_itvNycP[cG GNa] G0.
 have Dopp : (@GRing.opp R)^`() = cst (- 1)%R.
   by apply/funext => z; rewrite derive1E derive_val.
-rewrite decreasing_ge0_integration_by_substitutiony//.
+rewrite (decreasing_ge0_integration_by_substitutiony _ _ _ _ _ _ _ G0).
 - by move=> x y _ _; rewrite ltrN2.
-- by rewrite Dopp => ? _; exact: cst_continuous.
-- by rewrite Dopp; apply: is_cvgN; exact: is_cvg_cst.
-- by rewrite Dopp; apply: is_cvgN; exact: is_cvg_cst.
-- split.
-  + by [].
-  + by apply: cvgN; exact: cvg_at_right_filter.
-  exact/cvgNrNy.
+- by rewrite Dopp; apply: in1W; exact: cst_continuous.
+- by rewrite Dopp.
+- by rewrite Dopp.
+- by split => //; apply: cvgN; exact: cvg_at_right_filter.
+- exact/cvgNrNy.
 - exact/continuous_within_itvNycP.
-apply: eq_integral => x _; congr EFin.
-rewrite fctE -[RHS]mulr1; congr *%R.
-by rewrite fctE derive1E deriveN// opprK derive_id.
+- apply: eq_integral => x _; congr EFin.
+  rewrite fctE -[RHS]mulr1; congr *%R.
+  by rewrite fctE derive1E deriveN// opprK derive_id.
 Qed.
 
 Lemma increasing_ge0_integration_by_substitutiony F G a :
@@ -1776,10 +1785,11 @@ Qed.
 
 End integration_by_substitution.
 
-
 Section ge0_integration_by_substitution_shift.
 Context {R : realType}.
 Notation mu := (@lebesgue_measure R).
+
+Import MeasurableR.
 
 Lemma ge0_integration_by_substitution_shift_itvy (f : R -> R) (r e : R) :
   {within `[r + e, +oo[, continuous f} ->
@@ -1792,11 +1802,11 @@ have dshiftE : (shift e)^`() = cst 1.
   by apply/funext => x; rewrite derive1E -(derive_shift 1 e).
 rewrite (@increasing_ge0_integration_by_substitutiony _ (shift e))//=.
 - by move=> x y _ _ xy; rewrite ltr_leD.
-- by rewrite dshiftE => ? _; exact: cst_continuous.
-- by rewrite dshiftE; exact: is_cvg_cst.
-- by rewrite dshiftE; exact: is_cvg_cst.
+- by rewrite dshiftE; apply: in1W; exact: cst_continuous.
+- by rewrite dshiftE.
+- by rewrite dshiftE.
 - split; first by move=> x _; exact: ex_derive.
-  by apply/cvg_at_right_filter; apply: cvgD => //; exact: cvg_cst.
+  by apply/cvg_at_right_filter; exact: cvgD.
 - exact: cvg_addrr.
 by rewrite dshiftE mulr1.
 Qed.
@@ -1812,11 +1822,11 @@ have dshiftE : (shift e)^`() = cst 1.
   by apply/funext => x; rewrite derive1E -(derive_shift 1 e).
 rewrite (@increasing_ge0_integration_by_substitutionNy _ (shift e))//.
 - by move=> x y _ _ xy; rewrite ltr_leD.
-- by rewrite dshiftE => ? _; exact: cst_continuous.
-- by rewrite dshiftE; exact: is_cvg_cst.
-- by rewrite dshiftE; exact: cvg_cst.
+- by rewrite dshiftE; apply: in1W; exact: cst_continuous.
+- by rewrite dshiftE.
+- by rewrite dshiftE.
 - split; first by move=> x _; exact: ex_derive.
-  by apply/cvg_at_left_filter; apply: cvgD => //; exact: cvg_cst.
+  by apply/cvg_at_left_filter; exact: cvgD.
 - exact: cvg_addrr_Ny.
 by rewrite dshiftE mulr1.
 Qed.
@@ -1827,6 +1837,8 @@ Section integration_by_substitution_onem.
 Context {R : realType}.
 Let mu := (@lebesgue_measure R).
 Local Open Scope ereal_scope.
+
+Import MeasurableR.
 
 Lemma integration_by_substitution_onem (G : R -> R) (r : R) :
   (0 <= r <= 1)%R ->
@@ -1841,16 +1853,16 @@ rewrite onemK onem1 => -> //; last 1 first.
 - by apply: eq_integral => x xr; rewrite !fctE derive1_onem opprK mulr1.
 - by rewrite lerBlDl lerDr ltW.
 - by move=> x y _ _ xy; rewrite ler_ltB.
-- by rewrite derive1_onem; move=> ? ?; exact: cvg_cst.
-- by rewrite derive1_onem; exact: is_cvg_cst.
-- by rewrite derive1_onem; exact: is_cvg_cst.
+- by rewrite derive1_onem; apply: in1W; exact: cst_continuous.
+- by rewrite derive1_onem.
+- by rewrite derive1_onem.
 split => /=.
 - by move=> x xr1; exact: derivableB.
 - apply: cvg_at_right_filter; rewrite onemK.
   apply: (@continuous_comp_cvg _ _ _ _ onem)=> //=.
-    by move=> x; apply: continuousB => //; exact: cvg_cst.
+    by move=> x; apply: continuousB => //; exact: cst_continuous.
   by under eq_fun do rewrite -/(onem _) onemK; exact: cvg_id.
-- by apply: cvg_at_left_filter; apply: cvgB => //; exact: cvg_cst.
+- by apply: cvg_at_left_filter; exact: cvgB.
 Qed.
 
 Lemma Rintegration_by_substitution_onem (G : R -> R) (r : R) :
@@ -1869,6 +1881,8 @@ Context {R : realType}.
 Let mu := @lebesgue_measure R.
 Local Open Scope ereal_scope.
 
+Import MeasurableR.
+
 Lemma ge0_symfun_integralT (f : R -> R) : (forall x, 0 <= f x)%R ->
   continuous f -> f =1 f \o -%R ->
   \int[mu]_x (f x)%:E = 2%:E * \int[mu]_(x in [set x | (0 <= x)%R]) (f x)%:E.
@@ -1877,10 +1891,10 @@ move=> f0 cf evenf.
 have mf : measurable_fun [set: R] f by exact: continuous_measurable_fun.
 have mposnums : measurable [set x : R | 0 <= x]%R by rewrite -set_itvcy.
 rewrite -(setUv [set x : R | 0 <= x]%R) ge0_integral_setU//=.
-  exact: measurableC.
-  by apply/measurable_EFinP; rewrite setUv.
-  by move=> x _; rewrite lee_fin.
-  exact/disj_setPCl.
+- exact: measurableC.
+- by apply/measurable_EFinP; rewrite setUv.
+- by move=> x _; rewrite lee_fin.
+- exact/disj_setPCl.
 rewrite mule_natl mule2n; congr +%E.
 rewrite -set_itvcy// setCitvr.
 rewrite integral_itvbo_itvbc; first exact/measurable_EFinP/measurable_funTS.

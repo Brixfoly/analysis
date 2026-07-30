@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2025 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import finmap.
 From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
 From mathcomp Require Import cardinality fsbigop reals interval_inference ereal.
@@ -41,6 +41,8 @@ by apply: (cvg_comp (fun x => x ^+ 2) (fun x => expR (- x)));
   [exact: cvgr_expr2|exact: cvgr_expR].
 Qed.
 
+Import MeasurableR.
+
 Lemma measurable_gauss_fun : measurable_fun setT gauss_fun.
 Proof. by apply: measurableT_comp => //; exact: measurableT_comp. Qed.
 
@@ -62,6 +64,8 @@ Local Open Scope ring_scope.
 Implicit Type x : R.
 
 Let mu : {measure set _ -> \bar R} := @lebesgue_measure R.
+
+Import MeasurableR.
 
 Definition integral0y_gauss := \int[mu]_(x in `[0%R, +oo[) gauss_fun x.
 
@@ -251,14 +255,12 @@ have := @integration_by_substitution_increasing R (fun t => t * x)
 rewrite -/mu mul0r mul1r => ->//=.
 - move=> a b; rewrite !in_itv/= => /andP[a0 a1] /andP[b0 b1] ab.
     by rewrite ltr_pM2r.
-- by rewrite derM => z _; exact: cvg_cst.
-- by rewrite derM; exact: is_cvg_cst.
-- by rewrite derM; exact: is_cvg_cst.
+- by rewrite derM; apply: in1W; exact: cst_continuous.
+- by rewrite derM.
+- by rewrite derM.
 - split => //.
-  + apply: cvg_at_right_filter.
-    by apply: cvgM => //; exact: cvg_cst.
-  + apply: cvg_at_left_filter.
-    by apply: cvgM => //; exact: cvg_cst.
+  + by apply: cvg_at_right_filter; exact: cvgM.
+  + by apply: cvg_at_left_filter; exact: cvgM.
 - by apply: continuous_subspaceT; exact: continuous_gauss_fun.
 rewrite derM.
 under eq_integral do rewrite fctE/= EFinM.
@@ -296,7 +298,7 @@ rewrite fine_le//.
   by apply: continuous_in_subspaceT => z _; exact: continuous_u.
 - apply: integrable_fin_num => //=.
   apply: continuous_compact_integrable; first exact: segment_compact.
-  by apply: continuous_subspaceT => z; exact: cvg_cst.
+  exact: cst_within_continuous.
 apply: ge0_le_integral => //=.
 - by move=> y _; rewrite lee_fin u_ge0.
 - by apply/measurable_EFinP => /=; apply/measurable_funTS; exact: measurable_u.
@@ -305,9 +307,8 @@ Qed.
 
 Let cvg_integral01_u : integral01_u x @[x --> +oo] --> 0.
 Proof.
-apply: (@squeeze_cvgr _ _ _ _ (cst 0) gauss_fun).
+apply: (@squeeze_cvgr _ _ _ _ (cst 0) gauss_fun) => //.
 - by near=> n => /=; rewrite integral01_u_gauss_fun integral01_u_ge0.
-- exact: cvg_cst.
 - exact: cvg_gauss_fun.
 Unshelve. all: end_near. Qed.
 
@@ -338,8 +339,7 @@ have Ig2 x : 0 < x -> (integral0_gauss x) ^+ 2 = pi / 4 - integral01_u x.
 suff: pi / 4 - integral01_u x @[x --> +oo] --> pi / 4.
   apply: cvg_trans; apply: near_eq_cvg.
   by near=> x; rewrite Ig2.
-rewrite -[in X in _ --> X](subr0 (pi / 4)).
-by apply: cvgB => //; exact: cvg_cst.
+by rewrite -[in X in _ --> X](subr0 (pi / 4)); exact: cvgB.
 Unshelve. end_near. Qed.
 
 End gauss_integral_proof.
@@ -349,6 +349,8 @@ Section gauss_integral.
 Context {R : realType}.
 Import gauss_integral_proof.
 Let mu := @lebesgue_measure R.
+
+Import MeasurableR.
 
 Lemma integral0y_gauss :
   (\int[mu]_(x in `[0%R, +oo[) (gauss_fun x)%:E)%E = (Num.sqrt pi / 2)%:E.

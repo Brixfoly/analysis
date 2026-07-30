@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import interval_inference archimedean finmap.
 From mathcomp Require Import boolp classical_sets functions cardinality fsbigop.
 From mathcomp Require Import reals ereal topology normedtype.
@@ -31,7 +31,7 @@ Local Open Scope ring_scope.
 
 Section uniform_probability.
 Local Open Scope ring_scope.
-Context (R : realType) (a b : R).
+Context {R : realType} (a b : R).
 
 Definition uniform_pdf x := if a <= x <= b then (b - a)^-1 else 0.
 
@@ -40,6 +40,8 @@ Proof.
 move=> ab; rewrite /uniform_pdf; case: ifPn => // axb.
 by rewrite invr_ge0// ltW// subr_gt0.
 Qed.
+
+Import MeasurableR.
 
 Lemma measurable_uniform_pdf : measurable_fun setT uniform_pdf.
 Proof.

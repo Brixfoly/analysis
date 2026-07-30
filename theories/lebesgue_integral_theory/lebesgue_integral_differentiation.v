@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import interval_inference archimedean finmap.
 From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
 From mathcomp Require Import cardinality reals fsbigop ereal topology tvs.
@@ -55,8 +55,9 @@ Local Open Scope classical_set_scope.
 Local Open Scope ring_scope.
 
 Section continuous_compact_integrable.
-Context (rT : realType).
+Context {rT : realType}.
 Let mu : measure _ _ := @lebesgue_measure rT.
+Import MeasurableR.
 Let R  : measurableType _ := measurableTypeR rT.
 Local Open Scope ereal_scope.
 
@@ -76,6 +77,7 @@ End continuous_compact_integrable.
 Section continuous_density_L1.
 Context (rT : realType).
 Let mu : measure _ _ := @lebesgue_measure rT.
+Import MeasurableR.
 Let R  : measurableType _ := measurableTypeR rT.
 Local Open Scope ereal_scope.
 
@@ -175,8 +177,9 @@ Qed.
 End continuous_density_L1.
 
 Section lebesgue_differentiation_continuous.
-Context (rT : realType).
+Context {rT : realType}.
 Let mu : measure _ _ := @lebesgue_measure rT.
+Import MeasurableR.
 Let R  : measurableType _ := measurableTypeR rT.
 
 Let ballE (x : R) (r : {posnum rT}) :
@@ -212,7 +215,7 @@ have cptxr : compact `[x - r, x + r] := @segment_compact _ _ _.
 rewrite distrC subr0.
 have -> : \int[mu]_(z in ball x r) f z = \int[mu]_(z in `[x - r, x + r]) f z.
   rewrite ball_itv2 //; congr (fine _); rewrite -negligible_integral //.
-  - by apply/measurableU; exact: measurable_set1.
+  - exact/measurableU.
   - exact: (integrableS mA).
   - by rewrite measureU0//; exact: lebesgue_measure_set1.
 have r20 : 0 <= (r *+ 2)^-1 by rewrite invr_ge0 mulrn_wge0.
@@ -222,17 +225,16 @@ have intRf : mu.-integrable `[x - r, x + r] (EFin \o f).
   exact: (@integrableS _ _ _ mu _ _ _ _ _ xrA intf).
 rewrite /= -mulrBr -fineB.
 - by rewrite integrable_fin_num.
-- rewrite integrable_fin_num// continuous_compact_integrable// => ?.
-  exact: cvg_cst.
+- rewrite integrable_fin_num// continuous_compact_integrable//.
+  exact: cst_within_continuous.
 rewrite -integralB_EFin //.
-  by apply: continuous_compact_integrable => // ?; exact: cvg_cst.
+  by apply: continuous_compact_integrable => //; exact: cst_within_continuous.
 under [fun _ => _ + _ ]eq_fun => ? do rewrite -EFinD.
 have int_fx : mu.-integrable `[x - r, x + r] (fun z => (f z - f x)%:E).
   under [fun z => (f z - _)%:E]eq_fun => ? do rewrite EFinB.
-  rewrite integrableB// continuous_compact_integrable// => ?.
-  exact: cvg_cst.
-rewrite normrM ger0_norm // -fine_abse //.
-  by rewrite integrable_fin_num.
+  rewrite integrableB// continuous_compact_integrable//.
+  exact: cst_within_continuous.
+rewrite normrM ger0_norm// -fine_abse//; first by rewrite integrable_fin_num.
 suff : (\int[mu]_(z in `[(x - r)%R, (x + r)%R]) `|f z - f x|%:E <=
     (r *+ 2 * eps)%:E)%E.
   move=> intfeps; apply: le_trans.
@@ -259,6 +261,8 @@ Implicit Types (D : set R) (f g : R -> R).
 Local Open Scope ereal_scope.
 
 Local Notation mu := lebesgue_measure.
+
+Import MeasurableR.
 
 Definition locally_integrable D f := [/\ measurable_fun D f, open D &
   forall K, K `<=` D -> compact K -> \int[mu]_(x in K) `|f x|%:E < +oo].
@@ -365,6 +369,8 @@ Local Open Scope ereal_scope.
 
 Local Notation mu := lebesgue_measure.
 
+Import MeasurableR.
+
 Definition iavg f A := (mu A)^-1 * \int[mu]_(y in A) `| (f y)%:E |.
 
 Lemma iavg0 f : iavg f set0 = 0.
@@ -418,6 +424,8 @@ Definition HL_maximal f (x : R) : \bar R :=
   ereal_sup [set iavg f (ball x r) | r in `]0, +oo[%classic%R].
 
 Local Notation HL := HL_maximal.
+
+Import MeasurableR.
 
 Lemma HL_maximal_ge0 f D : locally_integrable D f ->
   forall x, 0 <= HL (f \_ D) x.
@@ -611,6 +619,8 @@ Proof. by move=> r0; rewrite /davg/= (ball0 _ _).2//= iavg0. Qed.
 
 Lemma davg_ge0 f x (r : R) : 0 <= davg f x r. Proof. exact: iavg_ge0. Qed.
 
+Import MeasurableR.
+
 Lemma davgD f g (x r : R) :
   measurable_fun (ball x r) f -> measurable_fun (ball x r) g ->
   davg (f \+ g)%R x r <= (davg f x \+ davg g x) r.
@@ -734,6 +744,8 @@ Local Notation "f ^*" := (lim_sup_davg f).
 Lemma lim_sup_davg_ge0 f x : 0 <= f^* x.
 Proof. by apply: limf_esup_ge0 => // => y; exact: iavg_ge0. Qed.
 
+Import MeasurableR.
+
 Lemma lim_sup_davg_le f g x (U : set R) : open_nbhs x U -> measurable U ->
   measurable_fun U f -> measurable_fun U g ->
   (f \+ g)%R^* x <= (f^* \+ g^*) x.
@@ -835,6 +847,8 @@ End lim_sup_davg.
 
 Definition lebesgue_pt {R : realType} (f : R -> R) (x : R) :=
   davg f x r @[r --> (0%R:R)^'+] --> 0%E.
+
+Import MeasurableR.
 
 Lemma continuous_lebesgue_pt {R : realType} (f : R -> R) x (U : set R) :
   open_nbhs x U -> measurable U -> measurable_fun U f ->
@@ -1115,7 +1129,7 @@ apply: (sube_cvg0 _ _).1 => //.
 move: Ax; rewrite /lebesgue_pt /davg /= -/mu => Ax.
 have : (mu (ball x r))^-1 *
        `|\int[mu]_(y in ball x r) (\1_A y - \1_A x)%:E | @[r --> 0^'+] --> 0.
-  apply: (@squeeze_cvge _ _ _ R (cst 0) _ _ _ _ _ Ax) => //; [|exact: cvg_cst].
+  apply: (@squeeze_cvge _ _ _ R (cst 0) _ _ _ _ _ Ax) => //.
   near=> a; rewrite mule_ge0 ?inve_ge0///= lee_pmul2l//.
     by rewrite lebesgue_measure_ball// fin_numV// eqe mulrn_eq0/= gt_eqF.
     rewrite lebesgue_measure_ball// inver mulrn_eq0/= gt_eqF// lte_fin.
@@ -1228,11 +1242,10 @@ have E_r_ n : E x n `<=` ball x (r_ x n)%:num.
 have muEr_ n : mu (ball x (r_ x n)%:num) <= C%:E * mu (E x n).
   by rewrite /C /r_ /sval/=; case: cid => -[? ?] [].
 apply: (@squeeze_cvge _ _ _ _ (cst 0) _
-  (fun n => C%:E * davg f x (r_ x n)%:num)); last 2 first.
-  exact: cvg_cst.
+    (fun n => C%:E * davg f x (r_ x n)%:num)) => //; last first.
   move/cvge_at_rightP: fx => /(_ (fun r => (r_ x r)%:num)) fx.
-  by rewrite -(mule0 C%:E); apply: cvgeM => //;
-    [exact: cvg_cst | apply: fx; split => //; exact: r_0].
+  by rewrite -(mule0 C%:E); apply: cvgeM => //; apply: fx; split => //;
+    exact: r_0.
 near=> n.
 apply/andP; split => //=.
 apply: (@le_trans _ _ ((mu (E x n))^-1 *
@@ -1274,7 +1287,7 @@ rewrite muleA lee_pmul//.
   rewrite -(@invrK _ C) -invfM lee_fin lef_pV2//.
     rewrite posrE fine_gt0// (nicely_shrinking_gt0 (hE x))//=.
     by rewrite (nicely_shrinking_lty (hE x)).
-    by rewrite posrE mulr_gt0// ?invr_gt0// fine_gt0//.
+    by rewrite posrE mulr_gt0 ?invr_gt0 ?fine_gt0.
   rewrite lter_pdivrMl // -lee_fin EFinM fineK.
     by rewrite (nicely_shrinking_fin_num (hE x)).
   by have := muEr_ n; rewrite lebesgue_measure_ball.

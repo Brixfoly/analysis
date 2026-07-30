@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra finmap.
+From mathcomp Require Import boot order algebra finmap.
 From mathcomp Require Import generic_quotient.
 #[warning="-warn-library-file-internal-analysis"]
 From mathcomp Require Import unstable.
@@ -182,31 +182,31 @@ Proof.
 move=> f; have /cvg_sup/(_ i)/cvg_image : f --> f by apply: cvg_id.
 move=> h; apply: cvg_trans (h _) => {h}.
   by move=> Q /= [W nbdW <-]; apply: filterS nbdW; exact: preimage_image.
-rewrite eqEsubset; split => y //; exists (dfwith f i y) => //.
-by rewrite dfwithin.
+rewrite eqEsubset; split => y //; exists (dfwith f y) => //.
+by rewrite dfwith_in.
 Qed.
 
 Lemma dfwith_continuous g (i : I) : continuous (@dfwith I K g i).
 Proof.
 move=> z U [] P [] [] Q QfinP <- [] V JV Vpz.
-move/(@preimage_subset _ _ (dfwith g i))/filterS; apply.
-apply: (@filterS _ _ _ ((dfwith g i) @^-1` V)); first by exists V.
+move/(@preimage_subset _ _ (@dfwith _ _ g i))/filterS; apply.
+apply: (@filterS _ _ _ ((@dfwith _ _ g i) @^-1` V)); first by exists V.
 have [L Lsub /[dup] VL <-] := QfinP _ JV; rewrite preimage_bigcap.
 apply: filter_bigI => /= M /[dup] LM /Lsub /set_mem [] w _ [+] + /[dup] + <-.
 have [->|wnx] := eqVneq w i => N oN NM.
-  apply: (@filterS _ _ _ N); first by move=> ? ?; rewrite /= dfwithin.
+  apply: (@filterS _ _ _ N); first by move=> ? ?; rewrite /= dfwith_in.
   apply: open_nbhs_nbhs; split => //; move: Vpz.
-  by rewrite -VL => /(_ _ LM); rewrite -NM /= dfwithin.
+  by rewrite -VL => /(_ _ LM); rewrite -NM /= dfwith_in.
 apply: nearW => y /=; move: Vpz.
-by rewrite -VL => /(_ _ LM); rewrite -NM /= ?dfwithout // eq_sym.
+by rewrite -VL => /(_ _ LM); rewrite -NM /= ?dfwith_out // eq_sym.
 Qed.
 
 Lemma proj_open i (A : set (prod_topology K)) : open A -> open (proj i @` A).
 Proof.
 move=> oA; rewrite openE => z [f Af <-]; rewrite openE in oA.
 have {oA} := oA _ Af; rewrite /interior => nAf.
-apply: (@filterS _ _ _ ((dfwith f i) @^-1` A)).
-  by move=> w Apw; exists (dfwith f i w) => //; rewrite projK.
+apply: (@filterS _ _ _ ((@dfwith _ _ f i) @^-1` A)).
+  by move=> w Apw; exists (dfwith f w) => //; rewrite projK.
 apply: dfwith_continuous => /=; move: nAf; congr (nbhs _ A).
 by apply: functional_extensionality_dep => ?; case: dfwithP.
 Qed.
@@ -567,10 +567,11 @@ HB.instance Definition _ (U : topologicalType) (T : uniformType) :=
     (continuousType U T)
     (initial_topology (id : continuousType U T -> (U -> T))).
 
-HB.instance Definition _ (U : topologicalType) (R : realType)
+(*HB.instance Definition _ (U : topologicalType) (R : realType)
      (T : pseudoMetricType R) :=
   PseudoMetric.on
-    (initial_topology (id : continuousType U T -> (U -> T))).
+    (initial_topology (id : continuousType U T -> (U -> T))).*)
+(* generates Warning: HB: no new instance is generated [HB.no-new-instance,HB,elpi,default] *)
 
 End ArrowAsUniformType.
 
@@ -1434,8 +1435,7 @@ Lemma continuous_curry (f : U * V -> W) :
     continuous (curry f) /\ forall u, continuous (curry f u).
 Proof.
 move=> ctsf; split; first last.
-  move=> u z; apply: (continuous_comp _ (ctsf (u, z))).
-  by apply: cvg_pair => //=; exact: cvg_cst.
+  by move=> u z; apply: (continuous_comp _ (ctsf (u, z))); exact: cvg_pair.
 move=> x; apply/compact_open_cvgP => K O /= cptK oO fKO.
 near=> z => w /= [+ + <-]; near: z.
 move/compact_near_coveringP/near_covering_withinP : cptK; apply.
@@ -1578,9 +1578,8 @@ Lemma cvg_big {T : Type} (F : set_system T) (r : seq I)
 Proof.
 move=> FF cvg_f.
 elim: r => [|i r IHr].
-  rewrite big_nil.
-  under eq_cvg do rewrite big_nil.
-  exact: cvg_cst.
+  rewrite big_nil [X in X @ _](_ : _ = cst x0)//.
+  by apply/funext => t; rewrite big_nil.
 rewrite big_cons.
 under eq_cvg do rewrite big_cons.
 case: ifPn => // Pi.

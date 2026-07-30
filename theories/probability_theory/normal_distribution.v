@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum ssrint interval.
+From mathcomp Require Import boot order ssralg ssrnum ssrint interval.
 From mathcomp Require Import archimedean finmap interval_inference field_tactic.
 From mathcomp Require Import boolp classical_sets functions cardinality fsbigop.
 From mathcomp Require Import reals ereal topology normedtype sequences derive.
@@ -57,6 +57,8 @@ Implicit Types m s x : R.
 
 Definition normal_fun m s x := expR (- (x - m) ^+ 2 / (s ^+ 2 *+ 2)).
 
+Import MeasurableR.
+
 Lemma measurable_normal_fun m s : measurable_fun [set: R] (normal_fun m s).
 Proof.
 apply: measurableT_comp => //=; apply: measurable_funM => //=.
@@ -107,17 +109,19 @@ Proof. by rewrite mulr_ge0 ?normal_peak_ge0 ?expR_ge0. Qed.
 Lemma normal_pdf0_gt0 m s x : s != 0 -> 0 < normal_pdf0 m s x.
 Proof. by move=> s0; rewrite mulr_gt0 ?expR_gt0// normal_peak_gt0. Qed.
 
+Import MeasurableR.
+
 Lemma measurable_normal_pdf0 m s : measurable_fun setT (normal_pdf0 m s).
 Proof. by apply: measurable_funM => //=; exact: measurable_normal_fun. Qed.
 
 Lemma continuous_normal_pdf0 m s : continuous (normal_pdf0 m s).
 Proof.
-move=> x; apply: cvgM; first exact: cvg_cst.
+move=> x; apply: cvgM => //.
 apply: (cvg_comp _ expR); last exact: continuous_expR.
-apply: cvgM; last exact: cvg_cst.
-apply: (@cvgN _ R^o).
+apply: cvgM => //.
+apply: cvgN.
 apply: (cvg_comp (fun x => x - m) (fun x => x ^+ 2)).
-  by apply: (@cvgB _ R^o) => //; [exact: cvg_id|exact: cvg_cst].
+  by apply: cvgB => //; exact: cvg_id.
 exact: sqr_continuous.
 Qed.
 
@@ -169,6 +173,8 @@ Lemma normal_pdf_sym m s x : s != 0 ->
   normal_pdf m s x = normal_pdf x s m.
 Proof. by move=> s0; rewrite !normal_pdfE// normal_fun_sym. Qed.
 
+Import MeasurableR.
+
 Lemma measurable_normal_pdf m s : measurable_fun setT (normal_pdf m s).
 Proof.
 rewrite /normal_pdf; have [_|s0] := eqVneq s 0; first exact: measurable_indic.
@@ -192,8 +198,15 @@ Qed.
 
 End normal_density.
 
-Definition normal_prob {R : realType} (m : R) (s : R) : set _ -> \bar R :=
+Section normal_prob_def.
+
+Import MeasurableR.
+Context {R : realType}.
+
+Definition normal_prob (m : R) (s : R) : set _ -> \bar R :=
   fun V => (\int[lebesgue_measure]_(x in V) (normal_pdf m s x)%:E)%E.
+
+End normal_prob_def.
 
 Section normal_probability.
 Variables (R : realType) (m sigma : R).
@@ -217,6 +230,8 @@ apply/funext => x; rewrite /F derive1E deriveM// deriveD// derive_cst scaler0.
 by rewrite add0r derive_id derive_cst addr0 scaler1.
 Qed.
 
+Import MeasurableR.
+
 Let integral_gaussFF' : sigma != 0 ->
   (\int[mu]_x ((((gauss_fun \o F) *
      (F^`())%classic) x)%:E * (Num.sqrt (sigma ^+ 2 *+ 2))%:E))%E =
@@ -233,9 +248,9 @@ congr *%E; last by rewrite -(mulr_natr (_ ^+ 2)) sqrtrM ?sqr_ge0.
 rewrite -increasing_ge0_integration_by_substitutionT//.
 - move=> x y xy; rewrite /F ltr_pM2r ?ltr_leB ?gt_eqF//.
   by rewrite invr_gt0 ?sqrtr_gt0 ?pmulrn_lgt0 ?exprn_even_gt0.
-- by rewrite F'E => ?; exact: cvg_cst.
-- by rewrite F'E; exact: is_cvg_cst.
-- by rewrite F'E; exact: is_cvg_cst.
+- by rewrite F'E; exact: cst_continuous.
+- by rewrite F'E.
+- by rewrite F'E.
 - apply/gt0_cvgMlNy; last exact: cvg_addrr_Ny.
   by rewrite invr_gt0// sqrtr_gt0 -mulr_natr mulr_gt0// exprn_even_gt0.
 - apply/gt0_cvgMly; last exact: cvg_addrr.
@@ -371,6 +386,7 @@ Hypothesis s0 : s != 0.
 Implicit Types a e x : R.
 
 Import NormalPdf0.
+Import MeasurableR.
 
 Let g' a e x : R := if x \in (ball a e : set R^o) then
   normal_peak s else normal_pdf0 e s `|x - a|.
@@ -580,6 +596,7 @@ Section normal_prob_lemmas.
 Context {R : realType}.
 Local Notation mu := lebesgue_measure.
 Local Open Scope ereal_scope.
+Import MeasurableR.
 
 Lemma integral_normal_prob (m s : R) f U : measurable U ->
   (normal_prob m s).-integrable U f ->
@@ -643,6 +660,7 @@ Context {R : realType}.
 Local Notation mu := lebesgue_measure.
 
 Import NormalPdf0.
+Import MeasurableR.
 
 Lemma integrable_normal_probD1 (m1 m2 s1 s2 : R) V : measurable V ->
   (normal_prob m1 s1).-integrable [set: R] (fun x => normal_prob (m2 + x) s2 V).

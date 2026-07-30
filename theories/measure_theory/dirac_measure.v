@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra finmap.
+From mathcomp Require Import boot order algebra finmap.
 From mathcomp Require Import mathcomp_extra boolp classical_sets.
 From mathcomp Require Import functions cardinality fsbigop reals.
 From mathcomp Require Import interval_inference ereal topology normedtype.
@@ -50,7 +50,7 @@ move=> F mF tF mUF; rewrite /dirac indicE; have [|aFn] /= := boolP (a \in _).
   rewrite big_mkord (bigID (xpred1 (Ordinal mn)))//= big_pred1_eq/= big1/=.
     by move=> j ij; rewrite indicE (negbTE (naF _ _)).
   by rewrite adde0 indicE mem_set//; exact: ballxx.
-rewrite [X in X @ \oo --> _](_ : _ = cst 0); last exact: cvg_cst.
+rewrite [X in X @ _ --> _](_ : _ = cst 0)//.
 apply/funext => n; rewrite big1// => i _; rewrite indicE; apply/eqP.
 by rewrite eqe pnatr_eq0 eqb0; apply: contra aFn => /[!inE] aFn; exists i.
 Unshelve. all: by end_near. Qed.

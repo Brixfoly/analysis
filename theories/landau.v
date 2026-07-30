@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2017 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat ssralg ssrnum.
+From mathcomp Require Import boot order ssralg ssrnum.
 From mathcomp Require Import mathcomp_extra boolp classical_sets functions.
 From mathcomp Require Import ereal reals interval_inference topology normedtype.
 From mathcomp Require Import prodnormedzmodule.
@@ -392,7 +392,7 @@ Lemma littleoE (tag : unit) (F : filter_on T)
 Proof. by move=> /asboolP?; rewrite /the_littleo /insubd insubT. Qed.
 
 Lemma littleoE0 (tag : unit) (F : filter_on T)
-   (phF : phantom (set (set T)) F) f h :
+   (phF : phantom (set_system T) F) f h :
    ~ littleo_def F f h -> the_littleo tag F phF f h = 0.
 Proof. by move=> ?; rewrite /the_littleo /insubd insubN//; apply/asboolP. Qed.
 

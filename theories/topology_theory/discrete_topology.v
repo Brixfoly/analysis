@@ -1,6 +1,6 @@
 (* mathcomp analysis (c) 2026 Inria and AIST. License: CeCILL-C.              *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect_compat algebra all_classical all_reals.
+From mathcomp Require Import boot order algebra all_classical all_reals.
 From mathcomp Require Import topology_structure uniform_structure.
 From mathcomp Require Import order_topology pseudometric_structure compact.
 
@@ -40,7 +40,7 @@ HB.mixin Record Discrete_ofNbhs T & Nbhs T := {
 #[short(type="discreteNbhsType")]
 HB.structure Definition DiscreteNbhs := {T of Nbhs T & Discrete_ofNbhs T}.
 
-Definition discrete_ent {T} : set (set (T * T)) :=
+Definition discrete_ent {T} : set_system (T * T) :=
   globally (range (fun x => (x, x))).
 
 (** Note: having the discrete topology does not guarantee the discrete
