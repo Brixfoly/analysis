@@ -191,6 +191,25 @@ Arguments indic_sfun {d aT rT} _.
 Section sfun_lmodType.
 Context d (aT : measurableType d) (R : realType) (N : normedModType R).
 
+Lemma mem_sfun_comp (U V : normedModType R) (f : {sfun aT >-> U}) (g : U -> V) :
+  g \o f \in sfun.
+Proof.
+rewrite inE; apply/andP; split; rewrite inE/=.
+  move=> _ Y mY; rewrite setTI.
+  rewrite (_ : _ @^-1` Y = \bigcup_(a in range f)
+    ([set _ | Y (g a)] `&` f @^-1` [set a])).
+    apply/seteqP; split=>[t/= Ygft|x [a [t _ <-]/= [Ygft ->//]]].
+    by exists (f t).
+  apply: fin_bigcup_measurable=>// y rfy.
+  have [Ygy|nYgy] := pselect (Y (g y)).
+  rewrite (_ : [set _ | _] = setT); first by apply/seteqP; split.
+    exact: measurable_funPT.
+  rewrite (_ : [set _ | _] = set0) ?set0I//; first by apply/seteqP; split.
+rewrite -image_comp; exact: finite_image.
+Qed.
+
+(* B(X x Y) != B(X) \otimes B(Y)
++no canonical normed module structure for the product of normed module *)
 Lemma mem_sfun_comp_pair (U V W : normedModType R) (f : {sfun aT >-> U})
     (g : {sfun aT >-> V}) (h : U * V -> W) :
   (fun x => h (f x, g x)) \in @sfun _ _ aT W.
@@ -321,6 +340,19 @@ Definition mindic_lmod_sfun (D : set aT) (mD : measurable D) (z : nT) :
   {sfun aT >-> nT} := mindic_lmod mD z.
 
 End mindic_lmod.
+
+Section fimfunE_lmod.
+Context {T : Type} {K : pzRingType} {L : lmodType K} (f : {fimfun T >-> L}).
+
+Lemma fimfunE_lmod (x : T) :
+  f x = \sum_(y \in range f)  indic_lmod (f @^-1` [set y]) y x.
+Proof.
+rewrite (fsbigD1 (f x))// /= indic_lmodE mem_set// fsbig1 ?addr0//.
+by move=> y [fy /= /nesym yfx]; rewrite indic_lmodE memNset ?mulr0.
+Qed.
+
+End fimfunE_lmod.
+
 
 Lemma preimage_nnfun0 T (R : realDomainType) (f : {nnfun T >-> R}) t :
   t < 0 -> f @^-1` [set t] = set0.
