@@ -544,7 +544,7 @@ Hint Extern 0 (measurable (_ @^-1` [set _])) =>
 #[global]
 Hint Extern 0 (measurable [set _]) => solve [apply: measurable_set1] : core.
 
-Lemma measurable_funP1 {d} {aT : measurableType d} {rT : realType} 
+Lemma measurable_funP1 {d} {aT : measurableType d} {rT : realType}
   {nT : normedModType rT} (f : {mfun aT >-> nT}) D (z : nT) :
   measurable D -> measurable (D `&` f @^-1` [set z]).
 Proof. by move=> /(measurable_funP f); exact. Qed.
