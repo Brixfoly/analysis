@@ -10,6 +10,12 @@
   + definitions `indic_lmod` `mindic_lmod` `mindic_lmod_sfun`
   + lemmas `indic_lmodE` `preimage_indic_mod` `measurable_indic_lmod`
 
+- in `simple_functions.v`:
+  + lemmas `mem_sfun_comp_pair`, `sfun_submod_closed`
+  + `{sfun aT >-> V}` is an `lmodType` when `V` is a `normedModType`
+  + definitions `indic_lmod` `mindic_lmod` `mindic_lmod_sfun`
+  + lemmas `indic_lmodE` `preimage_indic_mod` `measurable_indic_lmod`
+
 - in `set_interval.v`:
   + lemmas `setU_itvob1`, `setU_1itvob`
 

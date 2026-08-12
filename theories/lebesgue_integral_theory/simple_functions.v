@@ -28,8 +28,9 @@ From mathcomp Require Import lebesgue_measure numfun realfun measurable_realfun.
 (*                                                                            *)
 (* Detailed contents:                                                         *)
 (* ````                                                                       *)
-(*         {sfun T >-> R} == type of simple functions                         *)
-(*                           They form a (potentially zero) ring.             *)
+(*         {sfun aT >-> bT} == type of simple functions                       *)
+(*                           They can form a ring or a module depending on    *)
+(*                            the structure of bT                             *)
 (*       {nnsfun T >-> R} == type of non-negative simple functions            *)
 (*          indic_sfun mD := mindic _ mD                                      *)
 (*             cst_sfun r == constant simple function                         *)
@@ -242,25 +243,11 @@ split=> [|k f g sf sg]; first exact: (valP (cst_sfun (0 : N))).
 exact: (mem_sfun_comp_pair (sfun_Sub sf) (sfun_Sub sg) (fun t => k *: t.1 + t.2)).
 Qed.
 
-<<<<<<< HEAD
-HB.instance Definition _ (V : normedModType R) :=
-  GRing.isSubmodClosed.Build _ _ (@sfun _ _ aT V)
-    (sfun_submod_closed V).
-HB.instance Definition _ (V : normedModType R) :=
-  [SubChoice_isSubLmodule of {sfun aT >-> V} by <:].
-<<<<<<< HEAD
-
-Lemma sfun0r : (0 : {sfun aT >-> R}) =1 cst 0.
-Lemma sfun0m {V : normedModType R} : (0 : {sfun aT >-> V}) =1 cst 0.
-=======
->>>>>>> 5de993f2d (drop borel_type wrap on sfun_op and submodule structure)
-=======
 HB.instance Definition _ :=
   GRing.isSubmodClosed.Build _ _ (@sfun _ _ aT N)
     sfun_submod_closed.
 HB.instance Definition _ :=
   [SubChoice_isSubLmodule of {sfun aT >-> N} by <:].
->>>>>>> df9c28577 (merge with measurableTypeNormed)
 
 Implicit Types (f g : {sfun aT >-> N} : lmodType _).
 

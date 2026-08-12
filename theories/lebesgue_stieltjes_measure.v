@@ -980,35 +980,12 @@ HB.instance Definition _ (f : cumulative R R) :=
 End wlength_extension.
 Arguments lebesgue_stieltjes_measure {R}.
 
-<<<<<<< HEAD
-Definition measurableTypeR (R : realType) :=
-  g_sigma_algebraType (@ocitv R).
-
-Section lebesgue_stieltjes_measure.
-Context {R : realType}.
-
-Definition lebesgue_display : measure_display :=
-  (@ocitv R).-sigma.
-Definition measurableR : set (set R) :=
-  (@ocitv R).-sigma.-measurable.
-
-HB.instance Definition _ : Measurable lebesgue_display (measurableTypeR R) :=
-   Measurable.on (measurableTypeR R).
-(* Presumably it is safe to use NFI here because morally R is unique
-   and nothing else can be used here *)
-#[non_forgetful_inheritance]
-HB.instance Definition _ := Measurable.copy R (measurableTypeR R).
-
-Lemma lebesgue_stieltjes_measure_unique
-    (f : cumulative R R) (mu : {measure set R -> \bar R}) :
-=======
 Section lebesgue_stieltjes_measure_unique.
 Context {R : realType} (f : cumulative R R).
 Import MeasurableR.
 
 Let ocitv_lebesgue_stieltjes_measure_unique
     (mu : {measure set (MeasurableRocitv.measurableTypeR R) -> \bar R}) :
->>>>>>> df9c28577 (merge with measurableTypeNormed)
     (forall X, ocitv X -> lebesgue_stieltjes_measure f X = mu X) ->
   forall A : set R, measurable A -> lebesgue_stieltjes_measure f A = mu A.
 Proof.

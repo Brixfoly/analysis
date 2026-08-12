@@ -1788,19 +1788,12 @@ Qed.
 
 End integration_by_substitution.
 
-<<<<<<< HEAD
-
-=======
->>>>>>> df9c28577 (merge with measurableTypeNormed)
 Section ge0_integration_by_substitution_shift.
 Context {R : realType}.
 Notation mu := (@lebesgue_measure R).
 
-<<<<<<< HEAD
-=======
 Import MeasurableR.
 
->>>>>>> df9c28577 (merge with measurableTypeNormed)
 Lemma ge0_integration_by_substitution_shift_itvy (f : R -> R) (r e : R) :
   {within `[r + e, +oo[, continuous f} ->
   {in `]r + e, +oo[, forall x : R, 0 <= f x} ->
