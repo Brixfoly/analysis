@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Module mathcomp.analysis.topology_theory.num_topology</title>
-<meta name="description" content="Documentation of Coq module Mathcomp Analysis a0582da 2026.10.02-22:32" />
+<meta name="description" content="Documentation of Coq module Mathcomp Analysis a0582da 2026.10.03-21:19" />
 <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markdown-it-deflist/dist/markdown-it-deflist.min.js"></script>
@@ -493,7 +493,10 @@ Qed.</div></details>
 <span class="vernacular">Section</span><span class="id"> at_left_right</span>.<br/>
 <span class="vernacular">Context</span><span class="id"> {</span><span id="at_left_right.R" class="id"><div name="at_left_right.R" class="id anchor tooltip">R<span class='tooltip-area'><hr/><a href='https://github.com/math-comp/analysis/tree/a0582da47ba6aa1ab4c08b47c1906488a00f961a/theories/topology_theory/num_topology.v#L217' target='_blank'>Source code</a></span></div></span><span class="id"> :</span><span class="id"> </span><span class="id link"><a href="https://math-comp.github.io/htmldoc_2_6_0/mathcomp.algebra.numeric_hierarchy.numfield.html#Num.NumField.Exports.numFieldType">numFieldType</a></span><span class="id">}</span>.<br/>
 <br/>
-<span class="vernacular">Definition</span><span class="id"> </span><span id="at_left" class="id"><div name="at_left" class="id anchor tooltip">at_left<span class='tooltip-area'><p>limit_point : forall {T : topologicalType}, (T -> Prop) -> set T
+<span class="vernacular">Definition</span><span class="id"> </span><span id="at_left" class="id"><div name="at_left" class="id anchor tooltip">at_left<span class='tooltip-area'><p>Abbreviation closure e a := (closure_mem e (mem a))
+Expands to: Abbreviation mathcomp.boot.fingraph.closure
+Declared in library mathcomp.boot.fingraph, line 230, characters 0-48
+limit_point : forall {T : topologicalType}, (T -> Prop) -> set T
 
 limit_point is not universe polymorphic
 Arguments limit_point {T} E%_function_scope _
